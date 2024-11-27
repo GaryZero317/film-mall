@@ -1,0 +1,110 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "User API",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/service/user/api/user.go",
+            "args": ["-f", "${workspaceFolder}/service/user/api/etc/user.yaml"],
+            "cwd": "${workspaceFolder}/service/user/api"
+        },
+        {
+            "name": "Product API",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/service/product/api/product.go",
+            "args": ["-f", "${workspaceFolder}/service/product/api/etc/product.yaml"],
+            "cwd": "${workspaceFolder}/service/product/api"
+        },
+        {
+            "name": "Order API",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/service/order/api/order.go",
+            "args": ["-f", "${workspaceFolder}/service/order/api/etc/order.yaml"],
+            "cwd": "${workspaceFolder}/service/order/api"
+        },
+        {
+            "name": "Pay API",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/service/pay/api/pay.go",
+            "args": ["-f", "${workspaceFolder}/service/pay/api/etc/pay.yaml"],
+            "cwd": "${workspaceFolder}/service/pay/api"
+        },
+        {
+            "name": "User RPC",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/service/user/rpc/user.go",
+            "args": ["-f", "${workspaceFolder}/service/user/rpc/etc/user.yaml"],
+            "cwd": "${workspaceFolder}/service/user/rpc"
+        },
+        {
+            "name": "Product RPC",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/service/product/rpc/product.go",
+            "args": ["-f", "${workspaceFolder}/service/product/rpc/etc/product.yaml"],
+            "cwd": "${workspaceFolder}/service/product/rpc"
+        },
+        {
+            "name": "Order RPC",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/service/order/rpc/order.go",
+            "args": ["-f", "${workspaceFolder}/service/order/rpc/etc/order.yaml"],
+            "cwd": "${workspaceFolder}/service/order/rpc"
+        },
+        {
+            "name": "Pay RPC",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/service/pay/rpc/pay.go",
+            "args": ["-f", "${workspaceFolder}/service/pay/rpc/etc/pay.yaml"],
+            "cwd": "${workspaceFolder}/service/pay/rpc"
+        }
+    ],
+    "compounds": [
+        {
+            "name": "All API Services",
+            "configurations": [
+                "User API",
+                "Product API",
+                "Order API",
+                "Pay API"
+            ]
+        },
+        {
+            "name": "All RPC Services",
+            "configurations": [
+                "User RPC",
+                "Product RPC",
+                "Order RPC",
+                "Pay RPC"
+            ]
+        },
+        {
+            "name": "All Services",
+            "configurations": [
+                "User RPC",
+                "Product RPC",
+                "Order RPC",
+                "Pay RPC",
+                "User API",
+                "Product API",
+                "Order API",
+                "Pay API"
+            ]
+        }
+    ]
+}

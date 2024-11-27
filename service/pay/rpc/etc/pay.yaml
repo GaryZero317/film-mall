@@ -1,0 +1,27 @@
+Name: pay.rpc
+ListenOn: 0.0.0.0:9003
+
+Etcd:
+  Hosts:
+    - localhost:2379
+  Key: pay.rpc
+
+Mysql:
+  DataSource: root:200317@tcp(localhost:3306)/mall?charset=utf8mb4&parseTime=true&loc=Asia%2FShanghai
+
+CacheRedis:
+  - Host: localhost:6379
+    Type: node
+    Pass: "123456"
+
+UserRpc:
+  Etcd:
+    Hosts:
+      - localhost:2379
+    Key: user.rpc
+
+OrderRpc:
+  Etcd:
+    Hosts:
+      - localhost:2379
+    Key: order.rpc

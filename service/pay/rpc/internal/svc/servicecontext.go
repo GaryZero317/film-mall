@@ -1,12 +1,12 @@
 package svc
 
 import (
+	"database/sql"
 	"mall/service/order/rpc/order"
 	"mall/service/pay/model"
 	"mall/service/pay/rpc/internal/config"
 	"mall/service/user/rpc/user"
 
-	"github.com/zeromicro/go-zero/core/stores/sqlx"
 	"github.com/zeromicro/go-zero/zrpc"
 )
 
@@ -14,17 +14,25 @@ type ServiceContext struct {
 	Config config.Config
 
 	PayModel model.PayModel
-
-	UserRpc  user.User
 	OrderRpc order.Order
+	UserRpc  user.User
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
-	conn := sqlx.NewMysql(c.Mysql.DataSource)
+	sqlDB, err := sql.Open("mysql", c.Mysql.DataSource)
+	if err != nil {
+		panic(err)
+	}
+
+	payModel, err := model.NewGormPayModel(sqlDB, c.CacheRedis)
+	if err != nil {
+		panic(err)
+	}
+
 	return &ServiceContext{
 		Config:   c,
-		PayModel: model.NewPayModel(conn, c.CacheRedis),
-		UserRpc:  user.NewUser(zrpc.MustNewClient(c.UserRpc)),
+		PayModel: payModel,
 		OrderRpc: order.NewOrder(zrpc.MustNewClient(c.OrderRpc)),
+		UserRpc:  user.NewUser(zrpc.MustNewClient(c.UserRpc)),
 	}
 }

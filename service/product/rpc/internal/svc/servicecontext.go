@@ -1,10 +1,9 @@
 package svc
 
 import (
+	"database/sql"
 	"mall/service/product/model"
 	"mall/service/product/rpc/internal/config"
-
-	"github.com/zeromicro/go-zero/core/stores/sqlx"
 )
 
 type ServiceContext struct {
@@ -14,9 +13,18 @@ type ServiceContext struct {
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
-	conn := sqlx.NewMysql(c.Mysql.DataSource)
+	sqlDB, err := sql.Open("mysql", c.Mysql.DataSource)
+	if err != nil {
+		panic(err)
+	}
+
+	productModel, err := model.NewGormProductModel(sqlDB, c.CacheRedis)
+	if err != nil {
+		panic(err)
+	}
+
 	return &ServiceContext{
 		Config:       c,
-		ProductModel: model.NewProductModel(conn, c.CacheRedis),
+		ProductModel: productModel,
 	}
 }

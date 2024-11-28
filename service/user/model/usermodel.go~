@@ -27,13 +27,9 @@ type (
 
 // NewUserModel 返回数据库表的模型。
 func NewUserModel(conn sqlx.SqlConn, c cache.CacheConf) UserModel {
-	// 获取原始数据库连接
-	rawDB, err := conn.RawDB()
-	if err != nil {
-		panic(err)
-	}
-	
-	gormModel, err := NewGormUserModel(rawDB, c)
+	// 将 sqlx.SqlConn 转换为 DSN 字符串
+	dsn := conn.DriverName()
+	gormModel, err := NewGormUserModel(dsn, c)
 	if err != nil {
 		panic(err)
 	}
@@ -41,10 +37,14 @@ func NewUserModel(conn sqlx.SqlConn, c cache.CacheConf) UserModel {
 		GormUserModel: gormModel,
 	}
 }
-
 // Insert implements UserModel.Insert
 func (m *customUserModel) Insert(ctx context.Context, data *User) (sql.Result, error) {
-	return m.GormUserModel.Insert(ctx, data)
+	err := m.GormUserModel.Insert(ctx, data)
+	if err != nil {
+		return nil, err
+	}
+	// Return a dummy sql.Result since we don't use it
+	return nil, nil
 }
 
 // FindOne implements UserModel.FindOne

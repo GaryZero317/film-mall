@@ -2,53 +2,51 @@ package model
 
 import (
 	"context"
-	"fmt"
-
+	"database/sql"
 	"github.com/zeromicro/go-zero/core/stores/cache"
-	"github.com/zeromicro/go-zero/core/stores/sqlc"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
 )
 
 var _ PayModel = (*customPayModel)(nil)
 
-var (
-	cachePayOidPrefix = "cache:pay:oid:"
-)
-
 type (
 	// PayModel is an interface to be customized, add more methods here,
 	// and implement the added methods in customPayModel.
 	PayModel interface {
-		payModel
-
+		Insert(ctx context.Context, data *Pay) (sql.Result, error)
+		FindOne(ctx context.Context, id int64) (*Pay, error)
+		Update(ctx context.Context, data *Pay) error
+		Delete(ctx context.Context, id int64) error
 		FindOneByOid(ctx context.Context, oid int64) (*Pay, error)
 	}
 
 	customPayModel struct {
-		*defaultPayModel
+		*GormPayModel
 	}
+)
+
+var (
+	cachePayOidPrefix = "cache:pay:oid:"
 )
 
 // NewPayModel returns a model for the database table.
 func NewPayModel(conn sqlx.SqlConn, c cache.CacheConf) PayModel {
+	// 获取原始数据库连接
+	rawDB, err := conn.RawDB()
+	if err != nil {
+		panic(err)
+	}
+	
+	gormModel, err := NewGormPayModel(rawDB, c)
+	if err != nil {
+		panic(err)
+	}
 	return &customPayModel{
-		defaultPayModel: newPayModel(conn, c),
+		GormPayModel: gormModel,
 	}
 }
 
-func (m *defaultPayModel) FindOneByOid(ctx context.Context, oid int64) (*Pay, error) {
-	payOidKey := fmt.Sprintf("%s%v", cachePayOidPrefix, oid)
-	var resp Pay
-	err := m.QueryRowCtx(ctx, &resp, payOidKey, func(ctx context.Context, conn sqlx.SqlConn, v interface{}) error {
-		query := fmt.Sprintf("select %s from %s where `oid` = ? limit 1", payRows, m.table)
-		return conn.QueryRowCtx(ctx, v, query, oid)
-	})
-	switch err {
-	case nil:
-		return &resp, nil
-	case sqlc.ErrNotFound:
-		return nil, ErrNotFound
-	default:
-		return nil, err
-	}
+// FindOneByOid returns a pay record by order ID
+func (m *customPayModel) FindOneByOid(ctx context.Context, oid int64) (*Pay, error) {
+	return m.GormPayModel.FindOneByOid(ctx, oid)
 }

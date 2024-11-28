@@ -36,16 +36,24 @@ func (l *LoginLogic) Login(in *user.LoginRequest) (*user.LoginResponse, error) {
 		return nil, status.Error(500, err.Error())
 	}
 
+	l.Logger.Infof("DEBUG Login - Found user: ID=%d, Name=%s, Mobile=%s", 
+		res.Id, res.Name, res.Mobile)
+
 	// 判断密码是否正确
 	password := cryptx.PasswordEncrypt(l.svcCtx.Config.Salt, in.Password)
 	if password != res.Password {
 		return nil, status.Error(100, "密码错误")
 	}
 
-	return &user.LoginResponse{
+	response := &user.LoginResponse{
 		Id:     res.Id,
 		Name:   res.Name,
 		Gender: res.Gender,
 		Mobile: res.Mobile,
-	}, nil
+	}
+
+	l.Logger.Infof("DEBUG Login - Returning response: ID=%d, Name=%s, Mobile=%s", 
+		response.Id, response.Name, response.Mobile)
+
+	return response, nil
 }

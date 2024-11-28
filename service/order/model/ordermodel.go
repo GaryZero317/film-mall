@@ -2,10 +2,8 @@ package model
 
 import (
 	"context"
-	"fmt"
-
+	"database/sql"
 	"github.com/zeromicro/go-zero/core/stores/cache"
-	"github.com/zeromicro/go-zero/core/stores/sqlc"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
 )
 
@@ -15,35 +13,36 @@ type (
 	// OrderModel is an interface to be customized, add more methods here,
 	// and implement the added methods in customOrderModel.
 	OrderModel interface {
-		orderModel
-
+		Insert(ctx context.Context, data *Order) (sql.Result, error)
+		FindOne(ctx context.Context, id int64) (*Order, error)
+		Update(ctx context.Context, data *Order) error
+		Delete(ctx context.Context, id int64) error
 		FindAllByUid(ctx context.Context, uid int64) ([]*Order, error)
 	}
 
 	customOrderModel struct {
-		*defaultOrderModel
+		*GormOrderModel
 	}
 )
 
-// NewOrderModel returns a model for the database table.
+// NewOrderModel 返回数据库表的模型。
 func NewOrderModel(conn sqlx.SqlConn, c cache.CacheConf) OrderModel {
+	// 获取原始数据库连接
+	rawDB, err := conn.RawDB()
+	if err != nil {
+		panic(err)
+	}
+	
+	gormModel, err := NewGormOrderModel(rawDB, c)
+	if err != nil {
+		panic(err)
+	}
 	return &customOrderModel{
-		defaultOrderModel: newOrderModel(conn, c),
+		GormOrderModel: gormModel,
 	}
 }
 
+// FindAllByUid returns all orders for a given user ID
 func (m *customOrderModel) FindAllByUid(ctx context.Context, uid int64) ([]*Order, error) {
-	var resp []*Order
-
-	query := fmt.Sprintf("select %s from %s where `uid` = ?", orderRows, m.table)
-	err := m.QueryRowsNoCacheCtx(ctx, &resp, query, uid)
-
-	switch err {
-	case nil:
-		return resp, nil
-	case sqlc.ErrNotFound:
-		return nil, ErrNotFound
-	default:
-		return nil, err
-	}
+	return m.GormOrderModel.FindAllByUid(ctx, uid)
 }

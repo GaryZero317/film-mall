@@ -27,39 +27,45 @@ func NewRegisterLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Register
 }
 
 func (l *RegisterLogic) Register(in *user.RegisterRequest) (*user.RegisterResponse, error) {
-	// 判断手机号是否已经注册
-	_, err := l.svcCtx.UserModel.FindOneByMobile(l.ctx, in.Mobile)
-	if err == nil {
-		return nil, status.Error(100, "该用户已存在")
+	// 验证输入
+	if in.Mobile == "" {
+		return nil, status.Error(100, "手机号不能为空")
+	}
+	if in.Password == "" {
+		return nil, status.Error(100, "密码不能为空")
+	}
+	if in.Name == "" {
+		return nil, status.Error(100, "用户名不能为空")
 	}
 
-	if err == model.ErrNotFound {
+	encryptedPassword := cryptx.PasswordEncrypt(l.svcCtx.Config.Salt, in.Password)
+	l.Logger.Slowf("DEBUG Registration - Password: [%s], Salt: [%s], Encrypted: [%s]",
+		in.Password, l.svcCtx.Config.Salt, encryptedPassword)
 
-		newUser := model.User{
-			Name:     in.Name,
-			Gender:   in.Gender,
-			Mobile:   in.Mobile,
-			Password: cryptx.PasswordEncrypt(l.svcCtx.Config.Salt, in.Password),
-		}
-
-		res, err := l.svcCtx.UserModel.Insert(l.ctx, &newUser)
-		if err != nil {
-			return nil, status.Error(500, err.Error())
-		}
-
-		newUser.Id, err = res.LastInsertId()
-		if err != nil {
-			return nil, status.Error(500, err.Error())
-		}
-
-		return &user.RegisterResponse{
-			Id:     newUser.Id,
-			Name:   newUser.Name,
-			Gender: newUser.Gender,
-			Mobile: newUser.Mobile,
-		}, nil
-
+	newUser := model.User{
+		Name:     in.Name,
+		Gender:   in.Gender,
+		Mobile:   in.Mobile,
+		Password: encryptedPassword,
 	}
 
-	return nil, status.Error(500, err.Error())
+	res, err := l.svcCtx.UserModel.Insert(l.ctx, &newUser)
+	if err != nil {
+		if err == model.ErrDuplicateEntry {
+			return nil, status.Error(100, "该用户已存在")
+		}
+		return nil, status.Error(500, err.Error())
+	}
+
+	newUser.Id, err = res.LastInsertId()
+	if err != nil {
+		return nil, status.Error(500, err.Error())
+	}
+
+	return &user.RegisterResponse{
+		Id:     newUser.Id,
+		Name:   newUser.Name,
+		Gender: newUser.Gender,
+		Mobile: newUser.Mobile,
+	}, nil
 }

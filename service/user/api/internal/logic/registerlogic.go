@@ -5,7 +5,7 @@ import (
 
 	"mall/service/user/api/internal/svc"
 	"mall/service/user/api/internal/types"
-	"mall/service/user/rpc/types/user"
+	"mall/service/user/rpc/pb/user"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )

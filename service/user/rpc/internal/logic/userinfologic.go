@@ -5,7 +5,7 @@ import (
 
 	"mall/service/user/model"
 	"mall/service/user/rpc/internal/svc"
-	"mall/service/user/rpc/types/user"
+	"mall/service/user/rpc/pb/user"
 
 	"github.com/zeromicro/go-zero/core/logx"
 	"google.golang.org/grpc/status"

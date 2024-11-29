@@ -3,7 +3,7 @@ package svc
 import (
 	"mall/service/user/api/internal/config"
 	"mall/service/user/model"
-	"mall/service/user/rpc/types/user"
+	"mall/service/user/rpc/pb/user"
 
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
 	"github.com/zeromicro/go-zero/zrpc"

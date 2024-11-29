@@ -1,30 +1,21 @@
 package svc
 
 import (
-	"database/sql"
 	"mall/service/user/model"
 	"mall/service/user/rpc/internal/config"
+
+	"github.com/zeromicro/go-zero/core/stores/sqlx"
 )
 
 type ServiceContext struct {
-	Config config.Config
-
+	Config    config.Config
 	UserModel model.UserModel
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
-	sqlDB, err := sql.Open("mysql", c.Mysql.DataSource)
-	if err != nil {
-		panic(err)
-	}
-
-	userModel, err := model.NewGormUserModel(sqlDB, c.CacheRedis)
-	if err != nil {
-		panic(err)
-	}
-
+	conn := sqlx.NewMysql(c.Mysql.DataSource)
 	return &ServiceContext{
 		Config:    c,
-		UserModel: userModel,
+		UserModel: model.NewUserModel(conn, c.CacheRedis),
 	}
 }

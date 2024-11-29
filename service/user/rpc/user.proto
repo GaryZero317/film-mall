@@ -44,8 +44,58 @@ message UserInfoResponse {
 }
 // 用户信息
 
+// 管理员登录
+message AdminLoginRequest {
+  string Username = 1;
+  string Password = 2;
+}
+message AdminLoginResponse {
+  int64 Id = 1;
+  string Username = 2;
+  int32 Level = 3;
+  string Token = 4;
+}
+// 管理员登录
+
+// 创建管理员
+message CreateAdminRequest {
+  string Username = 1;
+  string Password = 2;
+  int32 Level = 3;
+}
+message CreateAdminResponse {
+  int64 Id = 1;
+  string Username = 2;
+}
+// 创建管理员
+
+// 更新管理员
+message UpdateAdminRequest {
+  int64 Id = 1;
+  string Password = 2;
+  int32 Level = 3;
+}
+message UpdateAdminResponse {
+  bool Success = 1;
+}
+// 更新管理员
+
+// 删除管理员
+message DeleteAdminRequest {
+  int64 Id = 1;
+}
+message DeleteAdminResponse {
+  bool Success = 1;
+}
+// 删除管理员
+
 service User {
   rpc Login(LoginRequest) returns(LoginResponse);
   rpc Register(RegisterRequest) returns(RegisterResponse);
   rpc UserInfo(UserInfoRequest) returns(UserInfoResponse);
+  // 管理员服务
+  rpc AdminLogin(AdminLoginRequest) returns(AdminLoginResponse);
+  rpc CreateAdmin(CreateAdminRequest) returns(CreateAdminResponse);
+  rpc UpdateAdmin(UpdateAdminRequest) returns(UpdateAdminResponse);
+  rpc DeleteAdmin(DeleteAdminRequest) returns(DeleteAdminResponse);
 }

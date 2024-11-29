@@ -61,6 +61,16 @@ func (m *GormAdminModel) Insert(ctx context.Context, data *GormAdmin) error {
 	return m.db.WithContext(ctx).Create(data).Error
 }
 
+// FindOne retrieves an admin by ID
+func (m *GormAdminModel) FindOne(ctx context.Context, id int64) (*GormAdmin, error) {
+	var admin GormAdmin
+	err := m.db.WithContext(ctx).First(&admin, id).Error
+	if err != nil {
+		return nil, err
+	}
+	return &admin, nil
+}
+
 // FindOneByUsername retrieves an admin by username
 func (m *GormAdminModel) FindOneByUsername(ctx context.Context, username string) (*GormAdmin, error) {
 	var admin GormAdmin

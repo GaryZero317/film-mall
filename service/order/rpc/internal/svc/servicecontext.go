@@ -5,7 +5,7 @@ import (
 	"mall/service/order/model"
 	"mall/service/order/rpc/internal/config"
 	"mall/service/product/rpc/product"
-	"mall/service/user/rpc/user"
+	"mall/service/user/rpc/pb/user"
 
 	"github.com/zeromicro/go-zero/zrpc"
 )
@@ -15,7 +15,7 @@ type ServiceContext struct {
 
 	OrderModel model.OrderModel
 
-	UserRpc    user.User
+	UserRpc    user.UserClient
 	ProductRpc product.Product
 }
 
@@ -33,7 +33,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	return &ServiceContext{
 		Config:     c,
 		OrderModel: orderModel,
-		UserRpc:    user.NewUser(zrpc.MustNewClient(c.UserRpc)),
+		UserRpc:    user.NewUserClient(zrpc.MustNewClient(c.UserRpc).Conn()),
 		ProductRpc: product.NewProduct(zrpc.MustNewClient(c.ProductRpc)),
 	}
 }

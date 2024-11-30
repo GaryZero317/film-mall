@@ -36,7 +36,7 @@ func (l *UpdateAdminLogic) UpdateAdmin(in *user.UpdateAdminRequest) (*user.Updat
 		return nil, status.Error(500, err.Error())
 	}
 
-	l.Logger.Infof("DEBUG UpdateAdmin - Updating admin: ID=%d, Username=%s", 
+	l.Logger.Infof("DEBUG UpdateAdmin - Updating admin: ID=%d, Username=%s",
 		admin.ID, admin.Username)
 
 	// 更新管理员信息

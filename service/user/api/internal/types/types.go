@@ -45,7 +45,7 @@ type AdminLoginResponse struct {
 type CreateAdminRequest struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
-	Level    int32  `json:"level"`
+	Level    int32  `json:"level,optional"`
 }
 
 type CreateAdminResponse struct {

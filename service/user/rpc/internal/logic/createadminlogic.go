@@ -37,8 +37,7 @@ func (l *CreateAdminLogic) CreateAdmin(in *user.CreateAdminRequest) (*user.Creat
 		return nil, status.Error(500, err.Error())
 	}
 
-	l.Logger.Infof("DEBUG CreateAdmin - Creating new admin: Username=%s, Level=%d", 
-		in.Username, in.Level)
+	l.Logger.Infof("DEBUG CreateAdmin - Creating new admin: Username=%s", in.Username)
 
 	// 创建新管理员
 	admin := &model.GormAdmin{
@@ -55,10 +54,11 @@ func (l *CreateAdminLogic) CreateAdmin(in *user.CreateAdminRequest) (*user.Creat
 	response := &user.CreateAdminResponse{
 		Id:       admin.ID,
 		Username: admin.Username,
+		Level:    int32(admin.Level),
 	}
 
-	l.Logger.Infof("DEBUG CreateAdmin - Created admin: ID=%d, Username=%s", 
-		response.Id, response.Username)
+	l.Logger.Infof("DEBUG CreateAdmin - Created admin: ID=%d, Username=%s, Level=%d",
+		response.Id, response.Username, response.Level)
 
 	return response, nil
 }

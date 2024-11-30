@@ -2,7 +2,8 @@ package logic
 
 import (
 	"context"
-	"mall/common/errorx"
+
+
 	"mall/service/user/api/internal/svc"
 	"mall/service/user/api/internal/types"
 	"mall/service/user/rpc/user"
@@ -25,19 +26,19 @@ func NewCreateAdminLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Creat
 }
 
 func (l *CreateAdminLogic) CreateAdmin(req *types.CreateAdminRequest) (resp *types.CreateAdminResponse, err error) {
+	// 如果等级为0（未设置），则默认为1
+	level := req.Level
+	if level == 0 {
+		level = 1
+	}
+
 	// 调用 RPC 服务创建管理员
 	res, err := l.svcCtx.UserRpc.CreateAdmin(l.ctx, &user.CreateAdminRequest{
 		Username: req.Username,
 		Password: req.Password,
-		Level:    1, // 直接设置默认值为1
+		Level:    level,
 	})
-	if err != nil {
-		return nil, errorx.NewDefaultError(err.Error())
-	}
 
-	if res == nil {
-		return nil, errorx.NewDefaultError("创建管理员失败")
-	}
 
 	return &types.CreateAdminResponse{
 		Id:       res.Id,

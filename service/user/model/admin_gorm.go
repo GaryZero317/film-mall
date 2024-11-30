@@ -3,6 +3,7 @@ package model
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/stores/cache"
@@ -66,6 +67,9 @@ func (m *GormAdminModel) FindOne(ctx context.Context, id int64) (*GormAdmin, err
 	var admin GormAdmin
 	err := m.db.WithContext(ctx).First(&admin, id).Error
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrNotFound
+		}
 		return nil, err
 	}
 	return &admin, nil
@@ -76,6 +80,9 @@ func (m *GormAdminModel) FindOneByUsername(ctx context.Context, username string)
 	var admin GormAdmin
 	err := m.db.WithContext(ctx).Where("username = ?", username).First(&admin).Error
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrNotFound
+		}
 		return nil, err
 	}
 	return &admin, nil

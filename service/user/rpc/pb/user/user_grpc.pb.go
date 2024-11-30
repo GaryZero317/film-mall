@@ -26,6 +26,7 @@ const (
 	User_CreateAdmin_FullMethodName = "/user.User/CreateAdmin"
 	User_UpdateAdmin_FullMethodName = "/user.User/UpdateAdmin"
 	User_DeleteAdmin_FullMethodName = "/user.User/DeleteAdmin"
+	User_AdminInfo_FullMethodName   = "/user.User/AdminInfo"
 )
 
 // UserClient is the client API for User service.
@@ -40,6 +41,7 @@ type UserClient interface {
 	CreateAdmin(ctx context.Context, in *CreateAdminRequest, opts ...grpc.CallOption) (*CreateAdminResponse, error)
 	UpdateAdmin(ctx context.Context, in *UpdateAdminRequest, opts ...grpc.CallOption) (*UpdateAdminResponse, error)
 	DeleteAdmin(ctx context.Context, in *DeleteAdminRequest, opts ...grpc.CallOption) (*DeleteAdminResponse, error)
+	AdminInfo(ctx context.Context, in *AdminInfoRequest, opts ...grpc.CallOption) (*AdminInfoResponse, error)
 }
 
 type userClient struct {
@@ -120,6 +122,16 @@ func (c *userClient) DeleteAdmin(ctx context.Context, in *DeleteAdminRequest, op
 	return out, nil
 }
 
+func (c *userClient) AdminInfo(ctx context.Context, in *AdminInfoRequest, opts ...grpc.CallOption) (*AdminInfoResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AdminInfoResponse)
+	err := c.cc.Invoke(ctx, User_AdminInfo_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServer is the server API for User service.
 // All implementations must embed UnimplementedUserServer
 // for forward compatibility.
@@ -132,6 +144,7 @@ type UserServer interface {
 	CreateAdmin(context.Context, *CreateAdminRequest) (*CreateAdminResponse, error)
 	UpdateAdmin(context.Context, *UpdateAdminRequest) (*UpdateAdminResponse, error)
 	DeleteAdmin(context.Context, *DeleteAdminRequest) (*DeleteAdminResponse, error)
+	AdminInfo(context.Context, *AdminInfoRequest) (*AdminInfoResponse, error)
 	mustEmbedUnimplementedUserServer()
 }
 
@@ -162,6 +175,9 @@ func (UnimplementedUserServer) UpdateAdmin(context.Context, *UpdateAdminRequest)
 }
 func (UnimplementedUserServer) DeleteAdmin(context.Context, *DeleteAdminRequest) (*DeleteAdminResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteAdmin not implemented")
+}
+func (UnimplementedUserServer) AdminInfo(context.Context, *AdminInfoRequest) (*AdminInfoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AdminInfo not implemented")
 }
 func (UnimplementedUserServer) mustEmbedUnimplementedUserServer() {}
 func (UnimplementedUserServer) testEmbeddedByValue()              {}
@@ -310,6 +326,24 @@ func _User_DeleteAdmin_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _User_AdminInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AdminInfoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).AdminInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: User_AdminInfo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).AdminInfo(ctx, req.(*AdminInfoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // User_ServiceDesc is the grpc.ServiceDesc for User service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -344,6 +378,10 @@ var User_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteAdmin",
 			Handler:    _User_DeleteAdmin_Handler,
+		},
+		{
+			MethodName: "AdminInfo",
+			Handler:    _User_AdminInfo_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -75,3 +75,9 @@ type DeleteAdminResponse struct {
 	Username string `json:"username"`
 	Level    int32  `json:"level"`
 }
+
+type AdminInfoResponse struct {
+	Id       int64  `json:"id"`
+	Username string `json:"username"`
+	Level    int32  `json:"level"`
+}

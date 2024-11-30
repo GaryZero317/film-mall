@@ -89,6 +89,17 @@ message DeleteAdminResponse {
 }
 // 删除管理员
 
+// 管理员信息
+message AdminInfoRequest {
+  int64 Id = 1;
+}
+message AdminInfoResponse {
+  int64 Id = 1;
+  string Username = 2;
+  int32 Level = 3;
+}
+// 管理员信息
+
 service User {
   rpc Login(LoginRequest) returns(LoginResponse);
   rpc Register(RegisterRequest) returns(RegisterResponse);
@@ -98,4 +109,5 @@ service User {
   rpc CreateAdmin(CreateAdminRequest) returns(CreateAdminResponse);
   rpc UpdateAdmin(UpdateAdminRequest) returns(UpdateAdminResponse);
   rpc DeleteAdmin(DeleteAdminRequest) returns(DeleteAdminResponse);
+  rpc AdminInfo(AdminInfoRequest) returns(AdminInfoResponse);
 }

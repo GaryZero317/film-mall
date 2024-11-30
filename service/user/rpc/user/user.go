@@ -13,6 +13,8 @@ import (
 )
 
 type (
+	AdminInfoRequest    = user.AdminInfoRequest
+	AdminInfoResponse   = user.AdminInfoResponse
 	AdminLoginRequest   = user.AdminLoginRequest
 	AdminLoginResponse  = user.AdminLoginResponse
 	CreateAdminRequest  = user.CreateAdminRequest
@@ -32,11 +34,12 @@ type (
 		Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
 		Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
 		UserInfo(ctx context.Context, in *UserInfoRequest, opts ...grpc.CallOption) (*UserInfoResponse, error)
-		//  管理员服务
+		// 管理员服务
 		AdminLogin(ctx context.Context, in *AdminLoginRequest, opts ...grpc.CallOption) (*AdminLoginResponse, error)
 		CreateAdmin(ctx context.Context, in *CreateAdminRequest, opts ...grpc.CallOption) (*CreateAdminResponse, error)
 		UpdateAdmin(ctx context.Context, in *UpdateAdminRequest, opts ...grpc.CallOption) (*UpdateAdminResponse, error)
 		DeleteAdmin(ctx context.Context, in *DeleteAdminRequest, opts ...grpc.CallOption) (*DeleteAdminResponse, error)
+		AdminInfo(ctx context.Context, in *AdminInfoRequest, opts ...grpc.CallOption) (*AdminInfoResponse, error)
 	}
 
 	defaultUser struct {
@@ -65,7 +68,7 @@ func (m *defaultUser) UserInfo(ctx context.Context, in *UserInfoRequest, opts ..
 	return client.UserInfo(ctx, in, opts...)
 }
 
-//  管理员服务
+// 管理员服务
 func (m *defaultUser) AdminLogin(ctx context.Context, in *AdminLoginRequest, opts ...grpc.CallOption) (*AdminLoginResponse, error) {
 	client := user.NewUserClient(m.cli.Conn())
 	return client.AdminLogin(ctx, in, opts...)
@@ -84,4 +87,9 @@ func (m *defaultUser) UpdateAdmin(ctx context.Context, in *UpdateAdminRequest, o
 func (m *defaultUser) DeleteAdmin(ctx context.Context, in *DeleteAdminRequest, opts ...grpc.CallOption) (*DeleteAdminResponse, error) {
 	client := user.NewUserClient(m.cli.Conn())
 	return client.DeleteAdmin(ctx, in, opts...)
+}
+
+func (m *defaultUser) AdminInfo(ctx context.Context, in *AdminInfoRequest, opts ...grpc.CallOption) (*AdminInfoResponse, error) {
+	client := user.NewUserClient(m.cli.Conn())
+	return client.AdminInfo(ctx, in, opts...)
 }

@@ -58,6 +58,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Path:    "/api/admin/delete",
 				Handler: DeleteAdminHandler(serverCtx),
 			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/api/admin/info",
+				Handler: AdminInfoHandler(serverCtx),
+			},
 		},
 		rest.WithJwt(serverCtx.Config.AdminAuth.AccessSecret),
 	)

@@ -37,7 +37,7 @@ func (s *UserServer) UserInfo(ctx context.Context, in *user.UserInfoRequest) (*u
 	return l.UserInfo(in)
 }
 
-//  管理员服务
+// 管理员服务
 func (s *UserServer) AdminLogin(ctx context.Context, in *user.AdminLoginRequest) (*user.AdminLoginResponse, error) {
 	l := logic.NewAdminLoginLogic(ctx, s.svcCtx)
 	return l.AdminLogin(in)
@@ -56,4 +56,9 @@ func (s *UserServer) UpdateAdmin(ctx context.Context, in *user.UpdateAdminReques
 func (s *UserServer) DeleteAdmin(ctx context.Context, in *user.DeleteAdminRequest) (*user.DeleteAdminResponse, error) {
 	l := logic.NewDeleteAdminLogic(ctx, s.svcCtx)
 	return l.DeleteAdmin(in)
+}
+
+func (s *UserServer) AdminInfo(ctx context.Context, in *user.AdminInfoRequest) (*user.AdminInfoResponse, error) {
+	l := logic.NewAdminInfoLogic(ctx, s.svcCtx)
+	return l.AdminInfo(in)
 }

@@ -81,6 +81,14 @@ type (
 		Level    int32  `json:"level"`
 	}
 	// 删除管理员
+
+	// 管理员信息
+	AdminInfoResponse {
+		Id       int64  `json:"id"`
+		Username string `json:"username"`
+		Level    int32  `json:"level"`
+	}
+	// 管理员信息
 )
 
 service User {
@@ -114,4 +122,7 @@ service User {
 	
 	@handler DeleteAdmin
 	post /api/admin/delete (DeleteAdminRequest) returns (DeleteAdminResponse)
+	
+	@handler AdminInfo
+	post /api/admin/info returns (AdminInfoResponse)
 }

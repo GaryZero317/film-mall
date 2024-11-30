@@ -13,5 +13,10 @@ type Config struct {
 		AccessExpire int64
 	}
 
+	AdminAuth struct {
+		AccessSecret string
+		AccessExpire int64
+	}
+
 	ProductRpc zrpc.RpcClientConf
 }

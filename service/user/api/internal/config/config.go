@@ -14,11 +14,15 @@ type Config struct {
 		AccessExpire int64
 	}
 
+	AdminAuth struct {
+		AccessSecret string
+		AccessExpire int64
+	}
+
 	Mysql struct {
 		DataSource string
 	}
 
 	CacheRedis cache.CacheConf
-
-	UserRpc zrpc.RpcClientConf
+	UserRpc    zrpc.RpcClientConf
 }

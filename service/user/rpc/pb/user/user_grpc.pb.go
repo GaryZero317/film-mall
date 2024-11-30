@@ -19,9 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	User_Login_FullMethodName    = "/user.User/Login"
-	User_Register_FullMethodName = "/user.User/Register"
-	User_UserInfo_FullMethodName = "/user.User/UserInfo"
+	User_Login_FullMethodName       = "/user.User/Login"
+	User_Register_FullMethodName    = "/user.User/Register"
+	User_UserInfo_FullMethodName    = "/user.User/UserInfo"
+	User_AdminLogin_FullMethodName  = "/user.User/AdminLogin"
+	User_CreateAdmin_FullMethodName = "/user.User/CreateAdmin"
+	User_UpdateAdmin_FullMethodName = "/user.User/UpdateAdmin"
+	User_DeleteAdmin_FullMethodName = "/user.User/DeleteAdmin"
+	User_AdminInfo_FullMethodName   = "/user.User/AdminInfo"
 )
 
 // UserClient is the client API for User service.
@@ -31,6 +36,12 @@ type UserClient interface {
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
 	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
 	UserInfo(ctx context.Context, in *UserInfoRequest, opts ...grpc.CallOption) (*UserInfoResponse, error)
+	// 管理员服务
+	AdminLogin(ctx context.Context, in *AdminLoginRequest, opts ...grpc.CallOption) (*AdminLoginResponse, error)
+	CreateAdmin(ctx context.Context, in *CreateAdminRequest, opts ...grpc.CallOption) (*CreateAdminResponse, error)
+	UpdateAdmin(ctx context.Context, in *UpdateAdminRequest, opts ...grpc.CallOption) (*UpdateAdminResponse, error)
+	DeleteAdmin(ctx context.Context, in *DeleteAdminRequest, opts ...grpc.CallOption) (*DeleteAdminResponse, error)
+	AdminInfo(ctx context.Context, in *AdminInfoRequest, opts ...grpc.CallOption) (*AdminInfoResponse, error)
 }
 
 type userClient struct {
@@ -71,6 +82,56 @@ func (c *userClient) UserInfo(ctx context.Context, in *UserInfoRequest, opts ...
 	return out, nil
 }
 
+func (c *userClient) AdminLogin(ctx context.Context, in *AdminLoginRequest, opts ...grpc.CallOption) (*AdminLoginResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AdminLoginResponse)
+	err := c.cc.Invoke(ctx, User_AdminLogin_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userClient) CreateAdmin(ctx context.Context, in *CreateAdminRequest, opts ...grpc.CallOption) (*CreateAdminResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateAdminResponse)
+	err := c.cc.Invoke(ctx, User_CreateAdmin_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userClient) UpdateAdmin(ctx context.Context, in *UpdateAdminRequest, opts ...grpc.CallOption) (*UpdateAdminResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateAdminResponse)
+	err := c.cc.Invoke(ctx, User_UpdateAdmin_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userClient) DeleteAdmin(ctx context.Context, in *DeleteAdminRequest, opts ...grpc.CallOption) (*DeleteAdminResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteAdminResponse)
+	err := c.cc.Invoke(ctx, User_DeleteAdmin_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userClient) AdminInfo(ctx context.Context, in *AdminInfoRequest, opts ...grpc.CallOption) (*AdminInfoResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AdminInfoResponse)
+	err := c.cc.Invoke(ctx, User_AdminInfo_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServer is the server API for User service.
 // All implementations must embed UnimplementedUserServer
 // for forward compatibility.
@@ -78,6 +139,12 @@ type UserServer interface {
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
 	Register(context.Context, *RegisterRequest) (*RegisterResponse, error)
 	UserInfo(context.Context, *UserInfoRequest) (*UserInfoResponse, error)
+	// 管理员服务
+	AdminLogin(context.Context, *AdminLoginRequest) (*AdminLoginResponse, error)
+	CreateAdmin(context.Context, *CreateAdminRequest) (*CreateAdminResponse, error)
+	UpdateAdmin(context.Context, *UpdateAdminRequest) (*UpdateAdminResponse, error)
+	DeleteAdmin(context.Context, *DeleteAdminRequest) (*DeleteAdminResponse, error)
+	AdminInfo(context.Context, *AdminInfoRequest) (*AdminInfoResponse, error)
 	mustEmbedUnimplementedUserServer()
 }
 
@@ -96,6 +163,21 @@ func (UnimplementedUserServer) Register(context.Context, *RegisterRequest) (*Reg
 }
 func (UnimplementedUserServer) UserInfo(context.Context, *UserInfoRequest) (*UserInfoResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UserInfo not implemented")
+}
+func (UnimplementedUserServer) AdminLogin(context.Context, *AdminLoginRequest) (*AdminLoginResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AdminLogin not implemented")
+}
+func (UnimplementedUserServer) CreateAdmin(context.Context, *CreateAdminRequest) (*CreateAdminResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateAdmin not implemented")
+}
+func (UnimplementedUserServer) UpdateAdmin(context.Context, *UpdateAdminRequest) (*UpdateAdminResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateAdmin not implemented")
+}
+func (UnimplementedUserServer) DeleteAdmin(context.Context, *DeleteAdminRequest) (*DeleteAdminResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteAdmin not implemented")
+}
+func (UnimplementedUserServer) AdminInfo(context.Context, *AdminInfoRequest) (*AdminInfoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AdminInfo not implemented")
 }
 func (UnimplementedUserServer) mustEmbedUnimplementedUserServer() {}
 func (UnimplementedUserServer) testEmbeddedByValue()              {}
@@ -172,6 +254,96 @@ func _User_UserInfo_Handler(srv interface{}, ctx context.Context, dec func(inter
 	return interceptor(ctx, in, info, handler)
 }
 
+func _User_AdminLogin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AdminLoginRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).AdminLogin(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: User_AdminLogin_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).AdminLogin(ctx, req.(*AdminLoginRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _User_CreateAdmin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateAdminRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).CreateAdmin(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: User_CreateAdmin_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).CreateAdmin(ctx, req.(*CreateAdminRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _User_UpdateAdmin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateAdminRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).UpdateAdmin(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: User_UpdateAdmin_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).UpdateAdmin(ctx, req.(*UpdateAdminRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _User_DeleteAdmin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteAdminRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).DeleteAdmin(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: User_DeleteAdmin_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).DeleteAdmin(ctx, req.(*DeleteAdminRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _User_AdminInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AdminInfoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).AdminInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: User_AdminInfo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).AdminInfo(ctx, req.(*AdminInfoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // User_ServiceDesc is the grpc.ServiceDesc for User service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -190,6 +362,26 @@ var User_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UserInfo",
 			Handler:    _User_UserInfo_Handler,
+		},
+		{
+			MethodName: "AdminLogin",
+			Handler:    _User_AdminLogin_Handler,
+		},
+		{
+			MethodName: "CreateAdmin",
+			Handler:    _User_CreateAdmin_Handler,
+		},
+		{
+			MethodName: "UpdateAdmin",
+			Handler:    _User_UpdateAdmin_Handler,
+		},
+		{
+			MethodName: "DeleteAdmin",
+			Handler:    _User_DeleteAdmin_Handler,
+		},
+		{
+			MethodName: "AdminInfo",
+			Handler:    _User_AdminInfo_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

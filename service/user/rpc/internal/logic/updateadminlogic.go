@@ -36,7 +36,7 @@ func (l *UpdateAdminLogic) UpdateAdmin(in *user.UpdateAdminRequest) (*user.Updat
 		return nil, status.Error(500, err.Error())
 	}
 
-	l.Logger.Infof("DEBUG UpdateAdmin - Updating admin: ID=%d, Username=%s",
+	l.Logger.Infof("DEBUG UpdateAdmin - Updating admin: ID=%d, Username=%s", 
 		admin.ID, admin.Username)
 
 	// 更新管理员信息
@@ -51,10 +51,13 @@ func (l *UpdateAdminLogic) UpdateAdmin(in *user.UpdateAdminRequest) (*user.Updat
 	}
 
 	response := &user.UpdateAdminResponse{
-		Success: true,
+		Id:       admin.ID,
+		Username: admin.Username,
+		Level:    int32(admin.Level),
 	}
 
-	l.Logger.Info("DEBUG UpdateAdmin - Admin updated successfully")
+	l.Logger.Infof("DEBUG UpdateAdmin - Admin updated successfully: ID=%d, Username=%s, Level=%d",
+		response.Id, response.Username, response.Level)
 
 	return response, nil
 }

@@ -77,7 +77,9 @@ message UpdateAdminRequest {
   int32 Level = 3;
 }
 message UpdateAdminResponse {
-  bool Success = 1;
+  int64 Id = 1;
+  string Username = 2;
+  int32 Level = 3;
 }
 // 更新管理员
 

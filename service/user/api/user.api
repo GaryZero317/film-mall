@@ -33,6 +33,54 @@ type (
 		Mobile string `json:"mobile"`
 	}
 	// 用户信息
+
+	// 管理员登录
+	AdminLoginRequest {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+	AdminLoginResponse {
+		AccessToken  string `json:"accessToken"`
+		AccessExpire int64  `json:"accessExpire"`
+	}
+	// 管理员登录
+
+	// 创建管理员
+	CreateAdminRequest {
+		Username string `json:"username"`
+		Password string `json:"password"`
+		Level    int32  `json:"level"`
+	}
+	CreateAdminResponse {
+		Id       int64  `json:"id"`
+		Username string `json:"username"`
+		Level    int32  `json:"level"`
+	}
+	// 创建管理员
+
+	// 更新管理员
+	UpdateAdminRequest {
+		Id       int64  `json:"id"`
+		Password string `json:"password"`
+		Level    int32  `json:"level"`
+	}
+	UpdateAdminResponse {
+		Id       int64  `json:"id"`
+		Username string `json:"username"`
+		Level    int32  `json:"level"`
+	}
+	// 更新管理员
+
+	// 删除管理员
+	DeleteAdminRequest {
+		Id int64 `json:"id"`
+	}
+	DeleteAdminResponse {
+		Id       int64  `json:"id"`
+		Username string `json:"username"`
+		Level    int32  `json:"level"`
+	}
+	// 删除管理员
 )
 
 service User {
@@ -41,6 +89,9 @@ service User {
 	
 	@handler Register
 	post /api/user/register (RegisterRequest) returns (RegisterResponse)
+	
+	@handler AdminLogin
+	post /api/admin/login (AdminLoginRequest) returns (AdminLoginResponse)
 }
 
 @server(
@@ -49,4 +100,18 @@ service User {
 service User {
 	@handler UserInfo
 	post /api/user/userinfo returns (UserInfoResponse)
+}
+
+@server(
+	jwt: AdminAuth
+)
+service User {
+	@handler CreateAdmin
+	post /api/admin/create (CreateAdminRequest) returns (CreateAdminResponse)
+	
+	@handler UpdateAdmin
+	post /api/admin/update (UpdateAdminRequest) returns (UpdateAdminResponse)
+	
+	@handler DeleteAdmin
+	post /api/admin/delete (DeleteAdminRequest) returns (DeleteAdminResponse)
 }

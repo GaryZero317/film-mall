@@ -31,3 +31,47 @@ type UserInfoResponse struct {
 	Gender int64  `json:"gender"`
 	Mobile string `json:"mobile"`
 }
+
+type AdminLoginRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+type AdminLoginResponse struct {
+	AccessToken  string `json:"accessToken"`
+	AccessExpire int64  `json:"accessExpire"`
+}
+
+type CreateAdminRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Level    int32  `json:"level"`
+}
+
+type CreateAdminResponse struct {
+	Id       int64  `json:"id"`
+	Username string `json:"username"`
+	Level    int32  `json:"level"`
+}
+
+type UpdateAdminRequest struct {
+	Id       int64  `json:"id"`
+	Password string `json:"password"`
+	Level    int32  `json:"level"`
+}
+
+type UpdateAdminResponse struct {
+	Id       int64  `json:"id"`
+	Username string `json:"username"`
+	Level    int32  `json:"level"`
+}
+
+type DeleteAdminRequest struct {
+	Id int64 `json:"id"`
+}
+
+type DeleteAdminResponse struct {
+	Id       int64  `json:"id"`
+	Username string `json:"username"`
+	Level    int32  `json:"level"`
+}

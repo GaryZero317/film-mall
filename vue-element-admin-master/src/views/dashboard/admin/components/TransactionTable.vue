@@ -1,19 +1,19 @@
 <template>
   <el-table :data="list" style="width: 100%;padding-top: 15px;">
-    <el-table-column label="Order_No" min-width="200">
+    <el-table-column label="订单号" min-width="200">
       <template slot-scope="scope">
         {{ scope.row.order_no | orderNoFilter }}
       </template>
     </el-table-column>
-    <el-table-column label="Price" width="195" align="center">
+    <el-table-column label="价格" width="195" align="center">
       <template slot-scope="scope">
         ¥{{ scope.row.price | toThousandFilter }}
       </template>
     </el-table-column>
-    <el-table-column label="Status" width="100" align="center">
+    <el-table-column label="状态" width="100" align="center">
       <template slot-scope="{row}">
         <el-tag :type="row.status | statusFilter">
-          {{ row.status }}
+          {{ row.status | statusTextFilter }}
         </el-tag>
       </template>
     </el-table-column>
@@ -32,8 +32,15 @@ export default {
       }
       return statusMap[status]
     },
+    statusTextFilter(status) {
+      const statusMap = {
+        success: '成功',
+        pending: '待定'
+      }
+      return statusMap[status]
+    },
     orderNoFilter(str) {
-      return str.substring(0, 30)
+      return str
     }
   },
   data() {

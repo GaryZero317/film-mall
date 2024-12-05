@@ -2,7 +2,7 @@
   <section class="todoapp">
     <!-- header -->
     <header class="header">
-      <input class="new-todo" autocomplete="off" placeholder="Todo List" @keyup.enter="addTodo">
+      <input class="new-todo" autocomplete="off" placeholder="待办事项" @keyup.enter="addTodo">
     </header>
     <!-- main section -->
     <section v-show="todos.length" class="main">
@@ -23,7 +23,7 @@
     <footer v-show="todos.length" class="footer">
       <span class="todo-count">
         <strong>{{ remaining }}</strong>
-        {{ remaining | pluralize('item') }} left
+        {{ remaining | pluralize('项') }} 待办
       </span>
       <ul class="filters">
         <li v-for="(val, key) in filters" :key="key">
@@ -47,20 +47,20 @@ const filters = {
   completed: todos => todos.filter(todo => todo.done)
 }
 const defalutList = [
-  { text: 'star this repository', done: false },
-  { text: 'fork this repository', done: false },
-  { text: 'follow author', done: false },
-  { text: 'vue-element-admin', done: true },
-  { text: 'vue', done: true },
-  { text: 'element-ui', done: true },
-  { text: 'axios', done: true },
-  { text: 'webpack', done: true }
+  { text: '收藏此仓库', done: false },
+  { text: 'Fork此仓库', done: false },
+  { text: '关注作者', done: false },
+  { text: '电影商城管理系统', done: true },
+  { text: 'Vue.js', done: true },
+  { text: 'Element UI', done: true },
+  { text: 'Axios', done: true },
+  { text: 'Webpack', done: true }
 ]
 export default {
   components: { Todo },
   filters: {
-    pluralize: (n, w) => n === 1 ? w : w + 's',
-    capitalize: s => s.charAt(0).toUpperCase() + s.slice(1)
+    pluralize: (n, item) => n === 1 ? item : item + 's',
+    capitalize: s => s === 'all' ? '全部' : s === 'active' ? '进行中' : '已完成'
   },
   data() {
     return {

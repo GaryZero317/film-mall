@@ -7,7 +7,7 @@
       <pan-thumb :image="avatar" class="panThumb" />
       <mallki class-name="mallki-text" text="vue-element-admin" />
       <div style="padding-top:35px;" class="progress-item">
-        <span>Vue</span>
+        <span>Vue.js</span>
         <el-progress :percentage="70" />
       </div>
       <div class="progress-item">
@@ -19,7 +19,7 @@
         <el-progress :percentage="12" />
       </div>
       <div class="progress-item">
-        <span>ESLint</span>
+        <span>代码规范</span>
         <el-progress :percentage="100" status="success" />
       </div>
     </div>
@@ -32,6 +32,7 @@ import PanThumb from '@/components/PanThumb'
 import Mallki from '@/components/TextHoverEffect/Mallki'
 
 export default {
+  name: '',
   components: { PanThumb, Mallki },
 
   filters: {

@@ -2,13 +2,13 @@
   <div class="dashboard-editor-container">
     <div class=" clearfix">
       <pan-thumb :image="avatar" style="float: left">
-        Your roles:
+        您的角色:
         <span v-for="item in roles" :key="item" class="pan-info-roles">{{ item }}</span>
       </pan-thumb>
       <github-corner style="position: absolute; top: 0px; border: 0; right: 0;" />
       <div class="info-container">
         <span class="display_name">{{ name }}</span>
-        <span style="font-size:20px;padding-top:20px;display:inline-block;">Editor's Dashboard</span>
+        <span style="font-size:20px;padding-top:20px;display:inline-block;">编辑者仪表盘</span>
       </div>
     </div>
     <div>
@@ -23,7 +23,7 @@ import PanThumb from '@/components/PanThumb'
 import GithubCorner from '@/components/GithubCorner'
 
 export default {
-  name: 'DashboardEditor',
+  name: '',
   components: { PanThumb, GithubCorner },
   data() {
     return {

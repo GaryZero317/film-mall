@@ -2,9 +2,12 @@ import request from '@/utils/request'
 
 export function login(data) {
   return request({
-    url: '/vue-element-admin/user/login',
+    url: 'http://localhost:8000/api/admin/login',
     method: 'post',
-    data
+    data: {
+      username: data.username,
+      password: data.password
+    }
   })
 }
 

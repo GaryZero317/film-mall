@@ -33,14 +33,23 @@ const actions = {
   login({ commit }, userInfo) {
     const { username, password } = userInfo
     return new Promise((resolve, reject) => {
-      login({ username: username.trim(), password: password }).then(response => {
-        const { data } = response
-        commit('SET_TOKEN', data.token)
-        setToken(data.token)
-        resolve()
-      }).catch(error => {
-        reject(error)
-      })
+      login({ username: username.trim(), password: password })
+        .then(response => {
+          console.log('登录响应:', response)
+          const { data } = response
+          if (!data.token) {
+            console.error('响应中没有token')
+            reject('登录响应中缺少token')
+            return
+          }
+          commit('SET_TOKEN', data.token)
+          setToken(data.token)
+          resolve()
+        })
+        .catch(error => {
+          console.error('登录错误:', error)
+          reject(error)
+        })
     })
   },
 

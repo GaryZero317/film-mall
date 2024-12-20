@@ -35,4 +35,15 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 		},
 		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
 	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				Method:  http.MethodPost,
+				Path:    "/api/admin/product/list",
+				Handler: AdminProductListHandler(serverCtx),
+			},
+		},
+		rest.WithJwt(serverCtx.Config.AdminAuth.AccessSecret),
+	)
 }

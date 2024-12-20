@@ -46,6 +46,28 @@ type (
 		Status int64  `json:"status"`
 	}
 	// 产品详情
+
+	// 商品信息
+	Product {
+		Id    int64  `json:"id"`
+		Name  string `json:"name"`
+		Desc  string `json:"desc"`
+		Stock int64  `json:"stock"`
+
+		Amount int64 `json:"amount"`
+		Status int64 `json:"status"`
+	}
+
+	// 管理员获取商品列表
+	AdminProductListRequest {
+		Page     int64 `json:"page,optional"`
+		PageSize int64 `json:"pageSize,optional"`
+	}
+
+	AdminProductListResponse {
+		Total int64     `json:"total"`
+		List  []Product `json:"list"`
+	}
 )
 
 @server(
@@ -63,4 +85,12 @@ service Product {
 	
 	@handler Detail
 	post /api/product/detail (DetailRequest) returns (DetailResponse)
+}
+
+@server(
+	jwt: AdminAuth
+)
+service Product {
+	@handler AdminProductList
+	post /api/admin/product/list (AdminProductListRequest) returns (AdminProductListResponse)
 }

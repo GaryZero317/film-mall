@@ -3,6 +3,7 @@ package model
 import (
 	"context"
 	"database/sql"
+
 	"github.com/zeromicro/go-zero/core/stores/cache"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
 )
@@ -17,6 +18,7 @@ type (
 		FindOne(ctx context.Context, id int64) (*Product, error)
 		Update(ctx context.Context, data *Product) error
 		Delete(ctx context.Context, id int64) error
+		FindPageListByPage(ctx context.Context, page, pageSize int64) ([]*Product, int64, error)
 	}
 
 	customProductModel struct {
@@ -31,7 +33,7 @@ func NewProductModel(conn sqlx.SqlConn, c cache.CacheConf) ProductModel {
 	if err != nil {
 		panic(err)
 	}
-	
+
 	gormModel, err := NewGormProductModel(rawDB, c)
 	if err != nil {
 		panic(err)
@@ -39,4 +41,9 @@ func NewProductModel(conn sqlx.SqlConn, c cache.CacheConf) ProductModel {
 	return &customProductModel{
 		GormProductModel: gormModel,
 	}
+}
+
+// FindPageListByPage 分页获取商品列表
+func (m *customProductModel) FindPageListByPage(ctx context.Context, page, pageSize int64) ([]*Product, int64, error) {
+	return m.GormProductModel.FindPageListByPage(ctx, page, pageSize)
 }

@@ -13,9 +13,16 @@ export function login(data) {
 
 export function getInfo(token) {
   return request({
-    url: '/vue-element-admin/user/info',
-    method: 'get',
-    params: { token }
+    url: 'http://localhost:8000/api/admin/info',
+    method: 'post',
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  }).then(response => {
+    if (!Object.prototype.hasOwnProperty.call(response.data, 'level')) {
+      throw new Error('getInfo: response must include a level field')
+    }
+    return response
   })
 }
 

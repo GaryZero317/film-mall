@@ -2,7 +2,7 @@ package logic
 
 import (
 	"context"
-	"errors"
+	"encoding/json"
 
 	"mall/service/user/api/internal/svc"
 	"mall/service/user/api/internal/types"
@@ -27,22 +27,17 @@ func NewAdminInfoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *AdminIn
 
 func (l *AdminInfoLogic) AdminInfo() (resp *types.AdminInfoResponse, err error) {
 	// 从ctx中获取当前登录的管理员ID
-	adminId, ok := l.ctx.Value("id").(int64)
-	if !ok {
-		return nil, errors.New("invalid admin id")
-	}
-
-	// 调用RPC服务获取管理员信息
-	adminInfo, err := l.svcCtx.UserRpc.AdminInfo(l.ctx, &user.AdminInfoRequest{
-		Id: adminId,
+	uid, _ := l.ctx.Value("uid").(json.Number).Int64()
+	res, err := l.svcCtx.UserRpc.AdminInfo(l.ctx, &user.AdminInfoRequest{
+		Id: uid,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	return &types.AdminInfoResponse{
-		Id:       adminInfo.Id,
-		Username: adminInfo.Username,
-		Level:    adminInfo.Level,
+		Id:       res.Id,
+		Username: res.Username,
+		Level:    res.Level,
 	}, nil
 }

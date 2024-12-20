@@ -27,7 +27,7 @@ func NewAdminLoginLogic(ctx context.Context, svcCtx *svc.ServiceContext) *AdminL
 
 func (l *AdminLoginLogic) AdminLogin(req *types.AdminLoginRequest) (resp *types.AdminLoginResponse, err error) {
 	// 调用RPC服务进行管理员登录
-	adminResp, err := l.svcCtx.UserRpc.AdminLogin(l.ctx, &user.AdminLoginRequest{
+	res, err := l.svcCtx.UserRpc.AdminLogin(l.ctx, &user.AdminLoginRequest{
 		Username: req.Username,
 		Password: req.Password,
 	})
@@ -36,29 +36,17 @@ func (l *AdminLoginLogic) AdminLogin(req *types.AdminLoginRequest) (resp *types.
 	}
 
 	// 生成JWT token
-	auth := l.svcCtx.Config.AdminAuth
+	// auth := l.svcCtx.Config.AdminAuth
 	now := time.Now().Unix()
-	accessExpire := auth.AccessExpire
-	
-	l.Logger.Infof("=== DEBUG Token Generation ===")
-	l.Logger.Infof("Secret: %s", auth.AccessSecret)
-	l.Logger.Infof("Now: %d", now)
-	l.Logger.Infof("Expire: %d", accessExpire)
-	l.Logger.Infof("AdminID: %d", adminResp.Id)
-	
-	token, err := jwtx.GetToken(auth.AccessSecret, now, accessExpire, adminResp.Id)
+	accessExpire := l.svcCtx.Config.Auth.AccessExpire
+
+	accessToken, err := jwtx.GetToken(l.svcCtx.Config.Auth.AccessSecret, now, accessExpire, res.Id)
 	if err != nil {
 		return nil, err
 	}
-	
-	l.Logger.Infof("=== Generated Token ===")
-	l.Logger.Infof("Token: %s", token)
-	l.Logger.Infof("Use this header in your next request:")
-	l.Logger.Infof("Authorization: Bearer %s", token)
-	l.Logger.Infof("=====================")
 
 	return &types.AdminLoginResponse{
-		AccessToken:  token,
+		AccessToken:  accessToken,
 		AccessExpire: now + accessExpire,
 	}, nil
 }

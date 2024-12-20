@@ -7,7 +7,7 @@ const state = {
   name: '',
   avatar: '',
   introduction: '',
-  roles: []
+  level: null
 }
 
 const mutations = {
@@ -23,8 +23,8 @@ const mutations = {
   SET_AVATAR: (state, avatar) => {
     state.avatar = avatar
   },
-  SET_ROLES: (state, roles) => {
-    state.roles = roles
+  SET_LEVEL: (state, level) => {
+    state.level = level
   }
 }
 
@@ -35,19 +35,21 @@ const actions = {
     return new Promise((resolve, reject) => {
       login({ username: username.trim(), password: password })
         .then(response => {
-          console.log('登录响应:', response)
+          console.log('Login response:', response)
           const { data } = response
-          if (!data.token) {
-            console.error('响应中没有token')
-            reject('登录响应中缺少token')
+
+          if (!data || !data.token) {
+            console.error('Invalid login response:', response)
+            reject('登录响应格式错误')
             return
           }
+
           commit('SET_TOKEN', data.token)
           setToken(data.token)
           resolve()
         })
         .catch(error => {
-          console.error('登录错误:', error)
+          console.error('Login error:', error)
           reject(error)
         })
     })
@@ -63,17 +65,9 @@ const actions = {
           reject('Verification failed, please Login again.')
         }
 
-        const { roles, name, avatar, introduction } = data
+        const { level } = data
 
-        // roles must be a non-empty array
-        if (!roles || roles.length <= 0) {
-          reject('getInfo: roles must be a non-null array!')
-        }
-
-        commit('SET_ROLES', roles)
-        commit('SET_NAME', name)
-        commit('SET_AVATAR', avatar)
-        commit('SET_INTRODUCTION', introduction)
+        commit('SET_LEVEL', level)
         resolve(data)
       }).catch(error => {
         reject(error)
@@ -86,7 +80,7 @@ const actions = {
     return new Promise((resolve, reject) => {
       logout(state.token).then(() => {
         commit('SET_TOKEN', '')
-        commit('SET_ROLES', [])
+        commit('SET_LEVEL', null)
         removeToken()
         resetRouter()
 
@@ -105,7 +99,7 @@ const actions = {
   resetToken({ commit }) {
     return new Promise(resolve => {
       commit('SET_TOKEN', '')
-      commit('SET_ROLES', [])
+      commit('SET_LEVEL', null)
       removeToken()
       resolve()
     })
@@ -118,12 +112,12 @@ const actions = {
     commit('SET_TOKEN', token)
     setToken(token)
 
-    const { roles } = await dispatch('getInfo')
+    const { level } = await dispatch('getInfo')
 
     resetRouter()
 
     // generate accessible routes map based on roles
-    const accessRoutes = await dispatch('permission/generateRoutes', roles, { root: true })
+    const accessRoutes = await dispatch('permission/generateRoutes', level, { root: true })
     // dynamically add accessible routes
     router.addRoutes(accessRoutes)
 

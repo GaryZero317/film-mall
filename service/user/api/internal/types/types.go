@@ -77,9 +77,11 @@ type DeleteAdminResponse struct {
 }
 
 type AdminInfoResponse struct {
-	Id       int64  `json:"id"`
-	Username string `json:"username"`
-	Level    int32  `json:"level"`
+	Id         int64  `json:"id"`
+	Username   string `json:"username"`
+	Level      int32  `json:"level"`
+	CreateTime int64  `json:"createTime"`
+	UpdateTime int64  `json:"updateTime"`
 }
 
 type AdminListRequest struct {

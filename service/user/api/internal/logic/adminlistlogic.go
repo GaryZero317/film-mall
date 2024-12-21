@@ -43,10 +43,23 @@ func (l *AdminListLogic) AdminList(req *types.AdminListRequest) (resp *types.Adm
 	// 转换数据格式
 	var list []types.AdminInfoResponse
 	for _, admin := range admins {
+		// 将 datetime 转换为毫秒级时间戳
+		createTime := admin.CreateTime.UnixMilli()
+		updateTime := admin.UpdateTime.UnixMilli()
+
+		logx.Infof("Admin %s CreateTime: %v (%d), UpdateTime: %v (%d)",
+			admin.Username,
+			admin.CreateTime,
+			createTime,
+			admin.UpdateTime,
+			updateTime)
+
 		list = append(list, types.AdminInfoResponse{
-			Id:       admin.ID,
-			Username: admin.Username,
-			Level:    int32(admin.Level),
+			Id:         admin.ID,
+			Username:   admin.Username,
+			Level:      int32(admin.Level),
+			CreateTime: createTime,
+			UpdateTime: updateTime,
 		})
 	}
 

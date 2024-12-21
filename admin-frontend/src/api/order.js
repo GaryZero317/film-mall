@@ -39,12 +39,9 @@ export function getOrderDetail(data) {
 // 获取订单列表
 export function getOrderList(params) {
   return orderService({
-    url: '/api/admin/order/list',
+    url: '/api/order/list',
     method: 'post',
-    data: {
-      page: params.page || 1,
-      pageSize: params.pageSize || 10
-    }
+    data: params
   })
 }
 
@@ -57,5 +54,14 @@ export function getAdminOrderList(params) {
       page: params.page || 1,
       pageSize: params.pageSize || 10
     }
+  })
+}
+
+// 更新订单状态
+export function updateOrderStatus(data) {
+  return orderService({
+    url: '/api/order/status/update',
+    method: 'post',
+    data
   })
 } 

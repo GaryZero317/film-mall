@@ -1,54 +1,72 @@
 <template>
   <div class="admin-list-container">
-    <div class="action-bar">
-      <el-button type="primary" @click="handleAdd">
-        <el-icon><Plus /></el-icon>添加管理员
-      </el-button>
-    </div>
-
-    <!-- 管理员列表 -->
-    <el-table :data="adminList" style="width: 100%" v-loading="loading">
-      <el-table-column prop="id" label="ID" width="80" />
-      <el-table-column prop="username" label="用户名" width="200" />
-      <el-table-column prop="createTime" label="创建时间" width="180" />
-      <el-table-column prop="updateTime" label="更新时间" width="180" />
-      <el-table-column label="操作" width="200" fixed="right">
-        <template #default="scope">
-          <el-button type="primary" size="small" @click="handleEdit(scope.row)">
-            编辑
+    <el-card class="table-card" shadow="never">
+      <template #header>
+        <div class="action-bar">
+          <el-button type="primary" @click="handleAdd">
+            <el-icon><Plus /></el-icon>添加管理员
           </el-button>
-          <el-button type="danger" size="small" @click="handleDelete(scope.row)">
-            删除
-          </el-button>
-        </template>
-      </el-table-column>
-    </el-table>
+        </div>
+      </template>
 
-    <!-- 分页 -->
-    <div class="pagination-container">
-      <el-pagination
-        :current-page="page"
-        :page-size="pageSize"
-        :page-sizes="[10, 20, 50, 100]"
-        :total="total"
-        layout="total, sizes, prev, pager, next"
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-        @update:current-page="page = $event"
-        @update:page-size="pageSize = $event"
-      />
-    </div>
+      <!-- 管理员列表 -->
+      <el-table 
+        :data="adminList" 
+        style="width: 100%" 
+        v-loading="loading">
+        <el-table-column prop="id" label="ID" width="80" align="center" />
+        <el-table-column prop="username" label="用户名" min-width="120" />
+        <el-table-column prop="createTime" label="创建时间" min-width="180" align="center">
+          <template #default="scope">
+            {{ formatTime(scope.row.createTime) }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="updateTime" label="更新时间" min-width="180" align="center">
+          <template #default="scope">
+            {{ formatTime(scope.row.updateTime) }}
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="150" align="center">
+          <template #default="scope">
+            <el-button type="primary" size="small" @click="handleEdit(scope.row)">
+              编辑
+            </el-button>
+            <el-button type="danger" size="small" @click="handleDelete(scope.row)">
+              删除
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <!-- 分页 -->
+      <div class="pagination-container">
+        <el-pagination
+          :current-page="page"
+          :page-size="pageSize"
+          :page-sizes="[10, 20, 50, 100]"
+          :total="total"
+          layout="total, sizes, prev, pager, next"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+          @update:current-page="page = $event"
+          @update:page-size="pageSize = $event"
+          background
+        />
+      </div>
+    </el-card>
 
     <!-- 添加/编辑对话框 -->
     <el-dialog
       :title="dialogType === 'add' ? '添加管理员' : '编辑管理员'"
       v-model="dialogVisible"
-      width="500px">
+      width="500px"
+      destroy-on-close>
       <el-form
         ref="formRef"
         :model="form"
         :rules="rules"
-        label-width="100px">
+        label-width="100px"
+        status-icon>
         <el-form-item label="用户名" prop="username">
           <el-input v-model="form.username" placeholder="请输入用户名" />
         </el-form-item>
@@ -96,6 +114,27 @@ const form = ref({
   username: '',
   password: ''
 })
+
+// 时间格式化函数
+const formatTime = (time) => {
+  if (!time) return '--'
+  try {
+    const date = new Date(time)
+    if (isNaN(date.getTime())) {
+      return '--'
+    }
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const hours = String(date.getHours()).padStart(2, '0')
+    const minutes = String(date.getMinutes()).padStart(2, '0')
+    const seconds = String(date.getSeconds()).padStart(2, '0')
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+  } catch (error) {
+    console.error('时间格式化错误:', error)
+    return '--'
+  }
+}
 
 const rules = {
   username: [
@@ -211,15 +250,86 @@ onMounted(() => {
 <style scoped>
 .admin-list-container {
   padding: 20px;
+  background-color: #f5f7fa;
+  box-sizing: border-box;
+  min-height: calc(100vh - 60px);
+}
+
+.table-card {
+  margin: 0;
+}
+
+.table-card :deep(.el-card__header) {
+  padding: 15px 20px;
+  border-bottom: 1px solid #ebeef5;
 }
 
 .action-bar {
-  margin-bottom: 20px;
+  display: flex;
+  justify-content: flex-start;
+  margin: 0;
+}
+
+/* 表格样式优化 */
+:deep(.el-table) {
+  --el-table-border-color: transparent;
+  --el-table-header-bg-color: #f5f7fa;
+}
+
+:deep(.el-table th.el-table__cell) {
+  font-weight: 600;
+  color: #606266;
+  background-color: #f5f7fa;
+  height: 45px;
+  border-bottom: 1px solid #ebeef5;
+}
+
+:deep(.el-table td.el-table__cell) {
+  height: 45px;
+  padding: 6px 0;
+  border-bottom: 1px solid #ebeef5;
+}
+
+:deep(.el-table::before) {
+  display: none;
+}
+
+:deep(.el-table__inner-wrapper::before) {
+  display: none;
 }
 
 .pagination-container {
-  margin-top: 20px;
+  padding: 15px 20px;
   display: flex;
   justify-content: flex-end;
+  border-top: 1px solid #ebeef5;
+}
+
+:deep(.el-button) {
+  padding: 8px 16px;
+}
+
+:deep(.el-button--small) {
+  padding: 5px 12px;
+}
+
+:deep(.el-dialog__body) {
+  padding: 20px 40px;
+}
+
+/* 按钮间距 */
+:deep(.el-button + .el-button) {
+  margin-left: 8px;
+}
+
+/* 卡片内容区域padding */
+:deep(.el-card__body) {
+  padding: 0;
+}
+
+/* 设置表格容器宽度 */
+.table-card {
+  width: calc(100vw - 280px);  /* 考虑左侧菜单宽度 */
+  margin: 0 auto;
 }
 </style> 

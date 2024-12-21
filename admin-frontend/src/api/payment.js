@@ -30,7 +30,7 @@ export function paymentCallback(data) {
 // 管理员获取支付列表
 export function getAdminPaymentList(params) {
   return paymentService({
-    url: '/api/admin/payment/list',
+    url: '/api/pay/list',
     method: 'post',
     data: {
       page: params.page || 1,

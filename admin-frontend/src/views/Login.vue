@@ -79,11 +79,11 @@ const handleLogin = async () => {
     loading.value = true
     
     const res = await login(loginForm)
-    userStore.setToken(res.accessToken)
-    await userStore.fetchUserInfo()
-    
+    userStore.token = res.accessToken
+    localStorage.setItem('token', res.accessToken)
+    localStorage.setItem('username', loginForm.username)
     ElMessage.success('登录成功')
-    router.push('/')
+    await router.push('/')
   } catch (error) {
     ElMessage.error(error.message || '登录失败')
   } finally {

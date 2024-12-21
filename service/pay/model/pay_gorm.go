@@ -39,7 +39,7 @@ type GormPayModel struct {
 // NewGormPayModel creates a new instance of GormPayModel
 func NewGormPayModel(sqlDB *sql.DB, c cache.CacheConf) (*GormPayModel, error) {
 	db, err := gorm.Open(mysql.New(mysql.Config{
-		Conn: sqlDB,
+		Conn:                      sqlDB,
 		SkipInitializeWithVersion: true,
 	}), &gorm.Config{})
 	if err != nil {
@@ -159,6 +159,45 @@ func (m *GormPayModel) Update(ctx context.Context, data *Pay) error {
 // Delete removes a payment from the database
 func (m *GormPayModel) Delete(ctx context.Context, id int64) error {
 	return m.db.WithContext(ctx).Delete(&GormPay{}, id).Error
+}
+
+// FindList retrieves a paginated list of payments
+func (m *GormPayModel) FindList(ctx context.Context, page, pageSize int64) ([]*Pay, int64, error) {
+	var gormPays []*GormPay
+	var total int64
+
+	// Get total count
+	if err := m.db.WithContext(ctx).Model(&GormPay{}).Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	// Get paginated results
+	offset := (page - 1) * pageSize
+	err := m.db.WithContext(ctx).
+		Offset(int(offset)).
+		Limit(int(pageSize)).
+		Order("id DESC").
+		Find(&gormPays).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// Convert to Pay model
+	var pays []*Pay
+	for _, gormPay := range gormPays {
+		pays = append(pays, &Pay{
+			Id:         gormPay.ID,
+			Uid:        gormPay.Uid,
+			Oid:        gormPay.Oid,
+			Amount:     gormPay.Amount,
+			Source:     gormPay.Source,
+			Status:     gormPay.Status,
+			CreateTime: gormPay.CreateTime,
+			UpdateTime: gormPay.UpdateTime,
+		})
+	}
+
+	return pays, total, nil
 }
 
 // lastInsertIDResult implements sql.Result interface

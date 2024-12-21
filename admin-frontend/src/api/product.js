@@ -34,4 +34,16 @@ export function getProductDetail(data) {
     method: 'post',
     data
   })
+}
+
+// 管理员获取商品列表
+export function getAdminProductList(params) {
+  return productService({
+    url: '/api/admin/product/list',
+    method: 'post',
+    data: {
+      page: params.page || 1,
+      pageSize: params.pageSize || 10
+    }
+  })
 } 

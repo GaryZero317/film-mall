@@ -15,12 +15,14 @@ type (
 		Id int64 `json:"id"`
 	}
 	DetailResponse {
-		Id     int64 `json:"id"`
-		Uid    int64 `json:"uid"`
-		Oid    int64 `json:"oid"`
-		Amount int64 `json:"amount"`
-		Source int64 `json:"source"`
-		Status int64 `json:"status"`
+		Id         int64  `json:"id"`
+		Uid        int64  `json:"uid"`
+		Oid        int64  `json:"oid"`
+		Amount     int64  `json:"amount"`
+		Source     int64  `json:"source"`
+		Status     int64  `json:"status"`
+		CreateTime string `json:"createTime"`
+		UpdateTime string `json:"updateTime"`
 	}
 	// 支付详情
 
@@ -37,6 +39,16 @@ type (
 	}
 	// 支付回调
 
+	// 支付列表
+	ListRequest {
+		Page     int64 `json:"page,optional"`
+		PageSize int64 `json:"pageSize,optional"`
+	}
+	ListResponse {
+		Total int64            `json:"total"`
+		List  []DetailResponse `json:"list"`
+	}
+	// 支付列表
 )
 
 @server(
@@ -51,4 +63,7 @@ service Pay {
 	
 	@handler Callback
 	post /api/pay/callback (CallbackRequest) returns (CallbackResponse)
+	
+	@handler List
+	post /api/pay/list (ListRequest) returns (ListResponse)
 }

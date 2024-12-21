@@ -1,16 +1,17 @@
 <template>
   <el-container class="layout-container">
-    <el-aside width="200px">
-      <div class="logo-container">
+    <el-aside :width="isCollapse ? '64px' : '200px'" class="aside-container">
+      <div class="logo-container" :class="{ 'collapsed': isCollapse }">
         <img src="../assets/logo.svg" alt="Logo" class="logo">
-        <span class="title">胶卷商城管理</span>
+        <span class="title" v-show="!isCollapse">胶卷商城管理</span>
       </div>
       
       <el-menu
         :default-active="route.path"
         class="el-menu-vertical"
-        :router="true"
-        :collapse="isCollapse">
+        :collapse="isCollapse"
+        :collapse-transition="true"
+        :router="true">
         <el-menu-item index="/">
           <el-icon><Odometer /></el-icon>
           <template #title>首页</template>
@@ -41,12 +42,14 @@
     <el-container>
       <el-header>
         <div class="header-left">
-          <el-icon 
+          <div 
             class="collapse-btn"
             @click="toggleCollapse">
-            <Fold v-if="!isCollapse"/>
-            <Expand v-else/>
-          </el-icon>
+            <el-icon>
+              <Fold v-if="!isCollapse"/>
+              <Expand v-else/>
+            </el-icon>
+          </div>
           <breadcrumb />
         </div>
         
@@ -54,7 +57,7 @@
           <el-dropdown @command="handleCommand">
             <span class="user-dropdown">
               {{ userStore.username }}
-              <el-icon><CaretBottom /></el-icon>
+              <el-icon class="el-icon--right"><CaretBottom /></el-icon>
             </span>
             <template #dropdown>
               <el-dropdown-menu>
@@ -114,6 +117,11 @@ const handleCommand = (command) => {
   height: 100vh;
 }
 
+.aside-container {
+  transition: width 0.3s;
+  overflow: hidden;
+}
+
 .logo-container {
   height: 60px;
   display: flex;
@@ -121,17 +129,25 @@ const handleCommand = (command) => {
   padding: 0 20px;
   color: var(--el-menu-text-color);
   background-color: var(--el-menu-bg-color);
+  transition: all 0.3s;
+  overflow: hidden;
+}
+
+.logo-container.collapsed {
+  padding: 0 16px;
 }
 
 .logo {
   height: 32px;
   margin-right: 12px;
+  min-width: 32px;
 }
 
 .title {
   font-size: 16px;
   font-weight: bold;
   white-space: nowrap;
+  transition: opacity 0.3s;
 }
 
 .el-aside {
@@ -141,6 +157,10 @@ const handleCommand = (command) => {
 
 .el-menu-vertical {
   border-right: none;
+}
+
+.el-menu-vertical:not(.el-menu--collapse) {
+  width: 200px;
 }
 
 .el-header {
@@ -158,9 +178,20 @@ const handleCommand = (command) => {
 }
 
 .collapse-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 20px;
   cursor: pointer;
   margin-right: 20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.collapse-btn:hover {
+  background-color: var(--el-fill-color-light);
 }
 
 .header-right {
@@ -172,6 +203,14 @@ const handleCommand = (command) => {
   display: flex;
   align-items: center;
   cursor: pointer;
+  padding: 0 12px;
+  height: 40px;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.user-dropdown:hover {
+  background-color: var(--el-fill-color-light);
 }
 
 .el-main {

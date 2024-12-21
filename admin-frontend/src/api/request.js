@@ -28,7 +28,12 @@ const createService = (baseURL) => {
   // 响应拦截器
   service.interceptors.response.use(
     (response) => {
-      return response.data
+      const res = response.data
+      if (res.code && res.code !== 0) {
+        ElMessage.error(res.msg || '请求失败')
+        return Promise.reject(new Error(res.msg || '请求失败'))
+      }
+      return res
     },
     (error) => {
       console.error('响应错误:', error)
@@ -50,7 +55,7 @@ const createService = (baseURL) => {
             ElMessage.error('服务器内部错误')
             break
           default:
-            ElMessage.error('未知错误')
+            ElMessage.error(error.response.data?.msg || '未知错误')
         }
       } else {
         ElMessage.error('网络错误，请检查网络连接')

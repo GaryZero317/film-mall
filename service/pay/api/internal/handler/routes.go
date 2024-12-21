@@ -27,6 +27,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Path:    "/api/pay/callback",
 				Handler: CallbackHandler(serverCtx),
 			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/api/pay/list",
+				Handler: ListHandler(serverCtx),
+			},
 		},
 		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
 	)

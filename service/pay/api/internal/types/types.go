@@ -16,12 +16,14 @@ type DetailRequest struct {
 }
 
 type DetailResponse struct {
-	Id     int64 `json:"id"`
-	Uid    int64 `json:"uid"`
-	Oid    int64 `json:"oid"`
-	Amount int64 `json:"amount"`
-	Source int64 `json:"source"`
-	Status int64 `json:"status"`
+	Id         int64  `json:"id"`
+	Uid        int64  `json:"uid"`
+	Oid        int64  `json:"oid"`
+	Amount     int64  `json:"amount"`
+	Source     int64  `json:"source"`
+	Status     int64  `json:"status"`
+	CreateTime string `json:"createTime"`
+	UpdateTime string `json:"updateTime"`
 }
 
 type CallbackRequest struct {
@@ -34,4 +36,14 @@ type CallbackRequest struct {
 }
 
 type CallbackResponse struct {
+}
+
+type ListRequest struct {
+	Page     int64 `json:"page,optional"`
+	PageSize int64 `json:"pageSize,optional"`
+}
+
+type ListResponse struct {
+	Total int64            `json:"total"`
+	List  []DetailResponse `json:"list"`
 }

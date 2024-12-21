@@ -49,8 +49,15 @@ const router = createRouter({
 // 路由守卫
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token')
-  if (to.meta.requiresAuth && !token) {
-    next('/login')
+  
+  if (to.meta.requiresAuth) {
+    if (!token) {
+      next('/login')
+    } else {
+      next()
+    }
+  } else if (to.path === '/login' && token) {
+    next('/')
   } else {
     next()
   }

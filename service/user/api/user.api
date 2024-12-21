@@ -89,6 +89,17 @@ type (
 		Level    int32  `json:"level"`
 	}
 	// 管理员信息
+
+	// 管理员列表
+	AdminListRequest {
+		Page     int64 `json:"page,optional"`
+		PageSize int64 `json:"pageSize,optional"`
+	}
+	AdminListResponse {
+		Total int64               `json:"total"`
+		List  []AdminInfoResponse `json:"list"`
+	}
+	// 管理员列表
 )
 
 service User {
@@ -125,4 +136,7 @@ service User {
 	
 	@handler AdminInfo
 	post /api/admin/info returns (AdminInfoResponse)
+	
+	@handler AdminList
+	post /api/admin/list (AdminListRequest) returns (AdminListResponse)
 }

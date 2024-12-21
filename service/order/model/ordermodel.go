@@ -3,6 +3,7 @@ package model
 import (
 	"context"
 	"database/sql"
+
 	"github.com/zeromicro/go-zero/core/stores/cache"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
 )
@@ -18,6 +19,7 @@ type (
 		Update(ctx context.Context, data *Order) error
 		Delete(ctx context.Context, id int64) error
 		FindAllByUid(ctx context.Context, uid int64) ([]*Order, error)
+		FindPageListByPage(ctx context.Context, page, pageSize int64) ([]*Order, int64, error)
 	}
 
 	customOrderModel struct {
@@ -32,7 +34,7 @@ func NewOrderModel(conn sqlx.SqlConn, c cache.CacheConf) OrderModel {
 	if err != nil {
 		panic(err)
 	}
-	
+
 	gormModel, err := NewGormOrderModel(rawDB, c)
 	if err != nil {
 		panic(err)
@@ -45,4 +47,9 @@ func NewOrderModel(conn sqlx.SqlConn, c cache.CacheConf) OrderModel {
 // FindAllByUid returns all orders for a given user ID
 func (m *customOrderModel) FindAllByUid(ctx context.Context, uid int64) ([]*Order, error) {
 	return m.GormOrderModel.FindAllByUid(ctx, uid)
+}
+
+// FindPageListByPage 分页获取订单列表
+func (m *customOrderModel) FindPageListByPage(ctx context.Context, page, pageSize int64) ([]*Order, int64, error) {
+	return m.GormOrderModel.FindPageListByPage(ctx, page, pageSize)
 }

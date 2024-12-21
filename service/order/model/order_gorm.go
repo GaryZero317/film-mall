@@ -38,7 +38,7 @@ type GormOrderModel struct {
 // NewGormOrderModel creates a new instance of GormOrderModel
 func NewGormOrderModel(sqlDB *sql.DB, c cache.CacheConf) (*GormOrderModel, error) {
 	db, err := gorm.Open(mysql.New(mysql.Config{
-		Conn: sqlDB,
+		Conn:                      sqlDB,
 		SkipInitializeWithVersion: true,
 		DefaultDatetimePrecision:  nil,
 		DisableDatetimePrecision:  true,
@@ -184,4 +184,44 @@ func (r *lastInsertIDResult) LastInsertId() (int64, error) {
 
 func (r *lastInsertIDResult) RowsAffected() (int64, error) {
 	return 1, nil
+}
+
+// FindPageListByPage 分页获取订单列表
+func (m *GormOrderModel) FindPageListByPage(ctx context.Context, page, pageSize int64) ([]*Order, int64, error) {
+	if page < 1 {
+		page = 1
+	}
+	if pageSize < 1 {
+		pageSize = 10
+	}
+	offset := (page - 1) * pageSize
+
+	var gormOrders []*GormOrder
+	var total int64
+
+	// 查询总数
+	if err := m.db.Table("order").Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	// 查询数据
+	if err := m.db.Table("order").Offset(int(offset)).Limit(int(pageSize)).Find(&gormOrders).Error; err != nil {
+		return nil, 0, err
+	}
+
+	// 转换为Order类型
+	var orders []*Order
+	for _, gorder := range gormOrders {
+		orders = append(orders, &Order{
+			Id:         gorder.ID,
+			Uid:        gorder.Uid,
+			Pid:        gorder.Pid,
+			Amount:     gorder.Amount,
+			Status:     gorder.Status,
+			CreateTime: gorder.CreateTime,
+			UpdateTime: gorder.UpdateTime,
+		})
+	}
+
+	return orders, total, nil
 }

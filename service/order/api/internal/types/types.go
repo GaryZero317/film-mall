@@ -14,10 +14,7 @@ type CreateResponse struct {
 
 type UpdateRequest struct {
 	Id     int64 `json:"id"`
-	Uid    int64 `json:"uid,optional"`
-	Pid    int64 `json:"pid,optional"`
-	Amount int64 `json:"amount,optional"`
-	Status int64 `json:"status,optional"`
+	Status int64 `json:"status"`
 }
 
 type UpdateResponse struct {
@@ -35,11 +32,13 @@ type DetailRequest struct {
 }
 
 type DetailResponse struct {
-	Id     int64 `json:"id"`
-	Uid    int64 `json:"uid"`
-	Pid    int64 `json:"pid"`
-	Amount int64 `json:"amount"`
-	Status int64 `json:"status"`
+	Id         int64  `json:"id"`
+	Uid        int64  `json:"uid"`
+	Pid        int64  `json:"pid"`
+	Amount     int64  `json:"amount"`
+	Status     int64  `json:"status"`
+	CreateTime string `json:"createTime"`
+	UpdateTime string `json:"updateTime"`
 }
 
 type ListRequest struct {
@@ -52,4 +51,24 @@ type ListResponse struct {
 	Pid    int64 `json:"pid"`
 	Amount int64 `json:"amount"`
 	Status int64 `json:"status"`
+}
+
+type Order struct {
+	Id         int64  `json:"id"`
+	Uid        int64  `json:"uid"`
+	Pid        int64  `json:"pid"`
+	Amount     int64  `json:"amount"`
+	Status     int64  `json:"status"`
+	CreateTime string `json:"createTime"`
+	UpdateTime string `json:"updateTime"`
+}
+
+type AdminOrderListRequest struct {
+	Page     int64 `json:"page,optional"`
+	PageSize int64 `json:"pageSize,optional"`
+}
+
+type AdminOrderListResponse struct {
+	Total int64   `json:"total"`
+	List  []Order `json:"list"`
 }

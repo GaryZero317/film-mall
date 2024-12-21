@@ -81,3 +81,13 @@ type AdminInfoResponse struct {
 	Username string `json:"username"`
 	Level    int32  `json:"level"`
 }
+
+type AdminListRequest struct {
+	Page     int64 `json:"page,optional"`
+	PageSize int64 `json:"pageSize,optional"`
+}
+
+type AdminListResponse struct {
+	Total int64               `json:"total"`
+	List  []AdminInfoResponse `json:"list"`
+}

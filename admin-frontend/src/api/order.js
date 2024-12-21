@@ -39,10 +39,21 @@ export function getOrderDetail(data) {
 // 获取订单列表
 export function getOrderList(params) {
   return orderService({
-    url: '/api/order/list',
+    url: '/api/admin/order/list',
     method: 'post',
     data: {
-      uid: params.uid || 0,
+      page: params.page || 1,
+      pageSize: params.pageSize || 10
+    }
+  })
+}
+
+// 管理员获取订单列表
+export function getAdminOrderList(params) {
+  return orderService({
+    url: '/api/admin/order/list',
+    method: 'post',
+    data: {
       page: params.page || 1,
       pageSize: params.pageSize || 10
     }

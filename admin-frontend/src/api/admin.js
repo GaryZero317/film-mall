@@ -1,17 +1,29 @@
-import { userService } from './request'
+import { adminService } from './request'
 
 // 管理员登录
 export function login(data) {
-  return userService({
+  return adminService({
     url: '/api/admin/login',
     method: 'post',
     data
   })
 }
 
+// 获取管理员列表
+export function getAdminList(params) {
+  return adminService({
+    url: '/api/admin/list',
+    method: 'post',
+    data: {
+      page: params.page || 1,
+      pageSize: params.pageSize || 10
+    }
+  })
+}
+
 // 创建管理员
 export function createAdmin(data) {
-  return userService({
+  return adminService({
     url: '/api/admin/create',
     method: 'post',
     data
@@ -20,7 +32,7 @@ export function createAdmin(data) {
 
 // 更新管理员
 export function updateAdmin(data) {
-  return userService({
+  return adminService({
     url: '/api/admin/update',
     method: 'post',
     data
@@ -28,18 +40,10 @@ export function updateAdmin(data) {
 }
 
 // 删除管理员
-export function deleteAdmin(data) {
-  return userService({
-    url: '/api/admin/delete',
+export function removeAdmin(data) {
+  return adminService({
+    url: '/api/admin/remove',
     method: 'post',
     data
-  })
-}
-
-// 获取管理员信息
-export function getAdminInfo() {
-  return userService({
-    url: '/api/admin/info',
-    method: 'post'
   })
 } 

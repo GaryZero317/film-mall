@@ -4,50 +4,64 @@
       <el-table-column prop="id" label="支付ID" width="120" />
       <el-table-column prop="uid" label="用户ID" width="120" />
       <el-table-column prop="oid" label="订单ID" width="120" />
-      <el-table-column prop="amount" label="金额">
+      <el-table-column prop="amount" label="金额" width="120">
         <template #default="scope">
-          ¥{{ (scope.row.amount / 100).toFixed(2) }}
+          ¥{{ (scope.row.amount).toFixed(2) }}
         </template>
       </el-table-column>
       <el-table-column prop="source" label="支付方式" width="120">
         <template #default="scope">
-          <el-tag>{{ getPaymentSource(scope.row.source) }}</el-tag>
+          {{ getPaymentSourceText(scope.row.source) }}
         </template>
       </el-table-column>
-      <el-table-column prop="status" label="状态">
+      <el-table-column prop="status" label="状态" width="120">
         <template #default="scope">
           <el-tag :type="getPaymentStatusType(scope.row.status)">
             {{ getPaymentStatusText(scope.row.status) }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="200">
-        <template #default="scope">
-          <el-button type="primary" size="small" @click="handleDetail(scope.row)">
-            详情
-          </el-button>
-        </template>
-      </el-table-column>
+      <el-table-column prop="createTime" label="创建时间" width="180" />
+      <el-table-column prop="updateTime" label="更新时间" width="180" />
     </el-table>
+
+    <div class="pagination-container">
+      <el-pagination
+        :current-page="page"
+        :page-size="pageSize"
+        :page-sizes="[10, 20, 50, 100]"
+        :total="total"
+        layout="total, sizes, prev, pager, next"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        @update:current-page="page = $event"
+        @update:page-size="pageSize = $event"
+      />
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { getPaymentDetail } from '../../api/payment'
+import { getAdminPaymentList } from '../../api/payment'
 
 const loading = ref(false)
 const paymentList = ref([])
+const total = ref(0)
+const page = ref(1)
+const pageSize = ref(10)
 
 // 获取支付列表
 const fetchPaymentList = async () => {
   loading.value = true
   try {
-    // 这里需要后端提供获取支付列表的接口
-    // 临时使用支付详情接口模拟
-    const res = await getPaymentDetail({ id: 1 })
-    paymentList.value = [res]
+    const res = await getAdminPaymentList({
+      page: page.value,
+      pageSize: pageSize.value
+    })
+    paymentList.value = res.list || []
+    total.value = res.total || 0
   } catch (error) {
     console.error('获取支付列表失败:', error)
     ElMessage.error('获取支付列表失败')
@@ -57,13 +71,13 @@ const fetchPaymentList = async () => {
 }
 
 // 支付方式
-const getPaymentSource = (source) => {
+const getPaymentSourceText = (source) => {
   const sourceMap = {
-    1: '支付宝',
-    2: '微信支付',
-    3: '银行卡'
+    0: '支付宝',
+    1: '微信支付',
+    2: '银行卡'
   }
-  return sourceMap[source] || '其他'
+  return sourceMap[source] || '未知方式'
 }
 
 // 支付状态
@@ -87,9 +101,16 @@ const getPaymentStatusType = (status) => {
   return typeMap[status] || 'info'
 }
 
-// 查看支付详情
-const handleDetail = (row) => {
-  ElMessage.info('支付详情功能开发中')
+// 分页处理
+const handleSizeChange = (val) => {
+  pageSize.value = val
+  page.value = 1
+  fetchPaymentList()
+}
+
+const handleCurrentChange = (val) => {
+  page.value = val
+  fetchPaymentList()
 }
 
 onMounted(() => {
@@ -100,5 +121,11 @@ onMounted(() => {
 <style scoped>
 .payment-list-container {
   padding: 20px;
+}
+
+.pagination-container {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
 }
 </style> 

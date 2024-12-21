@@ -36,13 +36,14 @@ type (
 		Id int64 `json:"id"`
 	}
 	DetailResponse {
-		Id     int64 `json:"id"`
-		Uid    int64 `json:"uid"`
-		Pid    int64 `json:"pid"`
-		Amount int64 `json:"amount"`
-		Status int64 `json:"status"`
+		Id         int64  `json:"id"`
+		Uid        int64  `json:"uid"`
+		Pid        int64  `json:"pid"`
+		Amount     int64  `json:"amount"`
+		Status     int64  `json:"status"`
+		CreateTime string `json:"createTime"`
+		UpdateTime string `json:"updateTime"`
 	}
-	// 订单详情
 
 	// 订单列表
 	ListRequest {
@@ -55,7 +56,28 @@ type (
 		Amount int64 `json:"amount"`
 		Status int64 `json:"status"`
 	}
-	// 订单列表
+
+	// 订单信息
+	Order {
+		Id         int64  `json:"id"`
+		Uid        int64  `json:"uid"`
+		Pid        int64  `json:"pid"`
+		Amount     int64  `json:"amount"`
+		Status     int64  `json:"status"`
+		CreateTime string `json:"createTime"`
+		UpdateTime string `json:"updateTime"`
+	}
+
+	// 管理员获取订单列表
+	AdminOrderListRequest {
+		Page     int64 `json:"page,optional"`
+		PageSize int64 `json:"pageSize,optional"`
+	}
+
+	AdminOrderListResponse {
+		Total int64   `json:"total"`
+		List  []Order `json:"list"`
+	}
 )
 
 @server(
@@ -73,7 +95,12 @@ service Order {
 	
 	@handler Detail
 	post /api/order/detail (DetailRequest) returns (DetailResponse)
-	
-	@handler List
-	post /api/order/list (ListRequest) returns (ListResponse)
+}
+
+@server(
+	jwt: AdminAuth
+)
+service Order {
+	@handler AdminOrderList
+	post /api/admin/order/list (AdminOrderListRequest) returns (AdminOrderListResponse)
 }

@@ -9,29 +9,35 @@
     <!-- 管理员列表 -->
     <el-table :data="adminList" style="width: 100%" v-loading="loading">
       <el-table-column prop="id" label="ID" width="80" />
-      <el-table-column prop="username" label="用户名" width="180" />
-      <el-table-column prop="level" label="级别">
-        <template #default="scope">
-          <el-tag :type="scope.row.level === 1 ? 'danger' : 'info'">
-            {{ scope.row.level === 1 ? '超级管理员' : '普通管理员' }}
-          </el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" width="200">
+      <el-table-column prop="username" label="用户名" width="200" />
+      <el-table-column prop="createTime" label="创建时间" width="180" />
+      <el-table-column prop="updateTime" label="更新时间" width="180" />
+      <el-table-column label="操作" width="200" fixed="right">
         <template #default="scope">
           <el-button type="primary" size="small" @click="handleEdit(scope.row)">
             编辑
           </el-button>
-          <el-button 
-            type="danger" 
-            size="small" 
-            @click="handleDelete(scope.row)"
-            :disabled="scope.row.level === 1">
+          <el-button type="danger" size="small" @click="handleDelete(scope.row)">
             删除
           </el-button>
         </template>
       </el-table-column>
     </el-table>
+
+    <!-- 分页 -->
+    <div class="pagination-container">
+      <el-pagination
+        :current-page="page"
+        :page-size="pageSize"
+        :page-sizes="[10, 20, 50, 100]"
+        :total="total"
+        layout="total, sizes, prev, pager, next"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        @update:current-page="page = $event"
+        @update:page-size="pageSize = $event"
+      />
+    </div>
 
     <!-- 添加/编辑对话框 -->
     <el-dialog
@@ -42,18 +48,19 @@
         ref="formRef"
         :model="form"
         :rules="rules"
-        label-width="80px">
+        label-width="100px">
         <el-form-item label="用户名" prop="username">
-          <el-input v-model="form.username" :disabled="dialogType === 'edit'" />
+          <el-input v-model="form.username" placeholder="请输入用户名" />
         </el-form-item>
-        <el-form-item label="密码" prop="password">
-          <el-input v-model="form.password" type="password" />
-        </el-form-item>
-        <el-form-item label="级别" prop="level">
-          <el-select v-model="form.level" placeholder="请选择级别">
-            <el-option label="普通管理员" :value="0" />
-            <el-option label="超级管理员" :value="1" />
-          </el-select>
+        <el-form-item 
+          label="密码" 
+          prop="password"
+          :rules="dialogType === 'add' ? rules.password : []">
+          <el-input
+            v-model="form.password"
+            type="password"
+            placeholder="请输入密码"
+            show-password />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -72,20 +79,22 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
-import { createAdmin, updateAdmin, deleteAdmin, getAdminInfo } from '../../api/admin'
+import { getAdminList, createAdmin, updateAdmin, removeAdmin } from '../../api/admin'
 
 const loading = ref(false)
 const submitting = ref(false)
 const dialogVisible = ref(false)
-const dialogType = ref('add') // 'add' 或 'edit'
+const dialogType = ref('add')
 const adminList = ref([])
+const total = ref(0)
+const page = ref(1)
+const pageSize = ref(10)
 
 // 表单相关
 const formRef = ref(null)
 const form = ref({
   username: '',
-  password: '',
-  level: 0
+  password: ''
 })
 
 const rules = {
@@ -96,9 +105,6 @@ const rules = {
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
     { min: 6, max: 20, message: '长度在 6 到 20 个字符', trigger: 'blur' }
-  ],
-  level: [
-    { required: true, message: '请选择级别', trigger: 'change' }
   ]
 }
 
@@ -106,9 +112,12 @@ const rules = {
 const fetchAdminList = async () => {
   loading.value = true
   try {
-    // 这里需要后端提供获取管理员列表的接口
-    const res = await getAdminInfo()
-    adminList.value = [res] // 临时方案：只显示当前管理员
+    const res = await getAdminList({
+      page: page.value,
+      pageSize: pageSize.value
+    })
+    adminList.value = res.list || []
+    total.value = res.total || 0
   } catch (error) {
     console.error('获取管理员列表失败:', error)
     ElMessage.error('获取管理员列表失败')
@@ -122,8 +131,7 @@ const handleAdd = () => {
   dialogType.value = 'add'
   form.value = {
     username: '',
-    password: '',
-    level: 0
+    password: ''
   }
   dialogVisible.value = true
 }
@@ -134,8 +142,7 @@ const handleEdit = (row) => {
   form.value = {
     id: row.id,
     username: row.username,
-    password: '',
-    level: row.level
+    password: ''
   }
   dialogVisible.value = true
 }
@@ -147,7 +154,7 @@ const handleDelete = async (row) => {
       type: 'warning'
     })
     
-    await deleteAdmin({ id: row.id })
+    await removeAdmin({ id: row.id })
     ElMessage.success('删除成功')
     fetchAdminList()
   } catch (error) {
@@ -184,6 +191,18 @@ const handleSubmit = async () => {
   }
 }
 
+// 分页处理
+const handleSizeChange = (val) => {
+  pageSize.value = val
+  page.value = 1
+  fetchAdminList()
+}
+
+const handleCurrentChange = (val) => {
+  page.value = val
+  fetchAdminList()
+}
+
 onMounted(() => {
   fetchAdminList()
 })
@@ -198,9 +217,9 @@ onMounted(() => {
   margin-bottom: 20px;
 }
 
-.dialog-footer {
+.pagination-container {
+  margin-top: 20px;
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
 }
 </style> 

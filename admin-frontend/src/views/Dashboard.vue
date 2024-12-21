@@ -83,7 +83,8 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { Goods, List, Money, User } from '@element-plus/icons-vue'
-import { getOrderList } from '../api/order'
+import { ElMessage } from 'element-plus'
+import { getAdminOrderList } from '../api/order'
 
 const statistics = ref({
   productCount: 0,
@@ -99,7 +100,21 @@ const loading = ref(false)
 const fetchRecentOrders = async () => {
   loading.value = true
   try {
-    // 初始化默认数据
+    const res = await getAdminOrderList({ page: 1, pageSize: 5 })
+    if (res && res.list) {
+      recentOrders.value = res.list
+      
+      // 统计数据
+      statistics.value = {
+        productCount: 0, // 这里需要对接实际的统计接口
+        orderCount: res.total || 0,
+        totalAmount: res.list.reduce((sum, order) => sum + (order.amount || 0), 0),
+        userCount: 0 // 这里需要对接实际的统计接口
+      }
+    }
+  } catch (error) {
+    console.error('获取订单列表失败:', error)
+    ElMessage.warning('获取订单列表失败，将显示默认数据')
     recentOrders.value = []
     statistics.value = {
       productCount: 0,
@@ -107,25 +122,6 @@ const fetchRecentOrders = async () => {
       totalAmount: 0,
       userCount: 0
     }
-
-    const res = await getOrderList({ uid: 0 })
-    if (res && res.data) {
-      recentOrders.value = Array.isArray(res.data) ? res.data.slice(0, 5) : []
-      
-      // 统计数据
-      statistics.value = {
-        productCount: 0, // 这里需要对接实际的统计接口
-        orderCount: Array.isArray(res.data) ? res.data.length : 0,
-        totalAmount: Array.isArray(res.data) ? res.data.reduce((sum, order) => sum + (order.amount || 0), 0) : 0,
-        userCount: 0 // 这里需要对接实际的统计接口
-      }
-    }
-  } catch (error) {
-    console.error('获取订单列表失败:', error)
-    ElMessage({
-      message: '获取订单列表失败，将显示默认数据',
-      type: 'warning'
-    })
   } finally {
     loading.value = false
   }

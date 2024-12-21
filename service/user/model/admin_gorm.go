@@ -97,3 +97,27 @@ func (m *GormAdminModel) Update(ctx context.Context, data *GormAdmin) error {
 func (m *GormAdminModel) Delete(ctx context.Context, id int64) error {
 	return m.db.WithContext(ctx).Delete(&GormAdmin{}, id).Error
 }
+
+// FindList retrieves a paginated list of admins
+func (m *GormAdminModel) FindList(ctx context.Context, page, pageSize int64) ([]*GormAdmin, int64, error) {
+	var admins []*GormAdmin
+	var total int64
+
+	// Get total count
+	if err := m.db.WithContext(ctx).Model(&GormAdmin{}).Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	// Get paginated results
+	offset := (page - 1) * pageSize
+	err := m.db.WithContext(ctx).
+		Offset(int(offset)).
+		Limit(int(pageSize)).
+		Order("id DESC").
+		Find(&admins).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return admins, total, nil
+}

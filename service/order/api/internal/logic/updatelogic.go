@@ -27,9 +27,6 @@ func NewUpdateLogic(ctx context.Context, svcCtx *svc.ServiceContext) *UpdateLogi
 func (l *UpdateLogic) Update(req *types.UpdateRequest) (resp *types.UpdateResponse, err error) {
 	_, err = l.svcCtx.OrderRpc.Update(l.ctx, &order.UpdateRequest{
 		Id:     req.Id,
-		Uid:    req.Uid,
-		Pid:    req.Pid,
-		Amount: req.Amount,
 		Status: req.Status,
 	})
 	if err != nil {

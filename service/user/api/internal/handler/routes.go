@@ -63,6 +63,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Path:    "/api/admin/info",
 				Handler: AdminInfoHandler(serverCtx),
 			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/api/admin/list",
+				Handler: AdminListHandler(serverCtx),
+			},
 		},
 		rest.WithJwt(serverCtx.Config.AdminAuth.AccessSecret),
 	)

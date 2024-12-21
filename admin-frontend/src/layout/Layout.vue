@@ -1,106 +1,112 @@
 <template>
   <el-container class="layout-container">
     <el-aside width="200px">
-      <div class="logo">
-        <img src="../assets/logo.png" alt="Logo" class="logo-img">
-        <span class="logo-text">胶卷商城管理</span>
+      <div class="logo-container">
+        <img src="../assets/logo.svg" alt="Logo" class="logo">
+        <span class="title">胶卷商城管理</span>
       </div>
+      
       <el-menu
-        :router="true"
+        :default-active="route.path"
         class="el-menu-vertical"
-        background-color="#304156"
-        text-color="#fff"
-        active-text-color="#ffd04b"
-        :default-active="route.path">
+        :router="true"
+        :collapse="isCollapse">
         <el-menu-item index="/">
           <el-icon><Odometer /></el-icon>
-          <span>仪表盘</span>
+          <template #title>首页</template>
         </el-menu-item>
+        
         <el-menu-item index="/admins">
           <el-icon><User /></el-icon>
-          <span>管理员</span>
+          <template #title>管理员管理</template>
         </el-menu-item>
+        
         <el-menu-item index="/products">
           <el-icon><Goods /></el-icon>
-          <span>商品管理</span>
+          <template #title>商品管理</template>
         </el-menu-item>
+        
         <el-menu-item index="/orders">
           <el-icon><List /></el-icon>
-          <span>订单管理</span>
+          <template #title>订单管理</template>
         </el-menu-item>
+        
         <el-menu-item index="/payments">
           <el-icon><Money /></el-icon>
-          <span>支付管理</span>
+          <template #title>支付管理</template>
         </el-menu-item>
       </el-menu>
     </el-aside>
-    
+
     <el-container>
       <el-header>
-        <div class="breadcrumb">
-          <el-breadcrumb>
-            <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-            <el-breadcrumb-item>{{ currentPath }}</el-breadcrumb-item>
-          </el-breadcrumb>
+        <div class="header-left">
+          <el-icon 
+            class="collapse-btn"
+            @click="toggleCollapse">
+            <Fold v-if="!isCollapse"/>
+            <Expand v-else/>
+          </el-icon>
+          <breadcrumb />
         </div>
+        
         <div class="header-right">
           <el-dropdown @command="handleCommand">
-            <span class="el-dropdown-link">
-              {{ userStore.userInfo?.username || '管理员' }}
-              <el-icon class="el-icon--right"><arrow-down /></el-icon>
+            <span class="user-dropdown">
+              {{ userStore.username }}
+              <el-icon><CaretBottom /></el-icon>
             </span>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item command="profile">个人信息</el-dropdown-item>
                 <el-dropdown-item command="logout">退出登录</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
         </div>
       </el-header>
-      
+
       <el-main>
-        <router-view></router-view>
+        <router-view v-slot="{ Component }">
+          <transition name="fade" mode="out-in">
+            <component :is="Component" />
+          </transition>
+        </router-view>
       </el-main>
     </el-container>
   </el-container>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { Odometer, User, Goods, List, Money } from '@element-plus/icons-vue'
+import { ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
+import { 
+  Odometer, 
+  User, 
+  Goods, 
+  List, 
+  Money, 
+  Fold, 
+  Expand,
+  CaretBottom
+} from '@element-plus/icons-vue'
+import Breadcrumb from './components/Breadcrumb.vue'
 
-const router = useRouter()
 const route = useRoute()
+const router = useRouter()
 const userStore = useUserStore()
+const isCollapse = ref(false)
 
-const currentPath = computed(() => {
-  const pathMap = {
-    '/': '仪表盘',
-    '/admins': '管理员',
-    '/products': '商品管理',
-    '/orders': '订单管理',
-    '/payments': '支付管理'
-  }
-  return pathMap[route.path] || ''
-})
+const toggleCollapse = () => {
+  isCollapse.value = !isCollapse.value
+}
 
-const handleCommand = async (command) => {
+const handleCommand = (command) => {
   if (command === 'logout') {
     userStore.logout()
     router.push('/login')
-  } else if (command === 'profile') {
-    // TODO: 实现个人信息页面
   }
 }
-
-onMounted(async () => {
-  if (!userStore.userInfo) {
-    await userStore.fetchUserInfo()
-  }
-})
 </script>
 
 <style scoped>
@@ -108,70 +114,79 @@ onMounted(async () => {
   height: 100vh;
 }
 
-.logo {
+.logo-container {
   height: 60px;
   display: flex;
   align-items: center;
-  padding: 0 16px;
-  color: #fff;
-  background-color: #2b3649;
+  padding: 0 20px;
+  color: var(--el-menu-text-color);
+  background-color: var(--el-menu-bg-color);
 }
 
-.logo-img {
-  width: 32px;
+.logo {
   height: 32px;
-  margin-right: 8px;
+  margin-right: 12px;
 }
 
-.logo-text {
+.title {
   font-size: 16px;
   font-weight: bold;
-}
-
-.el-header {
-  background-color: #fff;
-  border-bottom: 1px solid #dcdfe6;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 20px;
+  white-space: nowrap;
 }
 
 .el-aside {
-  background-color: #304156;
-  border-right: 1px solid #2b3649;
+  background-color: var(--el-menu-bg-color);
+  border-right: 1px solid var(--el-border-color-light);
 }
 
-.el-menu {
+.el-menu-vertical {
   border-right: none;
 }
 
-.header-right {
-  color: #333;
-}
-
-.el-dropdown-link {
-  cursor: pointer;
+.el-header {
   display: flex;
   align-items: center;
-  color: #333;
+  justify-content: space-between;
+  height: 60px;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--el-border-color-light);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+.collapse-btn {
+  font-size: 20px;
+  cursor: pointer;
+  margin-right: 20px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+}
+
+.user-dropdown {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
 }
 
 .el-main {
-  background-color: #f0f2f5;
   padding: 20px;
+  background-color: var(--el-bg-color-page);
 }
 
-.breadcrumb {
-  display: flex;
-  align-items: center;
+/* 路由过渡动画 */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
 }
 
-:deep(.el-menu-item.is-active) {
-  background-color: #263445 !important;
-}
-
-:deep(.el-menu-item:hover) {
-  background-color: #263445 !important;
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style> 

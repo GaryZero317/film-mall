@@ -2,11 +2,10 @@ package logic
 
 import (
 	"context"
-
 	"mall/service/order/model"
 	"mall/service/order/rpc/internal/svc"
-	"mall/service/order/rpc/types/order"
-	"mall/service/product/rpc/types/product"
+	"mall/service/order/rpc/order"
+	"mall/service/product/rpc/product"
 	"mall/service/user/rpc/pb/user"
 
 	"github.com/zeromicro/go-zero/core/logx"

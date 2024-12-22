@@ -6,7 +6,7 @@ package product
 import (
 	"context"
 
-	"mall/service/product/rpc/types/product"
+	"mall/service/product/rpc/pb/product"
 
 	"github.com/zeromicro/go-zero/zrpc"
 	"google.golang.org/grpc"

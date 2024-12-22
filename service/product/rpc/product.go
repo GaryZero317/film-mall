@@ -7,7 +7,7 @@ import (
 	"mall/service/product/rpc/internal/config"
 	"mall/service/product/rpc/internal/server"
 	"mall/service/product/rpc/internal/svc"
-	"mall/service/product/rpc/types/product"
+	"mall/service/product/rpc/pb/product"
 
 	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/core/service"

@@ -2,11 +2,12 @@
 package types
 
 type CreateRequest struct {
-	Name   string `json:"name"`
-	Desc   string `json:"desc"`
-	Stock  int64  `json:"stock"`
-	Amount int64  `json:"amount"`
-	Status int64  `json:"status"`
+	Name      string   `json:"name"`
+	Desc      string   `json:"desc"`
+	Stock     int64    `json:"stock"`
+	Amount    int64    `json:"amount"`
+	Status    int64    `json:"status"`
+	ImageUrls []string `json:"imageUrls"` // 商品图片URL列表
 }
 
 type CreateResponse struct {
@@ -14,12 +15,13 @@ type CreateResponse struct {
 }
 
 type UpdateRequest struct {
-	Id     int64  `json:"id"`
-	Name   string `json:"name,optional"`
-	Desc   string `json:"desc,optional"`
-	Stock  int64  `json:"stock"`
-	Amount int64  `json:"amount,optional"`
-	Status int64  `json:"status,optional"`
+	Id        int64    `json:"id"`
+	Name      string   `json:"name,optional"`
+	Desc      string   `json:"desc,optional"`
+	Stock     int64    `json:"stock"`
+	Amount    int64    `json:"amount,optional"`
+	Status    int64    `json:"status,optional"`
+	ImageUrls []string `json:"imageUrls,optional"` // 商品图片URL列表
 }
 
 type UpdateResponse struct {
@@ -37,21 +39,23 @@ type DetailRequest struct {
 }
 
 type DetailResponse struct {
-	Id     int64  `json:"id"`
-	Name   string `json:"name"`
-	Desc   string `json:"desc"`
-	Stock  int64  `json:"stock"`
-	Amount int64  `json:"amount"`
-	Status int64  `json:"status"`
+	Id        int64    `json:"id"`
+	Name      string   `json:"name"`
+	Desc      string   `json:"desc"`
+	Stock     int64    `json:"stock"`
+	Amount    int64    `json:"amount"`
+	Status    int64    `json:"status"`
+	ImageUrls []string `json:"imageUrls"` // 商品图片URL列表
 }
 
 type Product struct {
-	Id     int64  `json:"id"`
-	Name   string `json:"name"`
-	Desc   string `json:"desc"`
-	Stock  int64  `json:"stock"`
-	Amount int64  `json:"amount"`
-	Status int64  `json:"status"`
+	Id        int64    `json:"id"`
+	Name      string   `json:"name"`
+	Desc      string   `json:"desc"`
+	Stock     int64    `json:"stock"`
+	Amount    int64    `json:"amount"`
+	Status    int64    `json:"status"`
+	ImageUrls []string `json:"imageUrls"` // 商品图片URL列表
 }
 
 type AdminProductListRequest struct {

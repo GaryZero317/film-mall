@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package product;
 
-option go_package = "./product";
+option go_package = "pb/product";
 
 // 产品创建
 message CreateRequest {
@@ -11,6 +11,7 @@ message CreateRequest {
   int64 Stock = 3;
   int64 Amount = 4;
   int64 Status = 5;
+  repeated string ImageUrls = 6;  // 商品图片URL列表
 }
 message CreateResponse {
   int64 id = 1;
@@ -25,6 +26,7 @@ message UpdateRequest {
   int64 Stock = 4;
   int64 Amount = 5;
   int64 Status = 6;
+  repeated string ImageUrls = 7;  // 商品图片URL列表
 }
 message UpdateResponse {
 }
@@ -49,6 +51,7 @@ message DetailResponse {
   int64 Stock = 4;
   int64 Amount = 5;
   int64 Status = 6;
+  repeated string ImageUrls = 7;  // 商品图片URL列表
 }
 // 产品详情
 

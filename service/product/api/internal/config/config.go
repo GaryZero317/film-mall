@@ -25,4 +25,9 @@ type Config struct {
 
 	CacheRedis cache.CacheConf
 	ProductRpc zrpc.RpcClientConf
+
+	FileUpload struct {
+		UploadPath string
+		UrlPrefix  string
+	}
 }

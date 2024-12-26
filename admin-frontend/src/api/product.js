@@ -41,9 +41,27 @@ export function getAdminProductList(params) {
   return productService({
     url: '/api/admin/product/list',
     method: 'post',
-    data: {
-      page: params.page || 1,
-      pageSize: params.pageSize || 10
-    }
+    data: params
+  })
+}
+
+// 设置商品主图
+export const setMainImage = (data) => {
+  console.log('设置主图请求数据:', data) // 添加日志
+  return productService.post('/api/product/images/setMain', {
+    productId: Number(data.productId), // 确保是数字类型
+    imageUrl: data.imageUrl
+  })
+}
+
+// 上传商品图片
+export function uploadImage(data) {
+  return productService({
+    url: '/api/product/upload',
+    method: 'post',
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    },
+    data
   })
 } 

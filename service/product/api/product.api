@@ -22,6 +22,7 @@ type (
 		Amount    int64    `json:"amount,optional"`
 		Status    int64    `json:"status,optional"`
 		ImageUrls []string `json:"imageUrls,optional"` // 商品图片URL列表
+		MainImage string   `json:"mainImage,optional"` // 商品主图
 	}
 	UpdateResponse {
 	}
@@ -47,6 +48,7 @@ type (
 		Amount    int64    `json:"amount"`
 		Status    int64    `json:"status"`
 		ImageUrls []string `json:"imageUrls"` // 商品图片URL列表
+		MainImage string   `json:"mainImage"` // 商品主图
 	}
 	// 产品详情
 
@@ -58,7 +60,8 @@ type (
 		Stock     int64    `json:"stock"`
 		Amount    int64    `json:"amount"`
 		Status    int64    `json:"status"`
-		ImageUrls []string `json:"imageUrls"` // 商品图片URL列表
+		Images    []string `json:"images"`    // 商品图片URL列表
+		MainImage string   `json:"mainImage"` // 商品主图
 	}
 
 	// 管理员获取商品列表
@@ -67,9 +70,44 @@ type (
 		PageSize int64 `json:"pageSize,optional"`
 	}
 
-	AdminProductListResponse {
+	AdminProductListData {
 		Total int64     `json:"total"`
 		List  []Product `json:"list"`
+	}
+
+	AdminProductListResponse {
+		Code int64                 `json:"code"`
+		Msg  string                `json:"msg"`
+		Data *AdminProductListData `json:"data"`
+	}
+
+	// 添加商品图片
+	AddProductImagesRequest {
+		ProductId int64    `json:"productId"`
+		ImageUrls []string `json:"imageUrls"`
+	}
+	AddProductImagesResponse {
+	}
+
+	// 删除商品图片
+	RemoveProductImagesRequest {
+		ProductId int64    `json:"productId"`
+		ImageUrls []string `json:"imageUrls"`
+	}
+	RemoveProductImagesResponse {
+	}
+
+	// 设置商品主图
+	SetMainImageRequest {
+		ProductId int64  `json:"productId" validate:"required"`
+		ImageUrl  string `json:"imageUrl" validate:"required"`
+	}
+	SetMainImageResponse {
+	}
+
+	// 文件上传
+	UploadResponse {
+		Url string `json:"url"`
 	}
 )
 
@@ -88,6 +126,18 @@ service Product {
 	
 	@handler Detail
 	post /api/product/detail (DetailRequest) returns (DetailResponse)
+	
+	@handler AddProductImages
+	post /api/product/images/add (AddProductImagesRequest) returns (AddProductImagesResponse)
+	
+	@handler RemoveProductImages
+	post /api/product/images/remove (RemoveProductImagesRequest) returns (RemoveProductImagesResponse)
+	
+	@handler SetMainImage
+	post /api/product/images/setMain (SetMainImageRequest) returns (SetMainImageResponse)
+	
+	@handler Upload
+	post /api/upload returns (UploadResponse)
 }
 
 @server(

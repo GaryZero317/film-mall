@@ -35,6 +35,7 @@ func (l *UpdateLogic) Update(in *product.UpdateRequest) (*product.UpdateResponse
 		return nil, status.Error(500, err.Error())
 	}
 
+	// 更新字段
 	if in.Name != "" {
 		res.Name = in.Name
 	}
@@ -47,9 +48,9 @@ func (l *UpdateLogic) Update(in *product.UpdateRequest) (*product.UpdateResponse
 	if in.Amount != 0 {
 		res.Amount = in.Amount
 	}
-	if in.Status != 0 {
-		res.Status = in.Status
-	}
+
+	// 状态可以是 0（下架）或 1（上架）
+	res.Status = in.Status
 
 	err = l.svcCtx.ProductModel.Update(l.ctx, res)
 	if err != nil {

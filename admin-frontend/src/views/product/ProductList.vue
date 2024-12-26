@@ -10,6 +10,19 @@
     <el-table :data="productList" style="width: 100%" v-loading="loading">
       <el-table-column prop="id" label="ID" width="80" />
       <el-table-column prop="name" label="商品名称" width="200" />
+      <el-table-column label="商品图片" width="120">
+        <template #default="scope">
+          <el-image
+            v-if="scope.row.mainImage"
+            :src="scope.row.mainImage"
+            :preview-src-list="scope.row.images"
+            fit="cover"
+            class="product-image"
+            style="width: 80px; height: 80px"
+          />
+          <el-empty v-else description="暂无图片" :image-size="40" />
+        </template>
+      </el-table-column>
       <el-table-column prop="desc" label="商品描述" show-overflow-tooltip />
       <el-table-column prop="stock" label="库存" width="100">
         <template #default="scope">
@@ -59,7 +72,7 @@
           <el-input
             v-model="form.desc"
             type="textarea"
-            rows="3"
+            :rows="3"
             placeholder="请输入商品描述" />
         </el-form-item>
         <el-form-item label="库存数量" prop="stock">
@@ -81,9 +94,57 @@
         </el-form-item>
         <el-form-item label="商品状态" prop="status">
           <el-radio-group v-model="form.status">
-            <el-radio :label="1">上架</el-radio>
-            <el-radio :label="0">下架</el-radio>
+            <el-radio :value="1">上架</el-radio>
+            <el-radio :value="0">下架</el-radio>
           </el-radio-group>
+        </el-form-item>
+        <el-form-item label="商品图片" prop="images">
+          <el-upload
+            class="product-image-uploader"
+            :action="'/api/upload'"
+            :headers="{
+              Authorization: 'Bearer ' + userStore.token
+            }"
+            :show-file-list="true"
+            :on-success="handleUploadSuccess"
+            :on-error="handleUploadError"
+            :before-upload="beforeUpload"
+            name="file"
+            accept="image/*"
+            list-type="picture-card"
+            multiple>
+            <el-icon><Plus /></el-icon>
+            <template #tip>
+              <div class="el-upload__tip">
+                只能上传jpg/png/gif文件，且不超过2MB
+              </div>
+            </template>
+          </el-upload>
+          <div v-if="form.images && form.images.length > 0" class="image-list">
+            <div v-for="(image, index) in form.images" :key="index" class="image-item">
+              <el-image
+                :src="image"
+                fit="cover"
+                class="preview-image"
+                :preview-src-list="[image]"
+              />
+              <div class="image-actions">
+                <el-button
+                  type="primary"
+                  size="small"
+                  :disabled="form.mainImage === image"
+                  @click="setMainImage(image)">
+                  设为主图
+                </el-button>
+                <el-button
+                  type="danger"
+                  size="small"
+                  @click="removeImage(index)">
+                  删除
+                </el-button>
+              </div>
+            </div>
+          </div>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -102,22 +163,33 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
-import { createProduct, updateProduct, removeProduct, getProductDetail } from '../../api/product'
+import { 
+  createProduct, 
+  updateProduct, 
+  removeProduct, 
+  getAdminProductList, 
+  setMainImage as setProductMainImage,
+  uploadImage 
+} from '../../api/product'
+import { useUserStore } from '../../stores/user'
 
+const userStore = useUserStore()
 const loading = ref(false)
 const submitting = ref(false)
 const dialogVisible = ref(false)
 const dialogType = ref('add')
 const productList = ref([])
 
-// 表单相关
+// 表���相关
 const formRef = ref(null)
 const form = ref({
   name: '',
   desc: '',
   stock: 0,
   amount: 0,
-  status: 1
+  status: 1,
+  images: [],
+  mainImage: ''
 })
 
 const rules = {
@@ -143,13 +215,20 @@ const rules = {
 const fetchProductList = async () => {
   loading.value = true
   try {
-    // 这里需要后端提供获取商品列表的接口
-    // 临时使用商品详情接口模拟
-    const res = await getProductDetail({ id: 1 })
-    productList.value = [res]
+    const res = await getAdminProductList({
+      page: 1,
+      pageSize: 100
+    })
+    console.log('商品列表响应:', res)
+    if (res.code === 0 && res.data) {
+      productList.value = res.data.list || []
+      console.log('商品列表数据:', productList.value)
+    } else {
+      ElMessage.error(res.msg || '获取商品列表失败')
+    }
   } catch (error) {
     console.error('获取商品列表失败:', error)
-    ElMessage.error('获取商品���表失败')
+    ElMessage.error('获取商品列失败')
   } finally {
     loading.value = false
   }
@@ -163,21 +242,26 @@ const handleAdd = () => {
     desc: '',
     stock: 0,
     amount: 0,
-    status: 1
+    status: 1,
+    images: [],
+    mainImage: ''
   }
   dialogVisible.value = true
 }
 
 // 编辑商品
 const handleEdit = (row) => {
+  console.log('编辑商品:', row)
   dialogType.value = 'edit'
   form.value = {
     id: row.id,
     name: row.name,
     desc: row.desc,
     stock: row.stock,
-    amount: row.amount / 100, // 转换为元
-    status: row.status
+    amount: row.amount / 100,
+    status: row.status,
+    images: row.images || [],
+    mainImage: row.mainImage || ''
   }
   dialogVisible.value = true
 }
@@ -202,32 +286,134 @@ const handleDelete = async (row) => {
 
 // 提交表单
 const handleSubmit = async () => {
-  if (!formRef.value) return
+  if (!formRef.value) {
+    console.error('表单引用为空')
+    return
+  }
   
   try {
+    console.log('开始验证表单')
     await formRef.value.validate()
     submitting.value = true
     
     const submitData = {
       ...form.value,
-      amount: Math.round(form.value.amount * 100) // 转换为分
+      amount: Math.round(form.value.amount * 100), // 转换为分
+      images: form.value.images || [],
+      mainImage: form.value.mainImage || ''
     }
+    console.log('提交的数据:', submitData)
     
+    let res
     if (dialogType.value === 'add') {
-      await createProduct(submitData)
-      ElMessage.success('添加成功')
+      console.log('执行添加操作')
+      res = await createProduct(submitData)
     } else {
-      await updateProduct(submitData)
-      ElMessage.success('更新成功')
+      console.log('执行更新操作')
+      res = await updateProduct(submitData)
     }
-    
-    dialogVisible.value = false
-    fetchProductList()
+    console.log('服务器响应:', res)
+
+    // 处理空响应的情况
+    if (!res || (typeof res === 'object' && Object.keys(res).length === 0)) {
+      // 如果是更新操作，空响应也视为成功
+      if (dialogType.value === 'edit') {
+        ElMessage.success('更新成功')
+        dialogVisible.value = false
+        fetchProductList()
+        return
+      }
+    }
+
+    if (res?.code === 0) {
+      ElMessage.success(dialogType.value === 'add' ? '添加成功' : '更新成功')
+      dialogVisible.value = false
+      fetchProductList()
+    } else {
+      ElMessage.error(res?.msg || '操作失败')
+    }
   } catch (error) {
-    console.error('提交失败:', error)
-    ElMessage.error('提交失败')
+    console.error('提交失败，详细错误:', error)
+    if (error.response) {
+      console.error('服务器响应:', error.response)
+      ElMessage.error(error.response.data?.msg || '服务器错误')
+    } else if (error.request) {
+      console.error('���求错误:', error.request)
+      ElMessage.error('网络请求失败，请检查网络连接')
+    } else {
+      console.error('其他错误:', error.message)
+      ElMessage.error(error.message || '提交失败')
+    }
   } finally {
     submitting.value = false
+  }
+}
+
+// 图片上传相关方法
+const handleUploadSuccess = (response, uploadFile) => {
+  if (response.code === 0 && response.data) {
+    const imageUrl = response.data.url || response.data
+    form.value.images = [...(form.value.images || []), imageUrl]
+    if (!form.value.mainImage) {
+      form.value.mainImage = imageUrl
+    }
+    ElMessage.success('上传成功')
+  } else {
+    ElMessage.error(response.msg || '上传失败')
+  }
+}
+
+const handleUploadError = (error) => {
+  console.error('上传失败:', error)
+  ElMessage.error('上传失败')
+}
+
+const beforeUpload = (file) => {
+  const isImage = file.type.startsWith('image/')
+  const isLt2M = file.size / 1024 / 1024 < 2
+
+  if (!isImage) {
+    ElMessage.error('只能上传图片文件!')
+    return false
+  }
+  if (!isLt2M) {
+    ElMessage.error('图片大小不能超过 2MB!')
+    return false
+  }
+  return true
+}
+
+const setMainImage = async (image) => {
+  try {
+    if (dialogType.value === 'edit' && form.value.id) {
+      const params = {
+        productId: form.value.id,
+        imageUrl: image
+      }
+      console.log('设置主图请求参数:', params)
+      const res = await setProductMainImage(params)
+      // 空对象响应也视为成功
+      if (!res || Object.keys(res).length === 0 || res.code === 0) {
+        form.value.mainImage = image
+        ElMessage.success('设置主图成功')
+        fetchProductList()
+      } else {
+        ElMessage.error(res.msg || '设置主图失败')
+      }
+    } else {
+      form.value.mainImage = image
+    }
+  } catch (error) {
+    console.error('设置主图失败:', error)
+    ElMessage.error('设置主图失败')
+  }
+}
+
+const removeImage = (index) => {
+  const image = form.value.images[index]
+  form.value.images.splice(index, 1)
+  if (form.value.mainImage === image) {
+    form.value.mainImage = form.value.images[0] || ''
   }
 }
 
@@ -253,5 +439,39 @@ onMounted(() => {
 
 :deep(.el-input-number .el-input__wrapper) {
   width: 200px;
+}
+
+.product-image-uploader {
+  margin-bottom: 20px;
+}
+
+.image-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.image-item {
+  position: relative;
+  width: 200px;
+}
+
+.preview-image {
+  width: 100%;
+  height: 200px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.image-actions {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.product-image {
+  border-radius: 4px;
+  cursor: pointer;
 }
 </style> 

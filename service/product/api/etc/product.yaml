@@ -23,3 +23,8 @@ ProductRpc:
     Hosts:
       - localhost:2379
     Key: product.rpc
+
+# 静态文件服务配置
+FileUpload:
+  UploadPath: ./uploads
+  UrlPrefix: /uploads/

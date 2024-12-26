@@ -32,6 +32,26 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Path:    "/api/product/detail",
 				Handler: DetailHandler(serverCtx),
 			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/api/product/images/add",
+				Handler: AddProductImagesHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/api/product/images/remove",
+				Handler: RemoveProductImagesHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/api/product/images/setMain",
+				Handler: SetMainImageHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/api/upload",
+				Handler: UploadHandler(serverCtx),
+			},
 		},
 		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
 	)

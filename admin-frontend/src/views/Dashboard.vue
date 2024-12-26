@@ -143,26 +143,34 @@ const fetchStatistics = async () => {
       page: 1,
       pageSize: 1
     })
-    statistics.products = productsRes.total.toLocaleString()
+    statistics.products = productsRes?.data?.total?.toLocaleString() || '0'
 
     // 获取订单总数
     const ordersRes = await getAdminOrderList({
       page: 1,
       pageSize: 1
     })
-    statistics.orders = ordersRes.total.toLocaleString()
+    statistics.orders = ordersRes?.data?.total?.toLocaleString() || '0'
 
     // 获取支付列表计算总额
     const paymentsRes = await getAdminPaymentList({
       page: 1,
       pageSize: 999999 // 获取所有支付记录
     })
-    const totalPayments = paymentsRes.list.reduce((sum, payment) => {
-      return sum + (payment.status === 1 ? payment.amount : 0) // 只计算支付成功的订单
-    }, 0)
-    statistics.payments = `¥${totalPayments.toLocaleString()}`
+    
+    let totalPayments = 0
+    if (paymentsRes?.data?.list) {
+      totalPayments = paymentsRes.data.list.reduce((sum, payment) => {
+        return sum + (payment.status === 1 ? payment.amount : 0) // 只计算支付成功的订单
+      }, 0)
+    }
+    statistics.payments = `¥${(totalPayments / 100).toLocaleString()}`
   } catch (error) {
     console.error('获取统计数据失败:', error)
+    // 设置默认值
+    statistics.products = '0'
+    statistics.orders = '0'
+    statistics.payments = '¥0'
   }
 }
 
@@ -310,7 +318,7 @@ const initPieChart = () => {
   pieChart.setOption(option)
 }
 
-// 初始化柱��图
+// 初始化柱状图
 const initBarChart = () => {
   barChart = echarts.init(barChartRef.value)
   const option = {
@@ -375,7 +383,7 @@ const handleResize = () => {
 }
 
 onMounted(async () => {
-  await fetchStatistics() // ��取统计数据
+  await fetchStatistics() // 获取统计数据
   initLineChart()
   await fetchOrderData()
   initRadarChart()

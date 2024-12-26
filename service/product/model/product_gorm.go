@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"time"
 
 	"github.com/zeromicro/go-zero/core/stores/cache"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
@@ -13,148 +12,81 @@ import (
 	"gorm.io/gorm"
 )
 
-// GormProduct represents the product model for GORM
-type GormProduct struct {
-	ID         int64     `gorm:"primaryKey;column:id;autoIncrement"`
-	Name       string    `gorm:"column:name;type:varchar(255)"`
-	Desc       string    `gorm:"column:desc;type:varchar(255)"`
-	Stock      int64     `gorm:"column:stock"`
-	Amount     int64     `gorm:"column:amount"`
-	Status     int64     `gorm:"column:status"`
-	CreateTime time.Time `gorm:"column:create_time;type:datetime;not null;default:CURRENT_TIMESTAMP"`
-	UpdateTime time.Time `gorm:"column:update_time;type:datetime;not null;default:CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"`
-}
-
 // TableName specifies the table name for GORM
-func (GormProduct) TableName() string {
+func (Product) TableName() string {
 	return "product"
 }
 
-// GormProductModel represents the GORM implementation of ProductModel
-type GormProductModel struct {
+type defaultGormProductModel struct {
 	db    *gorm.DB
 	cache cache.Cache
 }
 
-// NewGormProductModel creates a new instance of GormProductModel
-func NewGormProductModel(sqlDB *sql.DB, c cache.CacheConf) (*GormProductModel, error) {
+func NewDefaultGormProductModel(sqlDB *sql.DB, c cache.CacheConf) (*defaultGormProductModel, error) {
 	db, err := gorm.Open(mysql.New(mysql.Config{
-		Conn:                      sqlDB,
-		SkipInitializeWithVersion: true,
-		DefaultDatetimePrecision:  nil,
-		DisableDatetimePrecision:  true,
-	}), &gorm.Config{
-		NowFunc: func() time.Time {
-			return time.Now().Local()
-		},
-		CreateBatchSize: 1000,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize GORM: %v", err)
-	}
-
-	sqlDB2, err := db.DB()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get underlying DB: %v", err)
-	}
-
-	// Set connection pool settings
-	sqlDB2.SetMaxIdleConns(10)
-	sqlDB2.SetMaxOpenConns(100)
-	sqlDB2.SetConnMaxLifetime(time.Hour)
-
-	// Auto migrate the schema
-	err = db.AutoMigrate(&GormProduct{})
-	if err != nil {
-		return nil, fmt.Errorf("failed to migrate schema: %v", err)
-	}
-
-	cacheInstance := cache.New(c, syncx.NewSingleFlight(), cache.NewStat("product"), nil)
-	return &GormProductModel{
-		db:    db,
-		cache: cacheInstance,
-	}, nil
-}
-
-// Insert adds a new product to the database
-func (m *GormProductModel) Insert(ctx context.Context, data *Product) (sql.Result, error) {
-	gormProduct := &GormProduct{
-		Name:   data.Name,
-		Desc:   data.Desc,
-		Stock:  data.Stock,
-		Amount: data.Amount,
-		Status: data.Status,
-	}
-
-	err := m.db.WithContext(ctx).Create(gormProduct).Error
+		Conn: sqlDB,
+	}), &gorm.Config{})
 	if err != nil {
 		return nil, err
 	}
 
-	// Update the original product with the new ID and timestamps
-	data.Id = gormProduct.ID
-	data.CreateTime = gormProduct.CreateTime
-	data.UpdateTime = gormProduct.UpdateTime
-
-	return &lastInsertIDResult{id: gormProduct.ID}, nil
+	return &defaultGormProductModel{
+		db:    db,
+		cache: cache.New(c, syncx.NewSingleFlight(), cache.NewStat("product"), nil),
+	}, nil
 }
 
-// FindOne retrieves a product by ID
-func (m *GormProductModel) FindOne(ctx context.Context, id int64) (*Product, error) {
-	var gormProduct GormProduct
-	err := m.db.WithContext(ctx).Table("product").First(&gormProduct, id).Error
+func (m *defaultGormProductModel) Insert(ctx context.Context, data *Product) (sql.Result, error) {
+	err := m.db.WithContext(ctx).Create(data).Error
+	if err != nil {
+		return nil, err
+	}
+	return nil, nil
+}
+
+func (m *defaultGormProductModel) FindOne(ctx context.Context, id int64) (*Product, error) {
+	var product Product
+	err := m.db.WithContext(ctx).First(&product, id).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, sqlx.ErrNotFound
 		}
 		return nil, err
 	}
-
-	product := &Product{
-		Id:         gormProduct.ID,
-		Name:       gormProduct.Name,
-		Desc:       gormProduct.Desc,
-		Stock:      gormProduct.Stock,
-		Amount:     gormProduct.Amount,
-		Status:     gormProduct.Status,
-		CreateTime: gormProduct.CreateTime,
-		UpdateTime: gormProduct.UpdateTime,
-	}
-
-	return product, nil
+	return &product, nil
 }
 
-// Update modifies an existing product
-func (m *GormProductModel) Update(ctx context.Context, data *Product) error {
-	updates := map[string]interface{}{
-		"name":        data.Name,
-		"desc":        data.Desc,
-		"stock":       data.Stock,
-		"amount":      data.Amount,
-		"status":      data.Status,
-		"update_time": time.Now(),
-	}
-
-	result := m.db.WithContext(ctx).Table("product").Where("id = ?", data.Id).Updates(updates)
-	if result.Error != nil {
-		return result.Error
-	}
-
-	if result.RowsAffected == 0 {
-		return sqlx.ErrNotFound
-	}
-
-	return nil
+func (m *defaultGormProductModel) Update(ctx context.Context, data *Product) error {
+	return m.db.WithContext(ctx).Save(data).Error
 }
 
-// Delete removes a product from the database
-func (m *GormProductModel) Delete(ctx context.Context, id int64) error {
-	return m.db.WithContext(ctx).Table("product").Delete(&GormProduct{}, id).Error
+func (m *defaultGormProductModel) Delete(ctx context.Context, id int64) error {
+	return m.db.WithContext(ctx).Delete(&Product{}, id).Error
 }
 
-// DecrStock decrements the stock of a product
-func (m *GormProductModel) DecrStock(ctx context.Context, id int64) error {
-	result := m.db.WithContext(ctx).Table("product").
+func (m *defaultGormProductModel) FindPageListByPage(ctx context.Context, page, pageSize int64) ([]*Product, int64, error) {
+	var total int64
+	var products []*Product
+
+	if err := m.db.WithContext(ctx).Model(&Product{}).Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	offset := (page - 1) * pageSize
+	if err := m.db.WithContext(ctx).
+		Model(&Product{}).
+		Order("id DESC").
+		Offset(int(offset)).
+		Limit(int(pageSize)).
+		Find(&products).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return products, total, nil
+}
+
+func (m *defaultGormProductModel) DecrStock(ctx context.Context, id int64) error {
+	result := m.db.WithContext(ctx).Model(&Product{}).
 		Where("id = ? AND stock > 0", id).
 		UpdateColumn("stock", gorm.Expr("stock - ?", 1))
 
@@ -167,58 +99,4 @@ func (m *GormProductModel) DecrStock(ctx context.Context, id int64) error {
 	}
 
 	return nil
-}
-
-// lastInsertIDResult implements sql.Result interface
-type lastInsertIDResult struct {
-	id int64
-}
-
-func (r *lastInsertIDResult) LastInsertId() (int64, error) {
-	return r.id, nil
-}
-
-func (r *lastInsertIDResult) RowsAffected() (int64, error) {
-	return 1, nil
-}
-
-// FindPageListByPage 分页获取商品列表
-func (m *GormProductModel) FindPageListByPage(ctx context.Context, page, pageSize int64) ([]*Product, int64, error) {
-	if page < 1 {
-		page = 1
-	}
-	if pageSize < 1 {
-		pageSize = 10
-	}
-	offset := (page - 1) * pageSize
-
-	var gormProducts []*GormProduct
-	var total int64
-
-	// 查询总数
-	if err := m.db.Table("product").Count(&total).Error; err != nil {
-		return nil, 0, err
-	}
-
-	// 查询数据
-	if err := m.db.Table("product").Offset(int(offset)).Limit(int(pageSize)).Find(&gormProducts).Error; err != nil {
-		return nil, 0, err
-	}
-
-	// 转换为Product类型
-	var products []*Product
-	for _, gp := range gormProducts {
-		products = append(products, &Product{
-			Id:         gp.ID,
-			Name:       gp.Name,
-			Desc:       gp.Desc,
-			Stock:      gp.Stock,
-			Amount:     gp.Amount,
-			Status:     gp.Status,
-			CreateTime: gp.CreateTime,
-			UpdateTime: gp.UpdateTime,
-		})
-	}
-
-	return products, total, nil
 }

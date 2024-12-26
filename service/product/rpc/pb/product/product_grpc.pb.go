@@ -19,10 +19,13 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Product_Create_FullMethodName = "/product.Product/Create"
-	Product_Update_FullMethodName = "/product.Product/Update"
-	Product_Remove_FullMethodName = "/product.Product/Remove"
-	Product_Detail_FullMethodName = "/product.Product/Detail"
+	Product_Create_FullMethodName              = "/product.Product/Create"
+	Product_Update_FullMethodName              = "/product.Product/Update"
+	Product_Remove_FullMethodName              = "/product.Product/Remove"
+	Product_Detail_FullMethodName              = "/product.Product/Detail"
+	Product_AddProductImages_FullMethodName    = "/product.Product/AddProductImages"
+	Product_RemoveProductImages_FullMethodName = "/product.Product/RemoveProductImages"
+	Product_SetMainImage_FullMethodName        = "/product.Product/SetMainImage"
 )
 
 // ProductClient is the client API for Product service.
@@ -33,6 +36,9 @@ type ProductClient interface {
 	Update(ctx context.Context, in *UpdateRequest, opts ...grpc.CallOption) (*UpdateResponse, error)
 	Remove(ctx context.Context, in *RemoveRequest, opts ...grpc.CallOption) (*RemoveResponse, error)
 	Detail(ctx context.Context, in *DetailRequest, opts ...grpc.CallOption) (*DetailResponse, error)
+	AddProductImages(ctx context.Context, in *AddProductImagesRequest, opts ...grpc.CallOption) (*AddProductImagesResponse, error)
+	RemoveProductImages(ctx context.Context, in *RemoveProductImagesRequest, opts ...grpc.CallOption) (*RemoveProductImagesResponse, error)
+	SetMainImage(ctx context.Context, in *SetMainImageRequest, opts ...grpc.CallOption) (*SetMainImageResponse, error)
 }
 
 type productClient struct {
@@ -83,6 +89,36 @@ func (c *productClient) Detail(ctx context.Context, in *DetailRequest, opts ...g
 	return out, nil
 }
 
+func (c *productClient) AddProductImages(ctx context.Context, in *AddProductImagesRequest, opts ...grpc.CallOption) (*AddProductImagesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AddProductImagesResponse)
+	err := c.cc.Invoke(ctx, Product_AddProductImages_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productClient) RemoveProductImages(ctx context.Context, in *RemoveProductImagesRequest, opts ...grpc.CallOption) (*RemoveProductImagesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RemoveProductImagesResponse)
+	err := c.cc.Invoke(ctx, Product_RemoveProductImages_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productClient) SetMainImage(ctx context.Context, in *SetMainImageRequest, opts ...grpc.CallOption) (*SetMainImageResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetMainImageResponse)
+	err := c.cc.Invoke(ctx, Product_SetMainImage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProductServer is the server API for Product service.
 // All implementations must embed UnimplementedProductServer
 // for forward compatibility.
@@ -91,6 +127,9 @@ type ProductServer interface {
 	Update(context.Context, *UpdateRequest) (*UpdateResponse, error)
 	Remove(context.Context, *RemoveRequest) (*RemoveResponse, error)
 	Detail(context.Context, *DetailRequest) (*DetailResponse, error)
+	AddProductImages(context.Context, *AddProductImagesRequest) (*AddProductImagesResponse, error)
+	RemoveProductImages(context.Context, *RemoveProductImagesRequest) (*RemoveProductImagesResponse, error)
+	SetMainImage(context.Context, *SetMainImageRequest) (*SetMainImageResponse, error)
 	mustEmbedUnimplementedProductServer()
 }
 
@@ -112,6 +151,15 @@ func (UnimplementedProductServer) Remove(context.Context, *RemoveRequest) (*Remo
 }
 func (UnimplementedProductServer) Detail(context.Context, *DetailRequest) (*DetailResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Detail not implemented")
+}
+func (UnimplementedProductServer) AddProductImages(context.Context, *AddProductImagesRequest) (*AddProductImagesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddProductImages not implemented")
+}
+func (UnimplementedProductServer) RemoveProductImages(context.Context, *RemoveProductImagesRequest) (*RemoveProductImagesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveProductImages not implemented")
+}
+func (UnimplementedProductServer) SetMainImage(context.Context, *SetMainImageRequest) (*SetMainImageResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetMainImage not implemented")
 }
 func (UnimplementedProductServer) mustEmbedUnimplementedProductServer() {}
 func (UnimplementedProductServer) testEmbeddedByValue()                 {}
@@ -206,6 +254,60 @@ func _Product_Detail_Handler(srv interface{}, ctx context.Context, dec func(inte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Product_AddProductImages_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddProductImagesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServer).AddProductImages(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Product_AddProductImages_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServer).AddProductImages(ctx, req.(*AddProductImagesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Product_RemoveProductImages_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveProductImagesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServer).RemoveProductImages(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Product_RemoveProductImages_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServer).RemoveProductImages(ctx, req.(*RemoveProductImagesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Product_SetMainImage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetMainImageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServer).SetMainImage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Product_SetMainImage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServer).SetMainImage(ctx, req.(*SetMainImageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Product_ServiceDesc is the grpc.ServiceDesc for Product service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -228,6 +330,18 @@ var Product_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Detail",
 			Handler:    _Product_Detail_Handler,
+		},
+		{
+			MethodName: "AddProductImages",
+			Handler:    _Product_AddProductImages_Handler,
+		},
+		{
+			MethodName: "RemoveProductImages",
+			Handler:    _Product_RemoveProductImages_Handler,
+		},
+		{
+			MethodName: "SetMainImage",
+			Handler:    _Product_SetMainImage_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

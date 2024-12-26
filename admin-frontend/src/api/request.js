@@ -29,36 +29,49 @@ const createService = (baseURL) => {
   service.interceptors.response.use(
     (response) => {
       const res = response.data
+      console.log('API响应数据:', res)
+      
       if (res.code && res.code !== 0) {
-        ElMessage.error(res.msg || '请求失败')
-        return Promise.reject(new Error(res.msg || '请求失败'))
+        const errorMsg = res.msg || '请求失败'
+        console.error('API错误:', errorMsg)
+        ElMessage.error(errorMsg)
+        return Promise.reject(new Error(errorMsg))
       }
       return res
     },
     (error) => {
       console.error('响应错误:', error)
       if (error.response) {
-        switch (error.response.status) {
+        const status = error.response.status
+        const data = error.response.data
+        console.error('错误状态码:', status)
+        console.error('错误响应数据:', data)
+        
+        switch (status) {
           case 401:
-            ElMessage.error('未授权，请重新登录')
+            ElMessage.error(data?.msg || '未授权，请重新登录')
             const userStore = useUserStore()
             userStore.logout()
             router.push('/login')
             break
           case 403:
-            ElMessage.error('拒绝访问')
+            ElMessage.error(data?.msg || '拒绝访问')
             break
           case 404:
-            ElMessage.error('请求的资源不存在')
+            ElMessage.error(data?.msg || '请求的资源不存在')
             break
           case 500:
-            ElMessage.error('服务器内部错误')
+            ElMessage.error(data?.msg || '服务器内部错误')
             break
           default:
-            ElMessage.error(error.response.data?.msg || '未知错误')
+            ElMessage.error(data?.msg || `请求失败(${status})`)
         }
-      } else {
+      } else if (error.request) {
+        console.error('请求未收到响应:', error.request)
         ElMessage.error('网络错误，请检查网络连接')
+      } else {
+        console.error('请求配置错误:', error.message)
+        ElMessage.error(error.message || '请求发送失败')
       }
       return Promise.reject(error)
     }

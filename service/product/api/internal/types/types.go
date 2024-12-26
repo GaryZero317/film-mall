@@ -22,6 +22,7 @@ type UpdateRequest struct {
 	Amount    int64    `json:"amount,optional"`
 	Status    int64    `json:"status,optional"`
 	ImageUrls []string `json:"imageUrls,optional"` // 商品图片URL列表
+	MainImage string   `json:"mainImage,optional"` // 商品主图
 }
 
 type UpdateResponse struct {
@@ -46,6 +47,7 @@ type DetailResponse struct {
 	Amount    int64    `json:"amount"`
 	Status    int64    `json:"status"`
 	ImageUrls []string `json:"imageUrls"` // 商品图片URL列表
+	MainImage string   `json:"mainImage"` // 商品主图
 }
 
 type Product struct {
@@ -55,7 +57,8 @@ type Product struct {
 	Stock     int64    `json:"stock"`
 	Amount    int64    `json:"amount"`
 	Status    int64    `json:"status"`
-	ImageUrls []string `json:"imageUrls"` // 商品图片URL列表
+	Images    []string `json:"images"`    // 商品图片URL列表
+	MainImage string   `json:"mainImage"` // 商品主图
 }
 
 type AdminProductListRequest struct {
@@ -63,7 +66,41 @@ type AdminProductListRequest struct {
 	PageSize int64 `json:"pageSize,optional"`
 }
 
-type AdminProductListResponse struct {
+type AdminProductListData struct {
 	Total int64     `json:"total"`
 	List  []Product `json:"list"`
+}
+
+type AdminProductListResponse struct {
+	Code int64                 `json:"code"`
+	Msg  string                `json:"msg"`
+	Data *AdminProductListData `json:"data"`
+}
+
+type AddProductImagesRequest struct {
+	ProductId int64    `json:"productId"`
+	ImageUrls []string `json:"imageUrls"`
+}
+
+type AddProductImagesResponse struct {
+}
+
+type RemoveProductImagesRequest struct {
+	ProductId int64    `json:"productId"`
+	ImageUrls []string `json:"imageUrls"`
+}
+
+type RemoveProductImagesResponse struct {
+}
+
+type SetMainImageRequest struct {
+	ProductId int64  `json:"productId" validate:"required"`
+	ImageUrl  string `json:"imageUrl" validate:"required"`
+}
+
+type SetMainImageResponse struct {
+}
+
+type UploadResponse struct {
+	Url string `json:"url"`
 }

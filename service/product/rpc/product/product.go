@@ -13,20 +13,29 @@ import (
 )
 
 type (
-	CreateRequest  = product.CreateRequest
-	CreateResponse = product.CreateResponse
-	DetailRequest  = product.DetailRequest
-	DetailResponse = product.DetailResponse
-	RemoveRequest  = product.RemoveRequest
-	RemoveResponse = product.RemoveResponse
-	UpdateRequest  = product.UpdateRequest
-	UpdateResponse = product.UpdateResponse
+	AddProductImagesRequest     = product.AddProductImagesRequest
+	AddProductImagesResponse    = product.AddProductImagesResponse
+	CreateRequest               = product.CreateRequest
+	CreateResponse              = product.CreateResponse
+	DetailRequest               = product.DetailRequest
+	DetailResponse              = product.DetailResponse
+	RemoveProductImagesRequest  = product.RemoveProductImagesRequest
+	RemoveProductImagesResponse = product.RemoveProductImagesResponse
+	RemoveRequest               = product.RemoveRequest
+	RemoveResponse              = product.RemoveResponse
+	SetMainImageRequest         = product.SetMainImageRequest
+	SetMainImageResponse        = product.SetMainImageResponse
+	UpdateRequest               = product.UpdateRequest
+	UpdateResponse              = product.UpdateResponse
 
 	Product interface {
 		Create(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*CreateResponse, error)
 		Update(ctx context.Context, in *UpdateRequest, opts ...grpc.CallOption) (*UpdateResponse, error)
 		Remove(ctx context.Context, in *RemoveRequest, opts ...grpc.CallOption) (*RemoveResponse, error)
 		Detail(ctx context.Context, in *DetailRequest, opts ...grpc.CallOption) (*DetailResponse, error)
+		AddProductImages(ctx context.Context, in *AddProductImagesRequest, opts ...grpc.CallOption) (*AddProductImagesResponse, error)
+		RemoveProductImages(ctx context.Context, in *RemoveProductImagesRequest, opts ...grpc.CallOption) (*RemoveProductImagesResponse, error)
+		SetMainImage(ctx context.Context, in *SetMainImageRequest, opts ...grpc.CallOption) (*SetMainImageResponse, error)
 	}
 
 	defaultProduct struct {
@@ -58,4 +67,19 @@ func (m *defaultProduct) Remove(ctx context.Context, in *RemoveRequest, opts ...
 func (m *defaultProduct) Detail(ctx context.Context, in *DetailRequest, opts ...grpc.CallOption) (*DetailResponse, error) {
 	client := product.NewProductClient(m.cli.Conn())
 	return client.Detail(ctx, in, opts...)
+}
+
+func (m *defaultProduct) AddProductImages(ctx context.Context, in *AddProductImagesRequest, opts ...grpc.CallOption) (*AddProductImagesResponse, error) {
+	client := product.NewProductClient(m.cli.Conn())
+	return client.AddProductImages(ctx, in, opts...)
+}
+
+func (m *defaultProduct) RemoveProductImages(ctx context.Context, in *RemoveProductImagesRequest, opts ...grpc.CallOption) (*RemoveProductImagesResponse, error) {
+	client := product.NewProductClient(m.cli.Conn())
+	return client.RemoveProductImages(ctx, in, opts...)
+}
+
+func (m *defaultProduct) SetMainImage(ctx context.Context, in *SetMainImageRequest, opts ...grpc.CallOption) (*SetMainImageResponse, error) {
+	client := product.NewProductClient(m.cli.Conn())
+	return client.SetMainImage(ctx, in, opts...)
 }

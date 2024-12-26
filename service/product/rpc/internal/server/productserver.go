@@ -41,3 +41,18 @@ func (s *ProductServer) Detail(ctx context.Context, in *product.DetailRequest) (
 	l := logic.NewDetailLogic(ctx, s.svcCtx)
 	return l.Detail(in)
 }
+
+func (s *ProductServer) AddProductImages(ctx context.Context, in *product.AddProductImagesRequest) (*product.AddProductImagesResponse, error) {
+	l := logic.NewAddProductImagesLogic(ctx, s.svcCtx)
+	return l.AddProductImages(in)
+}
+
+func (s *ProductServer) RemoveProductImages(ctx context.Context, in *product.RemoveProductImagesRequest) (*product.RemoveProductImagesResponse, error) {
+	l := logic.NewRemoveProductImagesLogic(ctx, s.svcCtx)
+	return l.RemoveProductImages(in)
+}
+
+func (s *ProductServer) SetMainImage(ctx context.Context, in *product.SetMainImageRequest) (*product.SetMainImageResponse, error) {
+	l := logic.NewSetMainImageLogic(ctx, s.svcCtx)
+	return l.SetMainImage(in)
+}

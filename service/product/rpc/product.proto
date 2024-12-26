@@ -55,9 +55,36 @@ message DetailResponse {
 }
 // 产品详情
 
+// 添加商品图片
+message AddProductImagesRequest {
+  int64 ProductId = 1;
+  repeated string ImageUrls = 2;
+}
+message AddProductImagesResponse {
+}
+
+// 删除商品图片
+message RemoveProductImagesRequest {
+  int64 ProductId = 1;
+  repeated string ImageUrls = 2;
+}
+message RemoveProductImagesResponse {
+}
+
+// 设置商品主图
+message SetMainImageRequest {
+  int64 ProductId = 1;
+  string ImageUrl = 2;
+}
+message SetMainImageResponse {
+}
+
 service Product {
   rpc Create(CreateRequest) returns(CreateResponse);
   rpc Update(UpdateRequest) returns(UpdateResponse);
   rpc Remove(RemoveRequest) returns(RemoveResponse);
   rpc Detail(DetailRequest) returns(DetailResponse);
+  rpc AddProductImages(AddProductImagesRequest) returns(AddProductImagesResponse);
+  rpc RemoveProductImages(RemoveProductImagesRequest) returns(RemoveProductImagesResponse);
+  rpc SetMainImage(SetMainImageRequest) returns(SetMainImageResponse);
 }

@@ -8,42 +8,41 @@ import (
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
 )
 
-var _ ProductModel = (*customProductModel)(nil)
+type ProductModel interface {
+	Insert(ctx context.Context, data *Product) (sql.Result, error)
+	FindOne(ctx context.Context, id int64) (*Product, error)
+	Update(ctx context.Context, data *Product) error
+	Delete(ctx context.Context, id int64) error
+	FindPageListByPage(ctx context.Context, page, pageSize int64) ([]*Product, int64, error)
+	DecrStock(ctx context.Context, id int64) error
+}
 
-type (
-	// ProductModel is an interface to be customized, add more methods here,
-	// and implement the added methods in customProductModel.
-	ProductModel interface {
-		Insert(ctx context.Context, data *Product) (sql.Result, error)
-		FindOne(ctx context.Context, id int64) (*Product, error)
-		Update(ctx context.Context, data *Product) error
-		Delete(ctx context.Context, id int64) error
-		FindPageListByPage(ctx context.Context, page, pageSize int64) ([]*Product, int64, error)
-	}
+type customProductModel struct {
+	*defaultGormProductModel
+}
 
-	customProductModel struct {
-		*GormProductModel
-	}
-)
-
-// NewProductModel 返回数据库表的模型。
+// NewProductModel returns a model for the database table.
 func NewProductModel(conn sqlx.SqlConn, c cache.CacheConf) ProductModel {
-	// 获取原始数据库连接
 	rawDB, err := conn.RawDB()
 	if err != nil {
 		panic(err)
 	}
 
-	gormModel, err := NewGormProductModel(rawDB, c)
+	gormModel, err := NewDefaultGormProductModel(rawDB, c)
 	if err != nil {
 		panic(err)
 	}
 	return &customProductModel{
-		GormProductModel: gormModel,
+		defaultGormProductModel: gormModel,
 	}
 }
 
 // FindPageListByPage 分页获取商品列表
 func (m *customProductModel) FindPageListByPage(ctx context.Context, page, pageSize int64) ([]*Product, int64, error) {
-	return m.GormProductModel.FindPageListByPage(ctx, page, pageSize)
+	return m.defaultGormProductModel.FindPageListByPage(ctx, page, pageSize)
+}
+
+// DecrStock 减少库存
+func (m *customProductModel) DecrStock(ctx context.Context, id int64) error {
+	return m.defaultGormProductModel.DecrStock(ctx, id)
 }

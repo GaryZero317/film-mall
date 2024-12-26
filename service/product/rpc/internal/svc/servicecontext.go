@@ -1,30 +1,32 @@
 package svc
 
 import (
-	"database/sql"
 	"mall/service/product/model"
 	"mall/service/product/rpc/internal/config"
+
+	"github.com/zeromicro/go-zero/core/stores/sqlx"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 type ServiceContext struct {
-	Config config.Config
-
+	Config       config.Config
 	ProductModel model.ProductModel
+	DB           *gorm.DB
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
-	sqlDB, err := sql.Open("mysql", c.Mysql.DataSource)
-	if err != nil {
-		panic(err)
-	}
+	conn := sqlx.NewMysql(c.Mysql.DataSource)
 
-	productModel, err := model.NewGormProductModel(sqlDB, c.CacheRedis)
+	// 初始化 GORM
+	db, err := gorm.Open(mysql.Open(c.Mysql.DataSource), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
 
 	return &ServiceContext{
 		Config:       c,
-		ProductModel: productModel,
+		ProductModel: model.NewProductModel(conn, c.CacheRedis),
+		DB:           db,
 	}
 }

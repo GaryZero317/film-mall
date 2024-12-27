@@ -64,4 +64,20 @@ export function uploadImage(data) {
     },
     data
   })
+}
+
+// 添加商品图片
+export const addProductImages = (data) => {
+  return productService.post('/api/product/images/add', {
+    productId: Number(data.productId),
+    imageUrls: data.imageUrls
+  })
+}
+
+// 删除商品图片
+export const removeProductImages = (data) => {
+  return productService.post('/api/product/images/remove', {
+    productId: Number(data.productId),
+    imageUrls: data.imageUrls
+  })
 } 

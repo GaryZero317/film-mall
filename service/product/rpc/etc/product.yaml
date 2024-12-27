@@ -13,3 +13,8 @@ CacheRedis:
   - Host: localhost:6379
     Type: node
     Pass: "123456"
+
+Etcd:
+  Hosts:
+    - localhost:2379
+  Key: product.rpc

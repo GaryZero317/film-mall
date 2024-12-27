@@ -169,7 +169,8 @@ import {
   removeProduct, 
   getAdminProductList, 
   setMainImage as setProductMainImage,
-  uploadImage 
+  uploadImage,
+  addProductImages
 } from '../../api/product'
 import { useUserStore } from '../../stores/user'
 
@@ -180,7 +181,7 @@ const dialogVisible = ref(false)
 const dialogType = ref('add')
 const productList = ref([])
 
-// 表���相关
+// 表单相关
 const formRef = ref(null)
 const form = ref({
   name: '',
@@ -228,7 +229,7 @@ const fetchProductList = async () => {
     }
   } catch (error) {
     console.error('获取商品列表失败:', error)
-    ElMessage.error('获取商品列失败')
+    ElMessage.error('获取商品列表失败')
   } finally {
     loading.value = false
   }
@@ -338,7 +339,7 @@ const handleSubmit = async () => {
       console.error('服务器响应:', error.response)
       ElMessage.error(error.response.data?.msg || '服务器错误')
     } else if (error.request) {
-      console.error('���求错误:', error.request)
+      console.error('请求错误:', error.request)
       ElMessage.error('网络请求失败，请检查网络连接')
     } else {
       console.error('其他错误:', error.message)
@@ -350,14 +351,50 @@ const handleSubmit = async () => {
 }
 
 // 图片上传相关方法
-const handleUploadSuccess = (response, uploadFile) => {
+const handleUploadSuccess = async (response, uploadFile) => {
   if (response.code === 0 && response.data) {
     const imageUrl = response.data.url || response.data
+    console.log('上传成功，图片URL:', imageUrl)
     form.value.images = [...(form.value.images || []), imageUrl]
-    if (!form.value.mainImage) {
-      form.value.mainImage = imageUrl
+    
+    // 如果是编辑模式，调用添加商品图片接口
+    if (dialogType.value === 'edit' && form.value.id) {
+      try {
+        console.log('调用添加商品图片接口:', {
+          productId: form.value.id,
+          imageUrls: [imageUrl]
+        })
+        const res = await addProductImages({
+          productId: form.value.id,
+          imageUrls: [imageUrl]
+        })
+        console.log('添加商品图片响应:', res)
+        
+        if (!res || Object.keys(res).length === 0 || res.code === 0) {
+          // 如果还没有主图，设置为主图
+          if (!form.value.mainImage) {
+            await setProductMainImage({
+              productId: form.value.id,
+              imageUrl: imageUrl
+            })
+            form.value.mainImage = imageUrl
+          }
+          ElMessage.success('上传成功')
+          fetchProductList() // 刷新列表
+        } else {
+          ElMessage.error(res.msg || '添加商品图片失败')
+        }
+      } catch (error) {
+        console.error('添加商品图片失败:', error)
+        ElMessage.error('添加商品图片失败')
+      }
+    } else {
+      // 如果是新增模式，直接设置主图
+      if (!form.value.mainImage) {
+        form.value.mainImage = imageUrl
+      }
+      ElMessage.success('上传成功')
     }
-    ElMessage.success('上传成功')
   } else {
     ElMessage.error(response.msg || '上传失败')
   }

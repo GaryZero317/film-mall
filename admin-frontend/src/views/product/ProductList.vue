@@ -170,7 +170,8 @@ import {
   getAdminProductList, 
   setMainImage as setProductMainImage,
   uploadImage,
-  addProductImages
+  addProductImages,
+  removeProductImages
 } from '../../api/product'
 import { useUserStore } from '../../stores/user'
 
@@ -312,6 +313,21 @@ const handleSubmit = async () => {
     } else {
       console.log('执行更新操作')
       res = await updateProduct(submitData)
+      
+      // 如果更新成功，设置主图（如果有变化）
+      if (!res || Object.keys(res).length === 0 || res.code === 0) {
+        try {
+          const product = productList.value.find(p => p.id === form.value.id)
+          if (product && product.mainImage !== form.value.mainImage) {
+            await setProductMainImage({
+              productId: form.value.id,
+              imageUrl: form.value.mainImage
+            })
+          }
+        } catch (error) {
+          console.error('设置主图失败:', error)
+        }
+      }
     }
     console.log('服务器响应:', res)
 
@@ -432,8 +448,12 @@ const setMainImage = async (image) => {
       // 空对象响应也视为成功
       if (!res || Object.keys(res).length === 0 || res.code === 0) {
         form.value.mainImage = image
+        // 更新商品列表中的主图
+        const product = productList.value.find(p => p.id === form.value.id)
+        if (product) {
+          product.mainImage = image
+        }
         ElMessage.success('设置主图成功')
-        fetchProductList()
       } else {
         ElMessage.error(res.msg || '设置主图失败')
       }
@@ -446,11 +466,55 @@ const setMainImage = async (image) => {
   }
 }
 
-const removeImage = (index) => {
+const removeImage = async (index) => {
   const image = form.value.images[index]
-  form.value.images.splice(index, 1)
-  if (form.value.mainImage === image) {
-    form.value.mainImage = form.value.images[0] || ''
+  
+  // 如果是编辑模式，调用删除图片接口
+  if (dialogType.value === 'edit' && form.value.id) {
+    try {
+      console.log('调用删除商品图片接口:', {
+        productId: form.value.id,
+        imageUrls: [image]
+      })
+      const res = await removeProductImages({
+        productId: form.value.id,
+        imageUrls: [image]
+      })
+      console.log('删除商品图片响应:', res)
+      
+      if (!res || Object.keys(res).length === 0 || res.code === 0) {
+        // 如果删除的是主图，清空主图
+        if (form.value.mainImage === image) {
+          form.value.mainImage = form.value.images[0] || ''
+          if (form.value.mainImage) {
+            await setProductMainImage({
+              productId: form.value.id,
+              imageUrl: form.value.mainImage
+            })
+          }
+        }
+        // 从当前表单中移除图片
+        form.value.images.splice(index, 1)
+        // 更新商品列表中的图片
+        const product = productList.value.find(p => p.id === form.value.id)
+        if (product) {
+          product.images = [...form.value.images]
+          product.mainImage = form.value.mainImage
+        }
+        ElMessage.success('删除成功')
+      } else {
+        ElMessage.error(res.msg || '删除图片失败')
+      }
+    } catch (error) {
+      console.error('删除商品图片失败:', error)
+      ElMessage.error('删除图片失败')
+    }
+  } else {
+    // 如果是新增模式，直接从数组中移除
+    form.value.images.splice(index, 1)
+    if (form.value.mainImage === image) {
+      form.value.mainImage = form.value.images[0] || ''
+    }
   }
 }
 

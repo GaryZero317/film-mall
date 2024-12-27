@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"gorm.io/gorm"
@@ -38,7 +39,21 @@ func (m *ProductImage) Delete(ctx context.Context, db *gorm.DB) error {
 
 // 批量删除商品图片
 func (m *ProductImage) BatchDelete(ctx context.Context, db *gorm.DB, productId int64, imageUrls []string) error {
-	return db.WithContext(ctx).Where("product_id = ? AND image_url IN ?", productId, imageUrls).Delete(&ProductImage{}).Error
+	// 开启事务
+	return db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		// 删除所有匹配的记录
+		result := tx.Where("product_id = ? AND image_url IN ?", productId, imageUrls).Delete(&ProductImage{})
+		if result.Error != nil {
+			return result.Error
+		}
+
+		// 检查是否有记录被删除
+		if result.RowsAffected == 0 {
+			return fmt.Errorf("没有找到要删除的记录")
+		}
+
+		return nil
+	})
 }
 
 // 设置商品主图
@@ -70,7 +85,7 @@ func (m *ProductImage) FindMainImage(ctx context.Context, db *gorm.DB, productId
 	return &image, err
 }
 
-// 删除商品所有图片
+// 删除商品所���图片
 func (m *ProductImage) DeleteByProductId(ctx context.Context, db *gorm.DB, productId int64) error {
 	return db.WithContext(ctx).Where("product_id = ?", productId).Delete(&ProductImage{}).Error
 }

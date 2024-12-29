@@ -8,8 +8,13 @@ type (
 		Status    int64    `json:"status"`
 		ImageUrls []string `json:"imageUrls"` // 商品图片URL列表
 	}
-	CreateResponse {
+	CreateData {
 		Id int64 `json:"id"`
+	}
+	CreateResponse {
+		Code int64      `json:"code"`
+		Msg  string     `json:"msg"`
+		Data CreateData `json:"data"`
 	}
 	// 产品创建
 
@@ -25,6 +30,8 @@ type (
 		MainImage string   `json:"mainImage,optional"` // 商品主图
 	}
 	UpdateResponse {
+		Code int64  `json:"code"`
+		Msg  string `json:"msg"`
 	}
 	// 产品修改
 

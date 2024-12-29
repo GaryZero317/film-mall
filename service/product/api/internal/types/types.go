@@ -10,8 +10,14 @@ type CreateRequest struct {
 	ImageUrls []string `json:"imageUrls"` // 商品图片URL列表
 }
 
-type CreateResponse struct {
+type CreateData struct {
 	Id int64 `json:"id"`
+}
+
+type CreateResponse struct {
+	Code int64      `json:"code"`
+	Msg  string     `json:"msg"`
+	Data CreateData `json:"data"`
 }
 
 type UpdateRequest struct {
@@ -26,6 +32,8 @@ type UpdateRequest struct {
 }
 
 type UpdateResponse struct {
+	Code int64  `json:"code"`
+	Msg  string `json:"msg"`
 }
 
 type RemoveRequest struct {

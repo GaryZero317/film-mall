@@ -301,7 +301,7 @@ const handleSubmit = async () => {
     const submitData = {
       ...form.value,
       amount: Math.round(form.value.amount * 100), // 转换为分
-      images: form.value.images || [],
+      imageUrls: form.value.images || [],
       mainImage: form.value.mainImage || ''
     }
     console.log('提交的数据:', submitData)
@@ -310,12 +310,14 @@ const handleSubmit = async () => {
     if (dialogType.value === 'add') {
       console.log('执行添加操作')
       res = await createProduct(submitData)
+      console.log('创建商品响应:', res)
     } else {
       console.log('执行更新操作')
       res = await updateProduct(submitData)
+      console.log('更新商品响应:', res)
       
-      // 如果更新成功，设置主图（如果有变化）
-      if (!res || Object.keys(res).length === 0 || res.code === 0) {
+      // 只有在明确成功的情况下才继续处理
+      if (res && res.code === 0) {
         try {
           const product = productList.value.find(p => p.id === form.value.id)
           if (product && product.mainImage !== form.value.mainImage) {
@@ -326,40 +328,31 @@ const handleSubmit = async () => {
           }
         } catch (error) {
           console.error('设置主图失败:', error)
+          ElMessage.warning('商品更新成功，但设置主图失败')
         }
       }
     }
     console.log('服务器响应:', res)
 
-    // 处理空响应的情况
-    if (!res || (typeof res === 'object' && Object.keys(res).length === 0)) {
-      // 如果是更新操作，空响应也视为成功
-      if (dialogType.value === 'edit') {
-        ElMessage.success('更新成功')
-        dialogVisible.value = false
-        fetchProductList()
-        return
-      }
-    }
-
-    if (res?.code === 0) {
+    // 更新响应处理逻辑
+    if (res && (res.code === 0 || Object.keys(res).length === 0)) {
       ElMessage.success(dialogType.value === 'add' ? '添加成功' : '更新成功')
       dialogVisible.value = false
       fetchProductList()
     } else {
-      ElMessage.error(res?.msg || '操作失败')
+      throw new Error(res?.msg || '操作失败')
     }
   } catch (error) {
     console.error('提交失败，详细错误:', error)
     if (error.response) {
       console.error('服务器响应:', error.response)
-      ElMessage.error(error.response.data?.msg || '服务器错误')
+      ElMessage.error(error.response.data || '服务器错误')
     } else if (error.request) {
       console.error('请求错误:', error.request)
       ElMessage.error('网络请求失败，请检查网络连接')
     } else {
-      console.error('其他错误:', error.message)
-      ElMessage.error(error.message || '提交失败')
+      console.error('其他错误:', error)
+      ElMessage.error(error?.message || '提交失败')
     }
   } finally {
     submitting.value = false

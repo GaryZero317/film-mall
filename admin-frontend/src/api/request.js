@@ -31,10 +31,14 @@ const createService = (baseURL) => {
       const res = response.data
       console.log('API响应数据:', res)
       
-      if (res.code && res.code !== 0) {
+      // 如果响应中没有code字段，直接返回数据
+      if (res.code === undefined) {
+        return res
+      }
+      
+      if (res.code !== 0) {
         const errorMsg = res.msg || '请求失败'
         console.error('API错误:', errorMsg)
-        ElMessage.error(errorMsg)
         return Promise.reject(new Error(errorMsg))
       }
       return res

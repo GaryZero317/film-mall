@@ -2,6 +2,7 @@ package logic
 
 import (
 	"context"
+	"time"
 
 	"mall/service/product/model"
 	"mall/service/product/rpc/internal/svc"
@@ -27,24 +28,21 @@ func NewCreateLogic(ctx context.Context, svcCtx *svc.ServiceContext) *CreateLogi
 }
 
 func (l *CreateLogic) Create(in *product.CreateRequest) (*product.CreateResponse, error) {
-	newProduct := model.Product{
-		Name:   in.Name,
-		Desc:   in.Desc,
-		Stock:  in.Stock,
-		Amount: in.Amount,
-		Status: in.Status,
+	now := time.Now()
+	newProduct := &model.Product{
+		Name:       in.Name,
+		Desc:       in.Desc,
+		Stock:      in.Stock,
+		Amount:     in.Amount,
+		Status:     in.Status,
+		CreateTime: now,
+		UpdateTime: now,
 	}
 
 	// 开启事务
 	err := l.svcCtx.DB.Transaction(func(tx *gorm.DB) error {
 		// 创建商品
-		result, err := l.svcCtx.ProductModel.Insert(l.ctx, &newProduct)
-		if err != nil {
-			return err
-		}
-
-		productId, err := result.LastInsertId()
-		if err != nil {
+		if err := tx.Create(newProduct).Error; err != nil {
 			return err
 		}
 
@@ -53,15 +51,14 @@ func (l *CreateLogic) Create(in *product.CreateRequest) (*product.CreateResponse
 			var images []*model.ProductImage
 			for i, url := range in.ImageUrls {
 				images = append(images, &model.ProductImage{
-					ProductId: productId,
+					ProductId: newProduct.Id,
 					ImageUrl:  url,
 					IsMain:    i == 0, // 第一张图片设为主图
 					SortOrder: i,
 				})
 			}
 
-			productImage := &model.ProductImage{}
-			if err := productImage.BatchInsert(l.ctx, tx, images); err != nil {
+			if err := tx.Create(&images).Error; err != nil {
 				return err
 			}
 		}

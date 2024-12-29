@@ -47,5 +47,8 @@ func (l *UpdateLogic) Update(req *types.UpdateRequest) (resp *types.UpdateRespon
 		return nil, err
 	}
 
-	return &types.UpdateResponse{}, nil
+	return &types.UpdateResponse{
+		Code: 0,
+		Msg:  "success",
+	}, nil
 }

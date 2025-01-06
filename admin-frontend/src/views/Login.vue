@@ -79,13 +79,50 @@ const handleLogin = async () => {
     loading.value = true
     
     const res = await login(loginForm)
-    userStore.token = res.accessToken
-    localStorage.setItem('token', res.accessToken)
-    localStorage.setItem('username', loginForm.username)
-    ElMessage.success('登录成功')
-    await router.push('/')
+    console.log('登录响应:', res)
+    
+    if (res && res.accessToken) {
+      userStore.token = res.accessToken
+      localStorage.setItem('token', res.accessToken)
+      localStorage.setItem('username', loginForm.username)
+      ElMessage.success('登录成功')
+      await router.push('/')
+    } else {
+      console.error('登录失败，响应数据:', res)
+      const errorMsg = res.msg || ''
+      if (errorMsg.includes('密码错误')) {
+        ElMessage.error('密码错误，请重新输入')
+      } else if (errorMsg.includes('管理员不存在')) {
+        ElMessage.error('用户名不存在，请检查输入')
+      } else {
+        ElMessage.error(errorMsg || '登录失败，请检查用户名和密码')
+      }
+    }
   } catch (error) {
-    ElMessage.error(error.message || '登录失败')
+    console.error('登录错误:', error)
+    console.error('错误详情:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status
+    })
+    
+    if (error.message === '请输入密码') {
+      ElMessage.error('请输入密码')
+    } else if (error.response?.data) {
+      const errorData = typeof error.response.data === 'string' 
+        ? error.response.data 
+        : error.response.data.msg || error.response.data.error || ''
+      
+      if (errorData.includes('管理员不存在')) {
+        ElMessage.error('用户名不存在，请检查输入')
+      } else if (errorData.includes('密码错误')) {
+        ElMessage.error('密码错误，请重新输入')
+      } else {
+        ElMessage.error(errorData || '登录失败，请稍后重试')
+      }
+    } else {
+      ElMessage.error('登录失败，请检查网络连接')
+    }
   } finally {
     loading.value = false
   }

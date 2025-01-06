@@ -42,7 +42,7 @@ export function updateAdmin(data) {
 // 删除管理员
 export function removeAdmin(data) {
   return adminService({
-    url: '/api/admin/remove',
+    url: '/api/admin/delete',
     method: 'post',
     data
   })

@@ -2,7 +2,7 @@ package logic
 
 import (
 	"context"
-
+	"mall/common/errorx"
 	"mall/service/user/api/internal/svc"
 	"mall/service/user/api/internal/types"
 
@@ -24,7 +24,23 @@ func NewDeleteAdminLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Delet
 }
 
 func (l *DeleteAdminLogic) DeleteAdmin(req *types.DeleteAdminRequest) (resp *types.DeleteAdminResponse, err error) {
-	// todo: add your logic here and delete this line
+	// 获取要删除的管理员信息
+	admin, err := l.svcCtx.AdminModel.FindOne(l.ctx, req.Id)
+	if err != nil {
+		logx.Errorf("查询管理员失败: %v", err)
+		return nil, errorx.NewDefaultError("管理员不存在")
+	}
 
-	return
+	// 执行删除操作
+	err = l.svcCtx.AdminModel.Delete(l.ctx, req.Id)
+	if err != nil {
+		logx.Errorf("删除管理员失败: %v", err)
+		return nil, errorx.NewDefaultError("删除管理员失败")
+	}
+
+	return &types.DeleteAdminResponse{
+		Id:       admin.ID,
+		Username: admin.Username,
+		Level:    int32(admin.Level),
+	}, nil
 }

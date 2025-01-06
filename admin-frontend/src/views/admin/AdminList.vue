@@ -16,6 +16,13 @@
         v-loading="loading">
         <el-table-column prop="id" label="ID" width="80" align="center" />
         <el-table-column prop="username" label="用户名" min-width="120" />
+        <el-table-column prop="level" label="权限级别" width="120" align="center">
+          <template #default="scope">
+            <el-tag :type="getTagType(scope.row.level)">
+              {{ formatLevel(scope.row.level) }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column prop="createTime" label="创建时间" min-width="180" align="center">
           <template #default="scope">
             {{ formatTime(scope.row.createTime) }}
@@ -80,6 +87,12 @@
             placeholder="请输入密码"
             show-password />
         </el-form-item>
+        <el-form-item label="权限级别" prop="level">
+          <el-select v-model="form.level" placeholder="请选择权限级别">
+            <el-option :value="1" label="普通管理员" />
+            <el-option :value="2" label="超级管理员" />
+          </el-select>
+        </el-form-item>
       </el-form>
       <template #footer>
         <span class="dialog-footer">
@@ -112,7 +125,8 @@ const pageSize = ref(10)
 const formRef = ref(null)
 const form = ref({
   username: '',
-  password: ''
+  password: '',
+  level: 1
 })
 
 // 时间格式化函数
@@ -170,7 +184,8 @@ const handleAdd = () => {
   dialogType.value = 'add'
   form.value = {
     username: '',
-    password: ''
+    password: '',
+    level: 1
   }
   dialogVisible.value = true
 }
@@ -181,7 +196,8 @@ const handleEdit = (row) => {
   form.value = {
     id: row.id,
     username: row.username,
-    password: ''
+    password: '',
+    level: row.level
   }
   dialogVisible.value = true
 }
@@ -240,6 +256,25 @@ const handleSizeChange = (val) => {
 const handleCurrentChange = (val) => {
   page.value = val
   fetchAdminList()
+}
+
+// 在 script setup 部分添加格式化函数
+const formatLevel = (level) => {
+  const levelMap = {
+    0: '老板',
+    1: '普通管理员',
+    2: '超级管理员'
+  }
+  return levelMap[level] || '未知权限'
+}
+
+const getTagType = (level) => {
+  const typeMap = {
+    0: 'warning',    // 老板显示为橙色
+    1: 'success',    // 普通管理员显示为绿色
+    2: 'danger'      // 超级管理员显示为红色
+  }
+  return typeMap[level] || 'info'
 }
 
 onMounted(() => {

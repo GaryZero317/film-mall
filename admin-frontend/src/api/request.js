@@ -31,7 +31,12 @@ const createService = (baseURL) => {
       const res = response.data
       console.log('API响应数据:', res)
       
-      // 如果响应中没有code字段，直接返回数据
+      // 如果响应中包含 accessToken，说明是登录接口，直接返回数据
+      if (res.accessToken !== undefined) {
+        return res
+      }
+      
+      // 处理其他接口的响应
       if (res.code === undefined) {
         return res
       }
@@ -53,22 +58,28 @@ const createService = (baseURL) => {
         
         switch (status) {
           case 401:
-            ElMessage.error(data?.msg || '未授权，请重新登录')
+            ElMessage.error('未授权，请重新登录')
             const userStore = useUserStore()
             userStore.logout()
             router.push('/login')
             break
           case 403:
-            ElMessage.error(data?.msg || '拒绝访问')
+            ElMessage.error('拒绝访问')
             break
           case 404:
-            ElMessage.error(data?.msg || '请求的资源不存在')
+            ElMessage.error('请求的资源不存在')
             break
           case 500:
-            ElMessage.error(data?.msg || '服务器内部错误')
+            if (typeof data === 'string' && data.includes('管理员不存在')) {
+              ElMessage.error('用户名不存在')
+            } else if (typeof data === 'string' && data.includes('密码错误')) {
+              ElMessage.error('密码错误')
+            } else {
+              ElMessage.error(data || '服务器内部错误')
+            }
             break
           default:
-            ElMessage.error(data?.msg || `请求失败(${status})`)
+            ElMessage.error(data || `请求失败(${status})`)
         }
       } else if (error.request) {
         console.error('请求未收到响应:', error.request)

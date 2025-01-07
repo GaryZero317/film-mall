@@ -1,0 +1,75 @@
+<!--pages/user/index.wxml-->
+<view class="container">
+  <!-- 用户信息 -->
+  <view class="user-info">
+    <block wx:if="{{isLogin}}">
+      <image class="avatar" src="{{userInfo.avatar || '/assets/images/default-avatar.png'}}" mode="aspectFill"></image>
+      <view class="info">
+        <text class="nickname">{{userInfo.nickname}}</text>
+        <text class="mobile">{{userInfo.mobile}}</text>
+      </view>
+    </block>
+    <block wx:else>
+      <image class="avatar" src="/assets/images/default-avatar.png" mode="aspectFill"></image>
+      <view class="info" bindtap="onLogin">
+        <text class="login-btn">点击登录</text>
+      </view>
+    </block>
+  </view>
+
+  <!-- 我的订单 -->
+  <view class="order-section">
+    <view class="section-header" bindtap="onViewAllOrders">
+      <text>我的订单</text>
+      <text class="more">查看全部 ></text>
+    </view>
+    <view class="order-types">
+      <view class="type-item" bindtap="onViewOrders" data-type="unpaid">
+        <image src="/assets/images/unpaid.png"></image>
+        <text>待付款</text>
+        <text class="badge" wx:if="{{orderCount.unpaid > 0}}">{{orderCount.unpaid}}</text>
+      </view>
+      <view class="type-item" bindtap="onViewOrders" data-type="undelivered">
+        <image src="/assets/images/undelivered.png"></image>
+        <text>待发货</text>
+        <text class="badge" wx:if="{{orderCount.undelivered > 0}}">{{orderCount.undelivered}}</text>
+      </view>
+      <view class="type-item" bindtap="onViewOrders" data-type="delivered">
+        <image src="/assets/images/delivered.png"></image>
+        <text>待收货</text>
+        <text class="badge" wx:if="{{orderCount.delivered > 0}}">{{orderCount.delivered}}</text>
+      </view>
+      <view class="type-item" bindtap="onViewOrders" data-type="completed">
+        <image src="/assets/images/completed.png"></image>
+        <text>已完成</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 功能列表 -->
+  <view class="menu-list">
+    <view class="menu-item" bindtap="onViewAddress">
+      <image src="/assets/images/address.png"></image>
+      <text>收货地址</text>
+      <image class="arrow" src="/assets/images/arrow-right.png"></image>
+    </view>
+    <view class="menu-item" bindtap="onViewFavorites">
+      <image src="/assets/images/favorite.png"></image>
+      <text>我的收藏</text>
+      <image class="arrow" src="/assets/images/arrow-right.png"></image>
+    </view>
+    <view class="menu-item" bindtap="onViewCoupons">
+      <image src="/assets/images/coupon.png"></image>
+      <text>优惠券</text>
+      <image class="arrow" src="/assets/images/arrow-right.png"></image>
+    </view>
+    <view class="menu-item" bindtap="onViewSettings">
+      <image src="/assets/images/settings.png"></image>
+      <text>设置</text>
+      <image class="arrow" src="/assets/images/arrow-right.png"></image>
+    </view>
+  </view>
+
+  <!-- 退出登录 -->
+  <view class="logout-btn" bindtap="onLogout" wx:if="{{isLogin}}">退出登录</view>
+</view>

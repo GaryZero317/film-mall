@@ -1,0 +1,71 @@
+<view class="container">
+  <block wx:if="{{!loading && order}}">
+    <!-- 订单金额 -->
+    <view class="amount-section">
+      <text class="label">支付金额</text>
+      <text class="amount">¥{{order.total_price}}</text>
+    </view>
+
+    <!-- 订单信息 -->
+    <view class="order-info">
+      <view class="info-item">
+        <text class="label">订单编号</text>
+        <text class="value">{{order.order_no}}</text>
+      </view>
+      <view class="info-item">
+        <text class="label">商品数量</text>
+        <text class="value">{{order.total_count}}件</text>
+      </view>
+      <view class="info-item">
+        <text class="label">下单时间</text>
+        <text class="value">{{order.create_time}}</text>
+      </view>
+    </view>
+
+    <!-- 支付方式 -->
+    <view class="payment-methods">
+      <text class="section-title">选择支付方式</text>
+      <view class="method-list">
+        <view class="method-item {{selectedPayment === item.id ? 'active' : ''}}"
+              wx:for="{{paymentMethods}}" 
+              wx:key="id"
+              bindtap="onSelectPayment"
+              data-method="{{item.id}}">
+          <image class="method-icon" src="{{item.icon}}" mode="aspectFit"></image>
+          <text class="method-name">{{item.name}}</text>
+          <icon class="selected-icon" 
+                type="success" 
+                size="20" 
+                color="{{selectedPayment === item.id ? '#1296db' : '#ddd'}}"/>
+        </view>
+      </view>
+    </view>
+
+    <!-- 订单商品 -->
+    <view class="order-items">
+      <text class="section-title">订单商品</text>
+      <view class="item-list">
+        <view class="item" wx:for="{{order.items}}" wx:key="id">
+          <image class="product-image" src="{{item.cover_image}}" mode="aspectFill"></image>
+          <view class="product-info">
+            <text class="product-name">{{item.name}}</text>
+            <view class="price-quantity">
+              <text class="price">¥{{item.price}}</text>
+              <text class="quantity">x{{item.quantity}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <view wx:if="{{loading}}" class="loading">加载中...</view>
+
+  <!-- 底部按钮 -->
+  <view class="bottom-bar">
+    <view class="cancel-btn" bindtap="onCancel">取消支付</view>
+    <view class="confirm-btn {{loading ? 'disabled' : ''}}" bindtap="onPayment">
+      确认支付
+    </view>
+  </view>
+</view> 

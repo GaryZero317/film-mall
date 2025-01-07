@@ -1,0 +1,67 @@
+<!--pages/cart/index.wxml-->
+<view class="container">
+  <block wx:if="{{!loading}}">
+    <view class="cart-list" wx:if="{{cartItems.length > 0}}">
+      <view class="cart-item" wx:for="{{cartItems}}" wx:key="id">
+        <!-- 选择框 -->
+        <view class="checkbox" bindtap="onItemSelect" data-id="{{item.id}}">
+          <icon type="success" size="20" color="{{item.selected ? '#1296db' : '#ccc'}}"/>
+        </view>
+        
+        <!-- 商品信息 -->
+        <image class="product-image" src="{{item.cover_image}}" mode="aspectFill"></image>
+        <view class="product-info">
+          <text class="product-name">{{item.name}}</text>
+          <view class="product-meta">
+            <text class="product-price">¥{{item.price}}</text>
+            <text class="product-stock">库存: {{item.stock}}</text>
+          </view>
+          
+          <!-- 数量控制 -->
+          <view class="quantity-control">
+            <text class="minus {{item.quantity <= 1 ? 'disabled' : ''}}" 
+                  bindtap="onQuantityChange" 
+                  data-id="{{item.id}}" 
+                  data-type="minus">-</text>
+            <text class="quantity">{{item.quantity}}</text>
+            <text class="plus {{item.quantity >= item.stock ? 'disabled' : ''}}" 
+                  bindtap="onQuantityChange" 
+                  data-id="{{item.id}}" 
+                  data-type="plus">+</text>
+          </view>
+        </view>
+        
+        <!-- 删除按钮 -->
+        <view class="delete-btn" bindtap="onDelete" data-id="{{item.id}}">
+          <icon type="clear" size="20" color="#999"/>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 空购物车 -->
+    <view class="empty-cart" wx:else>
+      <image src="/assets/images/empty-cart.png" mode="aspectFit"></image>
+      <text>购物车是空的</text>
+      <navigator url="/pages/index/index" open-type="switchTab" class="go-shopping">
+        去逛逛
+      </navigator>
+    </view>
+  </block>
+
+  <view wx:if="{{loading}}" class="loading">加载中...</view>
+
+  <!-- 底部结算栏 -->
+  <view class="bottom-bar" wx:if="{{cartItems.length > 0}}">
+    <view class="select-all" bindtap="onSelectAll">
+      <icon type="success" size="20" color="{{allSelected ? '#1296db' : '#ccc'}}"/>
+      <text>全选</text>
+    </view>
+    <view class="total-info">
+      <text>合计：</text>
+      <text class="total-price">¥{{totalPrice}}</text>
+    </view>
+    <view class="checkout-btn {{selectedCount === 0 ? 'disabled' : ''}}" bindtap="onCheckout">
+      结算({{selectedCount}})
+    </view>
+  </view>
+</view>

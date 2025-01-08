@@ -112,3 +112,19 @@ type SetMainImageResponse struct {
 type UploadResponse struct {
 	Url string `json:"url"`
 }
+
+type ProductListRequest struct {
+	Page     int64 `form:"page,optional"`
+	PageSize int64 `form:"pageSize,optional"`
+}
+
+type ProductListData struct {
+	Total int64     `json:"total"`
+	List  []Product `json:"list"`
+}
+
+type ProductListResponse struct {
+	Code int64            `json:"code"`
+	Msg  string           `json:"msg"`
+	Data *ProductListData `json:"data"`
+}

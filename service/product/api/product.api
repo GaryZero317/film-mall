@@ -116,6 +116,23 @@ type (
 	UploadResponse {
 		Url string `json:"url"`
 	}
+
+	// 商品列表
+	ProductListRequest {
+		Page     int64 `form:"page,optional"`
+		PageSize int64 `form:"pageSize,optional"`
+	}
+
+	ProductListData {
+		Total int64     `json:"total"`
+		List  []Product `json:"list"`
+	}
+
+	ProductListResponse {
+		Code int64            `json:"code"`
+		Msg  string           `json:"msg"`
+		Data *ProductListData `json:"data"`
+	}
 )
 
 @server(
@@ -145,6 +162,9 @@ service Product {
 	
 	@handler Upload
 	post /api/upload returns (UploadResponse)
+	
+	@handler ProductList
+	get /api/product/list (ProductListRequest) returns (ProductListResponse)
 }
 
 @server(

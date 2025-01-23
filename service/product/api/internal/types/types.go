@@ -128,3 +128,46 @@ type ProductListResponse struct {
 	Msg  string           `json:"msg"`
 	Data *ProductListData `json:"data"`
 }
+
+type StockRequest struct {
+	Id int64 `json:"id"`
+}
+
+type StockData struct {
+	Stock int64 `json:"stock"`
+}
+
+type StockResponse struct {
+	Code int64     `json:"code"`
+	Msg  string    `json:"msg"`
+	Data StockData `json:"data"`
+}
+
+type Banner struct {
+	Id       int64  `json:"id"`
+	ImageUrl string `json:"imageUrl"`
+	Link     string `json:"link"`
+}
+
+type BannerListResponse struct {
+	Code int64    `json:"code"`
+	Msg  string   `json:"msg"`
+	Data []Banner `json:"data"`
+}
+
+type GetProductImagesRequest struct {
+	ProductId int64 `json:"productId"`
+}
+
+type ProductImageInfo struct {
+	Id        int64  `json:"id"`
+	ProductId int64  `json:"productId"`
+	ImageUrl  string `json:"imageUrl"`
+	IsMain    bool   `json:"isMain"`
+}
+
+type GetProductImagesResponse struct {
+	Code int64              `json:"code"`
+	Msg  string             `json:"msg"`
+	Data []ProductImageInfo `json:"data"`
+}

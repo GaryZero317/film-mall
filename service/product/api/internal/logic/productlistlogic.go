@@ -2,9 +2,9 @@ package logic
 
 import (
 	"context"
-
 	"mall/service/product/api/internal/svc"
 	"mall/service/product/api/internal/types"
+	"mall/service/product/model"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -41,64 +41,71 @@ func NewProductListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Produ
 }
 
 func (l *ProductListLogic) ProductList(req *types.ProductListRequest) (resp *types.ProductListResponse, err error) {
+	l.Logger.Infof("获取商品列表, page: %d, pageSize: %d", req.Page, req.PageSize)
+
 	// 设置默认分页参数
-	page := req.Page
-	if page == 0 {
-		page = 1
+	if req.Page < 1 {
+		req.Page = 1
 	}
-	pageSize := req.PageSize
-	if pageSize == 0 {
-		pageSize = 10
+	if req.PageSize < 1 {
+		req.PageSize = 10
 	}
 
-	// 构建查询条件
-	query := l.svcCtx.DB.Model(&Product{}).Where("status = ?", 1) // 只查询上架商品
-
-	// 使用 GORM 查询商品列表
-	var dbProducts []Product
-	result := query.Order("id DESC"). // 按ID降序排序，最新商品排在前面
-						Offset(int((page - 1) * pageSize)).
-						Limit(int(pageSize)).
-						Find(&dbProducts)
-	if result.Error != nil {
-		return &types.ProductListResponse{
-			Code: 500,
-			Msg:  "获取商品列表失败",
-		}, result.Error
+	// 获取商品列表
+	products, total, err := l.svcCtx.ProductModel.FindPageListByPage(l.ctx, req.Page, req.PageSize)
+	if err != nil {
+		l.Logger.Errorf("获取商品列表失败: %v", err)
+		return nil, err
 	}
 
-	// 使用相同的查询条件获取总数
-	var total int64
-	result = query.Count(&total)
-	if result.Error != nil {
-		return &types.ProductListResponse{
-			Code: 500,
-			Msg:  "获取商品总数失败",
-		}, result.Error
-	}
+	// 转换数据
+	var list []types.Product
+	for _, p := range products {
+		// 获取商品图片
+		var images []*model.ProductImage
+		if err := l.svcCtx.DB.WithContext(l.ctx).
+			Where("product_id = ?", p.Id).
+			Order("is_main DESC, sort_order ASC").
+			Find(&images).Error; err != nil {
+			l.Logger.Errorf("获取商品[%d]图片失败: %v", p.Id, err)
+			continue
+		}
 
-	// 转换为API响应类型
-	products := make([]types.Product, len(dbProducts))
-	for i, p := range dbProducts {
-		products[i] = types.Product{
+		// 提取图片URL列表和主图
+		var imageUrls []string
+		var mainImage string
+		for _, img := range images {
+			imageUrls = append(imageUrls, img.ImageUrl)
+			if img.IsMain {
+				mainImage = img.ImageUrl
+			}
+		}
+
+		// 如果没有主图，但有其他图片，则使用第一张图片作为主图
+		if mainImage == "" && len(imageUrls) > 0 {
+			mainImage = imageUrls[0]
+		}
+
+		// 添加到列表
+		list = append(list, types.Product{
 			Id:        p.Id,
 			Name:      p.Name,
 			Desc:      p.Desc,
 			Stock:     p.Stock,
 			Amount:    p.Amount,
 			Status:    p.Status,
-			Images:    p.Images,
-			MainImage: p.MainImage,
-		}
+			Images:    imageUrls,
+			MainImage: mainImage,
+		})
 	}
 
-	// 组装响应数据
+	l.Logger.Infof("获取商品列表成功: total=%d, list=%d", total, len(list))
 	return &types.ProductListResponse{
 		Code: 0,
 		Msg:  "success",
 		Data: &types.ProductListData{
 			Total: total,
-			List:  products,
+			List:  list,
 		},
 	}, nil
 }

@@ -8,14 +8,15 @@ Page({
     images: [],
     loading: false,
     quantity: 1,
-    currentImageIndex: 0
+    currentImageIndex: 0,
+    imageList: [], // 用于存储所有图片URL
+    mainImage: ''
   },
 
   onLoad(options) {
     const { id } = options
     if (id) {
       this.loadProductDetail(id)
-      this.loadProductImages(id)
     }
   },
 
@@ -32,6 +33,8 @@ Page({
       wx.setNavigationBarTitle({
         title: this.data.product.name
       })
+      // 加载商品图片
+      await this.loadProductImages(id)
     } catch (error) {
       console.error('加载商品详情失败:', error)
       wx.showToast({
@@ -46,11 +49,21 @@ Page({
   async loadProductImages(productId) {
     try {
       const res = await getProductImages(productId)
-      this.setData({ 
-        images: res || []
-      })
+      if (res && res.code === 0 && res.data) {
+        const mainImage = res.data.find(img => img.isMain)
+        const imageList = res.data.map(img => `http://localhost:8001${img.imageUrl}`)
+        
+        this.setData({ 
+          images: res.data,
+          imageList: imageList,
+          mainImage: mainImage ? `http://localhost:8001${mainImage.imageUrl}` : (imageList[0] || 'http://localhost:8001/uploads/placeholder.png')
+        })
+      }
     } catch (error) {
-      console.error('加载商品图片失败:', error)
+      console.error('获取商品图片失败:', error)
+      this.setData({
+        mainImage: 'http://localhost:8001/uploads/placeholder.png'
+      })
     }
   },
 
@@ -122,22 +135,13 @@ Page({
   // 预览图片
   previewImage(e) {
     const { current } = e.currentTarget.dataset
-    const { product, images } = this.data
-    const urls = []
+    const { imageList } = this.data
     
-    // 添加主图到预览列表
-    if (product.mainImage) {
-      urls.push(product.mainImage)
+    if (imageList && imageList.length > 0) {
+      wx.previewImage({
+        current,
+        urls: imageList
+      })
     }
-    
-    // 添加其他图片到预览列表
-    if (images && images.length > 0) {
-      urls.push(...images.map(img => img.url))
-    }
-    
-    wx.previewImage({
-      current,
-      urls
-    })
   }
 })

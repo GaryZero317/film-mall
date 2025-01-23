@@ -10,27 +10,27 @@
       bindchange="onSwiperChange"
     >
       <!-- 主图 -->
-      <swiper-item wx:if="{{product.mainImage}}">
+      <swiper-item wx:if="{{mainImage}}">
         <image 
-          src="{{product.mainImage}}" 
+          src="{{mainImage}}" 
           mode="aspectFill"
           bindtap="previewImage"
-          data-current="{{product.mainImage}}"
+          data-current="{{mainImage}}"
           class="swiper-image"
         />
       </swiper-item>
       <!-- 其他图片 -->
-      <swiper-item wx:for="{{images}}" wx:key="id">
+      <swiper-item wx:for="{{imageList}}" wx:key="*this" wx:if="{{item !== mainImage}}">
         <image 
-          src="{{item.url}}" 
+          src="{{item}}" 
           mode="aspectFill"
           bindtap="previewImage"
-          data-current="{{item.url}}"
+          data-current="{{item}}"
           class="swiper-image"
         />
       </swiper-item>
-      <!-- 占位图 -->
-      <swiper-item wx:if="{{!product.mainImage && (!images || images.length === 0)}}">
+      <!-- 无图片时显示占位图 -->
+      <swiper-item wx:if="{{!mainImage && (!imageList || imageList.length === 0)}}">
         <image 
           src="../../../static/images/placeholder.png" 
           mode="aspectFill"
@@ -40,8 +40,8 @@
     </swiper>
 
     <!-- 图片计数器 -->
-    <view class="image-counter" wx:if="{{product.mainImage || images.length > 0}}">
-      {{currentImageIndex + 1}}/{{(product.mainImage ? 1 : 0) + images.length}}
+    <view class="image-counter" wx:if="{{imageList && imageList.length > 0}}">
+      {{currentImageIndex + 1}}/{{imageList.length}}
     </view>
 
     <!-- 商品信息 -->
@@ -75,5 +75,7 @@
   </view>
 
   <!-- 加载中 -->
-  <view class="loading" wx:if="{{loading}}">加载中...</view>
+  <view class="loading" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
 </view>

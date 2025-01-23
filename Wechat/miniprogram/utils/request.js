@@ -1,32 +1,47 @@
 const app = getApp()
 
 const request = (options) => {
+  const { url, method = 'GET', data } = options
+
+  const token = wx.getStorageSync('token')
+  
   return new Promise((resolve, reject) => {
-    const token = wx.getStorageSync('token')
+    console.log('发起请求:', {
+      url,
+      method,
+      data
+    })
+
     wx.request({
-      url: options.url.startsWith('http') ? options.url : `${app.globalData.baseUrl}${options.url}`,
-      method: options.method || 'GET',
-      data: options.data,
+      url: url.startsWith('http') ? url : `${app.globalData.baseUrl}${url}`,
+      method,
+      data,
       header: {
         'Content-Type': 'application/json',
-        'Authorization': token ? `Bearer ${token}` : ''
+        'Authorization': token ? `Bearer ${token}` : '',
+        ...options.header
       },
       success: (res) => {
+        console.log('请求成功:', res)
         if (res.statusCode === 200) {
           // 处理不同的返回格式
           if (res.data && (res.data.code !== undefined)) {
             // 标准格式：{ code: 0, msg: '', data: {} }
             if (res.data.code === 0) {
-              resolve(res.data.data)
+              resolve(res.data)  // 返回完整的响应数据，包括 code, msg, data
             } else {
-              reject(new Error(res.data.msg || '请求失败'))
+              reject(res.data)
             }
           } else {
             // 直接返回数据格式
-            resolve(res.data)
+            resolve({
+              code: 0,
+              msg: 'success',
+              data: res.data
+            })
           }
         } else if (res.statusCode === 401) {
-          // token过期或未登录，跳转到登录页
+          // token过期或无效，需要重新登录
           wx.removeStorageSync('token')
           wx.showToast({
             title: '请先登录',
@@ -42,6 +57,7 @@ const request = (options) => {
           })
           reject(res)
         } else {
+          console.error('请求失败:', res)
           wx.showToast({
             title: (res.data && res.data.msg) || '请求失败',
             icon: 'none'
@@ -49,13 +65,13 @@ const request = (options) => {
           reject(res)
         }
       },
-      fail: (err) => {
-        console.error('请求失败:', err)
+      fail: (error) => {
+        console.error('请求错误:', error)
         wx.showToast({
           title: '网络错误',
           icon: 'none'
         })
-        reject(err)
+        reject(error)
       }
     })
   })

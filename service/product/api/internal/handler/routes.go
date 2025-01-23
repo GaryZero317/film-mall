@@ -57,6 +57,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Path:    "/api/product/list",
 				Handler: ProductListHandler(serverCtx),
 			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/api/product/images",
+				Handler: GetProductImagesHandler(serverCtx),
+			},
 		},
 		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
 	)

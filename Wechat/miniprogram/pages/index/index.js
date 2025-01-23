@@ -1,4 +1,4 @@
-import { getProductList, searchProducts } from '../../api/product'
+import { getProductList, searchProducts, getProductImages } from '../../api/product'
 
 Page({
   data: {
@@ -39,50 +39,95 @@ Page({
   },
 
   // 加载商品列表
-  async loadProducts(reset = false) {
-    if (this.data.loading) return
-    
+  async loadProducts(refresh = false) {
+    if (this.data.loading || (!refresh && !this.data.hasMore)) return
+
     try {
       this.setData({ loading: true })
-      const { page, pageSize, selectedCategory, searchValue, categories } = this.data
       
-      // 获取当前分类名称作为搜索关键词
-      let keyword = searchValue
-      if (selectedCategory !== 0) {
-        const category = categories.find(c => c.id === selectedCategory)
-        if (category) {
-          keyword = keyword ? `${keyword} ${category.name}` : category.name
-        }
+      // 构建请求参数
+      const params = {
+        page: refresh ? 1 : this.data.page,
+        pageSize: this.data.pageSize
       }
 
-      let res
-      if (keyword) {
-        // 使用搜索接口
-        res = await searchProducts(keyword)
-      } else {
-        // 使用商品列表接口
-        const params = {
-          page: page,
-          pageSize: pageSize
-        }
-        res = await getProductList(params)
+      // 如果有选中的分类
+      if (this.data.selectedCategory !== 0) {
+        params.categoryId = this.data.selectedCategory
       }
-      
-      if (res && res.list) {
+
+      // 如果有搜索关键词
+      if (this.data.searchValue) {
+        params.keyword = this.data.searchValue
+      }
+
+      console.log('请求参数:', params)
+      const res = await getProductList(params)
+      console.log('商品列表响应:', res)
+
+      if (res && res.code === 0 && res.data) {
+        const { list, total } = res.data
+        
+        // 获取每个商品的图片信息
+        const productsWithImages = await Promise.all(
+          list.map(async (product) => {
+            try {
+              const imageRes = await getProductImages(product.id)
+              console.log('商品图片响应:', imageRes)
+              if (imageRes && imageRes.code === 0 && imageRes.data) {
+                const mainImage = imageRes.data.find(img => img.isMain)
+                console.log('主图信息:', mainImage)
+                const imageUrl = mainImage ? `http://localhost:8001${mainImage.imageUrl}` : (imageRes.data[0] ? `http://localhost:8001${imageRes.data[0].imageUrl}` : '')
+                console.log('最终图片URL:', imageUrl)
+                return {
+                  ...product,
+                  mainImage: imageUrl || 'http://localhost:8001/uploads/placeholder.png'
+                }
+              }
+              return {
+                ...product,
+                mainImage: 'http://localhost:8001/uploads/placeholder.png'
+              }
+            } catch (error) {
+              console.error('获取商品图片失败:', error)
+              return {
+                ...product,
+                mainImage: 'http://localhost:8001/uploads/placeholder.png'
+              }
+            }
+          })
+        )
+
+        const products = refresh ? productsWithImages : [...this.data.products, ...productsWithImages]
+        const page = refresh ? 2 : this.data.page + 1
+        const hasMore = products.length < total
+
+        console.log('处理后的数据:', {
+          productsLength: products.length,
+          page,
+          hasMore
+        })
+
         this.setData({
-          products: reset ? res.list : [...this.data.products, ...res.list],
-          hasMore: res.list.length === pageSize
+          products,
+          page,
+          hasMore,
+          loading: false
         })
       } else {
-        throw new Error('获取商品列表失败')
+        console.error('返回数据格式错误:', res)
+        wx.showToast({
+          title: res?.msg || '加载失败',
+          icon: 'none'
+        })
+        this.setData({ loading: false })
       }
     } catch (error) {
       console.error('加载商品列表失败:', error)
       wx.showToast({
-        title: '加载商品列表失败',
+        title: error.message || '加载失败',
         icon: 'none'
       })
-    } finally {
       this.setData({ loading: false })
     }
   },
@@ -116,19 +161,13 @@ Page({
 
   // 下拉刷新
   async onPullDownRefresh() {
-    this.setData({
-      page: 1,
-      products: []
-    })
     await this.loadProducts(true)
     wx.stopPullDownRefresh()
   },
 
   // 上拉加载更多
   onReachBottom() {
-    if (this.data.hasMore && !this.data.loading) {
-      this.loadProducts()
-    }
+    this.loadProducts()
   },
 
   // 跳转到商品详情页

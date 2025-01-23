@@ -53,7 +53,7 @@ func main() {
 		Method: http.MethodGet,
 		Path:   "/uploads/:file",
 		Handler: http.StripPrefix("/uploads/",
-			http.FileServer(http.Dir("uploads"))).ServeHTTP,
+			http.FileServer(http.Dir("D:/graduation/FilmMall/service/product/api/uploads"))).ServeHTTP,
 	})
 
 	fmt.Printf("Starting server at %s:%d...\n", c.Host, c.Port)

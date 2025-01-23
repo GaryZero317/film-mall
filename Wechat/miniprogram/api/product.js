@@ -3,16 +3,19 @@ import request from '../utils/request'
 // 获取商品列表
 export const getProductList = (data) => {
   return request({
-    url: '/api/product/list',
+    url: 'http://localhost:8001/api/product/list',
     method: 'GET',
-    data
+    data: {
+      page: data.page || 1,
+      pageSize: data.pageSize || 10
+    }
   })
 }
 
 // 获取商品详情
 export const getProductDetail = (id) => {
   return request({
-    url: '/api/product/detail',
+    url: 'http://localhost:8001/api/product/detail',
     method: 'POST',
     data: { id: parseInt(id) }
   })
@@ -114,5 +117,16 @@ export const getProductStock = (id) => {
     url: 'http://localhost:8001/api/product/stock',
     method: 'POST',
     data: { id }
+  })
+}
+
+// 获取商品图片
+export function getProductImages(productId) {
+  return request({
+    url: '/api/product/images',
+    method: 'POST',
+    data: {
+      productId
+    }
   })
 } 

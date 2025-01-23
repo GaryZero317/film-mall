@@ -74,7 +74,7 @@ func UploadHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		}
 
 		// 返回文件URL
-		fileURL := "/uploads/" + filename
+		fileURL := fmt.Sprintf("%s%s", svcCtx.Config.FileUpload.UrlPrefix, filename)
 		resp := &types.UploadResponse{
 			Url: fileURL,
 		}

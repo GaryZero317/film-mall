@@ -1,53 +1,109 @@
 import request from '../utils/request'
 
 // 获取商品列表
-export const getProductList = (params = {}) => {
+export const getProductList = (data) => {
   return request({
-    url: '/product/list',
-    method: 'POST',
-    data: {
-      page: params.page || 1,
-      pageSize: params.pageSize || 10
-    }
+    url: '/api/product/list',
+    method: 'GET',
+    data
   })
 }
 
 // 获取商品详情
 export const getProductDetail = (id) => {
   return request({
-    url: '/product/detail',
+    url: '/api/product/detail',
+    method: 'POST',
+    data: { id: parseInt(id) }
+  })
+}
+
+// 创建商品
+export const createProduct = (data) => {
+  return request({
+    url: 'http://localhost:8001/api/product/create',
+    method: 'POST',
+    data
+  })
+}
+
+// 更新商品
+export const updateProduct = (data) => {
+  return request({
+    url: 'http://localhost:8001/api/product/update',
+    method: 'POST',
+    data
+  })
+}
+
+// 删除商品
+export const removeProduct = (id) => {
+  return request({
+    url: 'http://localhost:8001/api/product/remove',
     method: 'POST',
     data: { id }
   })
 }
 
-// 获取商品分类（这个接口似乎后端还没有提供，暂时返回固定数据）
+// 上传图片
+export const uploadImage = (filePath) => {
+  return new Promise((resolve, reject) => {
+    wx.uploadFile({
+      url: 'http://localhost:8001/api/product/upload',
+      filePath: filePath,
+      name: 'file',
+      success: (res) => {
+        try {
+          const data = JSON.parse(res.data)
+          resolve(data)
+        } catch (error) {
+          reject(error)
+        }
+      },
+      fail: reject
+    })
+  })
+}
+
+// 添加商品图片
+export const addProductImages = (productId, imageUrls) => {
+  return request({
+    url: 'http://localhost:8001/api/product/images/add',
+    method: 'POST',
+    data: { productId, imageUrls }
+  })
+}
+
+// 设置商品主图
+export const setMainImage = (productId, imageUrl) => {
+  return request({
+    url: 'http://localhost:8001/api/product/images/setMain',
+    method: 'POST',
+    data: { productId, imageUrl }
+  })
+}
+
+// 获取商品分类
 export const getCategories = () => {
-  return Promise.resolve({
-    data: [
-      { id: 1, name: '彩色负片' },
-      { id: 2, name: '黑白负片' },
-      { id: 3, name: '正片' },
-      { id: 4, name: '一次性相机' },
-      { id: 5, name: '中画幅胶卷' },
-      { id: 6, name: '拍立得' }
-    ]
+  return request({
+    url: 'http://localhost:8001/api/product/v1/category/list',
+    method: 'POST'
   })
 }
 
 // 获取轮播图
 export const getBanners = () => {
   return request({
-    url: '/banner/list',
-    method: 'GET'
+    url: 'http://localhost:8001/api/banner/v1/list',
+    method: 'POST'
   })
 }
 
 // 搜索商品
 export const searchProducts = (keyword) => {
   return request({
-    url: '/product/search',
-    method: 'GET',
+    url: 'http://localhost:8001/api/product/search',
+    method: 'POST',
     data: { keyword }
   })
 }
@@ -55,7 +111,8 @@ export const searchProducts = (keyword) => {
 // 获取商品库存
 export const getProductStock = (id) => {
   return request({
-    url: `/product/stock/${id}`,
-    method: 'GET'
+    url: 'http://localhost:8001/api/product/stock',
+    method: 'POST',
+    data: { id }
   })
 } 

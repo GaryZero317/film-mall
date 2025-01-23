@@ -3,57 +3,65 @@ import request from '../utils/request'
 // 创建订单
 export const createOrder = (data) => {
   return request({
-    url: '/order/create',
+    url: 'http://localhost:8002/api/order/create',
     method: 'POST',
     data
   })
 }
 
 // 获取订单列表
-export const getOrderList = (status) => {
+export const getOrderList = (params = {}) => {
   return request({
-    url: '/order/list',
-    method: 'GET',
-    data: { status }
+    url: 'http://localhost:8002/api/order/list',
+    method: 'POST',
+    data: {
+      page: params.page || 1,
+      pageSize: params.pageSize || 10,
+      status: params.status
+    }
   })
 }
 
 // 获取订单详情
 export const getOrderDetail = (id) => {
   return request({
-    url: `/order/detail/${id}`,
-    method: 'GET'
+    url: 'http://localhost:8002/api/order/detail',
+    method: 'POST',
+    data: { id }
   })
 }
 
 // 取消订单
 export const cancelOrder = (id) => {
   return request({
-    url: `/order/cancel/${id}`,
-    method: 'PUT'
+    url: 'http://localhost:8002/api/order/cancel',
+    method: 'POST',
+    data: { id }
   })
 }
 
 // 确认收货
 export const confirmOrder = (id) => {
   return request({
-    url: `/order/confirm/${id}`,
-    method: 'PUT'
+    url: 'http://localhost:8002/api/order/confirm',
+    method: 'POST',
+    data: { id }
   })
 }
 
 // 删除订单
 export const deleteOrder = (id) => {
   return request({
-    url: `/order/delete/${id}`,
-    method: 'DELETE'
+    url: 'http://localhost:8002/api/order/delete',
+    method: 'POST',
+    data: { id }
   })
 }
 
-// 支付订单
-export const payOrder = (id) => {
+// 获取订单统计
+export const getOrderCount = () => {
   return request({
-    url: `/order/pay/${id}`,
-    method: 'POST'
+    url: 'http://localhost:8002/api/order/count',
+    method: 'GET'
   })
 } 

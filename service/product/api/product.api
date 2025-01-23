@@ -133,6 +133,57 @@ type (
 		Msg  string           `json:"msg"`
 		Data *ProductListData `json:"data"`
 	}
+
+	// 商品分类
+	Category {
+		Id   int64  `json:"id"`
+		Name string `json:"name"`
+	}
+
+	CategoryListResponse {
+		Code int64      `json:"code"`
+		Msg  string     `json:"msg"`
+		Data []Category `json:"data"`
+	}
+
+	// 商品搜索
+	SearchRequest {
+		Keyword  string `json:"keyword"`
+		Page     int64  `json:"page,optional"`
+		PageSize int64  `json:"pageSize,optional"`
+	}
+
+	SearchResponse {
+		Code int64            `json:"code"`
+		Msg  string           `json:"msg"`
+		Data *ProductListData `json:"data"`
+	}
+
+	// 商品库存
+	StockRequest {
+		Id int64 `json:"id"`
+	}
+
+	StockResponse {
+		Code int64  `json:"code"`
+		Msg  string `json:"msg"`
+		Data struct {
+			Stock int64 `json:"stock"`
+		} `json:"data"`
+	}
+
+	// 轮播图
+	Banner {
+		Id       int64  `json:"id"`
+		ImageUrl string `json:"imageUrl"`
+		Link     string `json:"link"`
+	}
+
+	BannerListResponse {
+		Code int64    `json:"code"`
+		Msg  string   `json:"msg"`
+		Data []Banner `json:"data"`
+	}
 )
 
 @server(
@@ -165,6 +216,18 @@ service Product {
 	
 	@handler ProductList
 	get /api/product/list (ProductListRequest) returns (ProductListResponse)
+
+	@handler CategoryList
+	post /api/product/categories returns (CategoryListResponse)
+	
+	@handler Search
+	post /api/product/search (SearchRequest) returns (SearchResponse)
+	
+	@handler GetStock
+	post /api/product/stock (StockRequest) returns (StockResponse)
+	
+	@handler BannerList
+	post /api/banner/list returns (BannerListResponse)
 }
 
 @server(

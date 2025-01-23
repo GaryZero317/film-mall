@@ -1,60 +1,21 @@
 // pages/product/detail/index.js
-import { getProductDetail } from '../../../api/product'
+import { getProductDetail, getProductImages } from '../../../api/product'
 import { addToCart } from '../../../api/cart'
 
 Page({
   data: {
-    product: {
-      id: 1,
-      name: 'Kodak Gold 200 柯达金200胶卷',
-      price: 65,
-      stock: 100,
-      cover_image: '/assets/images/kodak-gold-200.jpg',
-      brand: 'Kodak',
-      iso: 200,
-      exposures: 36,
-      expiry_date: '2025-12',
-      description: '柯达金系列是一款平价的日常用胶，色彩明亮，颗粒适中，非常适合新手入门。',
-      detail: `
-        <div style="font-size: 28rpx; color: #333; line-height: 1.6;">
-          <p>【产品特点】</p>
-          <ul>
-            <li>色彩鲜艳，偏暖色调</li>
-            <li>颗粒感适中，画面清晰</li>
-            <li>宽容度高，适合新手使用</li>
-            <li>性价比极高的日常用胶</li>
-          </ul>
-          <p>【适用场景】</p>
-          <ul>
-            <li>日常生活记录</li>
-            <li>旅行摄影</li>
-            <li>人像摄影</li>
-            <li>街头摄影</li>
-          </ul>
-          <p>【使用建议】</p>
-          <ul>
-            <li>阳光充足时效果最佳</li>
-            <li>可以适当过曝1/3档提升色彩饱和度</li>
-            <li>室内拍摄建议使用闪光灯</li>
-          </ul>
-          <p>【产品规格】</p>
-          <ul>
-            <li>规格：35mm</li>
-            <li>感光度：ISO 200</li>
-            <li>曝光张数：36张</li>
-            <li>产地：美国</li>
-          </ul>
-        </div>
-      `
-    },
+    product: null,
+    images: [],
     loading: false,
-    quantity: 1
+    quantity: 1,
+    currentImageIndex: 0
   },
 
   onLoad(options) {
     const { id } = options
     if (id) {
       this.loadProductDetail(id)
+      this.loadProductImages(id)
     }
   },
 
@@ -64,7 +25,7 @@ Page({
       this.setData({ loading: true })
       const res = await getProductDetail(id)
       this.setData({ 
-        product: res.data || this.data.product,
+        product: res,
         loading: false
       })
       // 设置页面标题
@@ -73,8 +34,31 @@ Page({
       })
     } catch (error) {
       console.error('加载商品详情失败:', error)
+      wx.showToast({
+        title: '加载商品详情失败',
+        icon: 'none'
+      })
       this.setData({ loading: false })
     }
+  },
+
+  // 加载商品图片
+  async loadProductImages(productId) {
+    try {
+      const res = await getProductImages(productId)
+      this.setData({ 
+        images: res || []
+      })
+    } catch (error) {
+      console.error('加载商品图片失败:', error)
+    }
+  },
+
+  // 轮播图切换事件
+  onSwiperChange(e) {
+    this.setData({
+      currentImageIndex: e.detail.current
+    })
   },
 
   // 数量减少
@@ -132,6 +116,28 @@ Page({
     
     wx.navigateTo({
       url: `/pages/order/confirm/index?productId=${product.id}&quantity=${quantity}`
+    })
+  },
+
+  // 预览图片
+  previewImage(e) {
+    const { current } = e.currentTarget.dataset
+    const { product, images } = this.data
+    const urls = []
+    
+    // 添加主图到预览列表
+    if (product.mainImage) {
+      urls.push(product.mainImage)
+    }
+    
+    // 添加其他图片到预览列表
+    if (images && images.length > 0) {
+      urls.push(...images.map(img => img.url))
+    }
+    
+    wx.previewImage({
+      current,
+      urls
     })
   }
 })

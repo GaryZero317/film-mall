@@ -1,12 +1,33 @@
-import { getProductList, getCategories } from '../../api/product'
+import { getProductList, searchProducts } from '../../api/product'
 
 Page({
   data: {
     banners: [],
-    categories: [],
+    categories: [
+      { id: 0, name: '全部' },
+      { id: 1, name: '彩色胶卷' },
+      { id: 2, name: '黑白胶卷' },
+      { id: 3, name: '135胶卷' },
+      { id: 4, name: '120胶卷' },
+      { id: 5, name: '反转片' },
+      { id: 6, name: '拍立得' }
+    ],
+    // 用于布局的分类数组，将分类分成两行
+    categoryRows: [
+      [
+        { id: 1, name: '彩色胶卷' },
+        { id: 2, name: '黑白胶卷' },
+        { id: 3, name: '135胶卷' }
+      ],
+      [
+        { id: 4, name: '120胶卷' },
+        { id: 5, name: '反转片' },
+        { id: 6, name: '拍立得' }
+      ]
+    ],
     products: [],
     loading: false,
-    selectedCategory: null,
+    selectedCategory: 0,
     searchValue: '',
     page: 1,
     pageSize: 10,
@@ -14,57 +35,46 @@ Page({
   },
 
   onLoad() {
-    this.loadCategories()
     this.loadProducts()
   },
 
-  // 加载分类
-  async loadCategories() {
-    try {
-      const res = await getCategories()
-      if (res && res.data) {
-        this.setData({ categories: res.data })
-      }
-    } catch (error) {
-      console.error('加载分类失败:', error)
-      wx.showToast({
-        title: '加载分类失败',
-        icon: 'none'
-      })
-    }
-  },
-
   // 加载商品列表
-  async loadProducts(params = {}) {
-    if (this.data.loading || (!this.data.hasMore && !params.refresh)) return
-
+  async loadProducts(reset = false) {
+    if (this.data.loading) return
+    
     try {
       this.setData({ loading: true })
+      const { page, pageSize, selectedCategory, searchValue, categories } = this.data
       
-      const requestParams = {
-        page: params.refresh ? 1 : this.data.page,
-        pageSize: this.data.pageSize,
-        ...params
+      // 获取当前分类名称作为搜索关键词
+      let keyword = searchValue
+      if (selectedCategory !== 0) {
+        const category = categories.find(c => c.id === selectedCategory)
+        if (category) {
+          keyword = keyword ? `${keyword} ${category.name}` : category.name
+        }
       }
 
-      const res = await getProductList(requestParams)
+      let res
+      if (keyword) {
+        // 使用搜索接口
+        res = await searchProducts(keyword)
+      } else {
+        // 使用商品列表接口
+        const params = {
+          page: page,
+          pageSize: pageSize
+        }
+        res = await getProductList(params)
+      }
       
-      if (res && res.data) {
-        const { list, total } = res.data
-        const formattedProducts = list.map(item => ({
-          id: item.id,
-          name: item.name,
-          price: item.amount / 100, // 将分转换为元
-          stock: item.stock,
-          cover_image: item.mainImage,
-          description: item.desc
-        }))
-
+      if (res && res.list) {
         this.setData({
-          products: params.refresh ? formattedProducts : [...this.data.products, ...formattedProducts],
-          page: params.refresh ? 2 : this.data.page + 1,
-          hasMore: this.data.products.length < total
+          products: reset ? res.list : [...this.data.products, ...res.list],
+          hasMore: res.list.length === pageSize
         })
+      } else {
+        throw new Error('获取商品列表失败')
       }
     } catch (error) {
       console.error('加载商品列表失败:', error)
@@ -77,17 +87,15 @@ Page({
     }
   },
 
-  // 下拉刷新
-  async onPullDownRefresh() {
-    await this.loadProducts({ refresh: true })
-    wx.stopPullDownRefresh()
-  },
-
-  // 上拉加载更多
-  onReachBottom() {
-    if (this.data.hasMore && !this.data.loading) {
-      this.loadProducts()
-    }
+  // 切换分类
+  async switchCategory(e) {
+    const categoryId = e.currentTarget.dataset.id
+    this.setData({ 
+      selectedCategory: categoryId,
+      page: 1,
+      products: []
+    })
+    await this.loadProducts(true)
   },
 
   // 搜索输入
@@ -98,37 +106,29 @@ Page({
   },
 
   // 执行搜索
-  onSearch() {
-    const { searchValue, selectedCategory } = this.data
-    const params = {
-      refresh: true
-    }
-    if (searchValue) {
-      params.keyword = searchValue
-    }
-    if (selectedCategory) {
-      params.category_id = selectedCategory
-    }
-    this.loadProducts(params)
+  async onSearch() {
+    this.setData({
+      page: 1,
+      products: []
+    })
+    await this.loadProducts(true)
   },
 
-  // 切换分类
-  async switchCategory(e) {
-    const categoryId = e.currentTarget.dataset.id
-    this.setData({ 
-      selectedCategory: this.data.selectedCategory === categoryId ? null : categoryId 
+  // 下拉刷新
+  async onPullDownRefresh() {
+    this.setData({
+      page: 1,
+      products: []
     })
-    
-    const params = {
-      refresh: true
+    await this.loadProducts(true)
+    wx.stopPullDownRefresh()
+  },
+
+  // 上拉加载更多
+  onReachBottom() {
+    if (this.data.hasMore && !this.data.loading) {
+      this.loadProducts()
     }
-    if (this.data.selectedCategory) {
-      params.category_id = this.data.selectedCategory
-    }
-    if (this.data.searchValue) {
-      params.keyword = this.data.searchValue
-    }
-    await this.loadProducts(params)
   },
 
   // 跳转到商品详情页

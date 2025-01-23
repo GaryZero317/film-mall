@@ -1,7 +1,10 @@
 // pages/user/index.js
+import { loginGuard } from '../../utils/auth'
+import { getUserInfo } from '../../api/user'
+
 const app = getApp()
 
-Page({
+Page(loginGuard({
   data: {
     isLogin: false,
     userInfo: null,
@@ -9,7 +12,12 @@ Page({
       unpaid: 0,
       undelivered: 0,
       delivered: 0
-    }
+    },
+    loading: false
+  },
+
+  onLoad() {
+    this.loadUserInfo()
   },
 
   onShow() {
@@ -30,19 +38,15 @@ Page({
   // 加载用户信息
   async loadUserInfo() {
     try {
-      const res = await wx.request({
-        url: `${app.globalData.baseUrl}/api/user`,
-        method: 'GET',
-        header: {
-          'Authorization': `Bearer ${wx.getStorageSync('token')}`
-        }
-      })
-
-      if (res.statusCode === 200) {
+      this.setData({ loading: true })
+      const res = await getUserInfo()
+      if (res.code === 0) {
         this.setData({ userInfo: res.data })
       }
     } catch (error) {
-      console.error('加载用户信息失败:', error)
+      console.error('获取用户信息失败:', error)
+    } finally {
+      this.setData({ loading: false })
     }
   },
 
@@ -204,4 +208,4 @@ Page({
       icon: 'none'
     })
   }
-})
+}))

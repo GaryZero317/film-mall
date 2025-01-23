@@ -1,7 +1,7 @@
 App({
   globalData: {
     userInfo: null,
-    baseUrl: 'http://localhost:8001/api', // 修改端口为8001
+    baseUrl: 'http://localhost:8001', // 修改为正确的端口号
     token: ''
   },
   onLaunch() {

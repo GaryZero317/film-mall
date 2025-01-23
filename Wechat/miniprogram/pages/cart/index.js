@@ -1,7 +1,8 @@
 // pages/cart/index.js
 import { getCartList, updateCartItem, removeFromCart, updateCartItemStatus } from '../../api/cart'
+import { loginGuard } from '../../utils/auth'
 
-Page({
+Page(loginGuard({
   data: {
     cartItems: [
       {
@@ -43,14 +44,28 @@ Page({
   async loadCartList() {
     try {
       this.setData({ loading: true })
-      const res = await getCartList()
-      this.setData({ 
-        cartItems: res.data || this.data.cartItems,
-        loading: false
+      const res = await wx.request({
+        url: `${getApp().globalData.baseUrl}/api/cart/list`,
+        method: 'GET',
+        header: {
+          'Authorization': wx.getStorageSync('token')
+        }
       })
-      this.calculateTotal()
+      
+      if (res.statusCode === 200) {
+        this.setData({ 
+          cartItems: res.data.data,
+          selectedAll: false,
+          totalPrice: 0
+        })
+      }
     } catch (error) {
       console.error('加载购物车失败:', error)
+      wx.showToast({
+        title: '加载购物车失败',
+        icon: 'none'
+      })
+    } finally {
       this.setData({ loading: false })
     }
   },
@@ -187,4 +202,4 @@ Page({
       url: '/pages/order/confirm/index'
     })
   }
-})
+}))

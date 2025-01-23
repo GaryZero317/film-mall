@@ -1,8 +1,9 @@
 // pages/order/confirm/index.js
 import { createOrder } from '../../../api/order'
 import { getAddressList } from '../../../api/user'
+import { loginGuard } from '../../../utils/auth'
 
-Page({
+Page(loginGuard({
   data: {
     address: null,
     orderItems: [],
@@ -129,4 +130,4 @@ Page({
       this.setData({ loading: false })
     }
   }
-})
+}))

@@ -4,16 +4,27 @@ const request = (options) => {
   return new Promise((resolve, reject) => {
     const token = wx.getStorageSync('token')
     wx.request({
-      url: `${app.globalData.baseUrl}${options.url}`,
+      url: options.url.startsWith('http') ? options.url : `${app.globalData.baseUrl}${options.url}`,
       method: options.method || 'GET',
       data: options.data,
       header: {
         'Content-Type': 'application/json',
-        'Authorization': token || ''
+        'Authorization': token ? `Bearer ${token}` : ''
       },
       success: (res) => {
         if (res.statusCode === 200) {
-          resolve(res.data)
+          // 处理不同的返回格式
+          if (res.data && (res.data.code !== undefined)) {
+            // 标准格式：{ code: 0, msg: '', data: {} }
+            if (res.data.code === 0) {
+              resolve(res.data.data)
+            } else {
+              reject(new Error(res.data.msg || '请求失败'))
+            }
+          } else {
+            // 直接返回数据格式
+            resolve(res.data)
+          }
         } else if (res.statusCode === 401) {
           // token过期或未登录，跳转到登录页
           wx.removeStorageSync('token')

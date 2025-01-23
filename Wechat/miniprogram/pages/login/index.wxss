@@ -1,0 +1,150 @@
+.container {
+  min-height: 100vh;
+  padding: 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #fff;
+}
+
+.logo {
+  margin-top: 80rpx;
+  width: 160rpx;
+  height: 160rpx;
+}
+
+.logo image {
+  width: 100%;
+  height: 100%;
+}
+
+.title {
+  margin-top: 30rpx;
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.subtitle {
+  margin-top: 20rpx;
+  font-size: 28rpx;
+  color: #666;
+}
+
+.form-box {
+  margin-top: 60rpx;
+  width: 100%;
+}
+
+.input-group {
+  margin-bottom: 30rpx;
+  width: 100%;
+}
+
+.input {
+  width: 100%;
+  height: 88rpx;
+  padding: 0 30rpx;
+  background: #F8F8F8;
+  border-radius: 44rpx;
+  font-size: 28rpx;
+  box-sizing: border-box;
+}
+
+.gender-group {
+  display: flex;
+  align-items: center;
+  padding: 0 30rpx;
+}
+
+.gender-label {
+  font-size: 28rpx;
+  color: #333;
+  margin-right: 30rpx;
+}
+
+.radio-group {
+  display: flex;
+  gap: 40rpx;
+}
+
+.radio {
+  font-size: 28rpx;
+  color: #333;
+  display: flex;
+  align-items: center;
+}
+
+.radio radio {
+  margin-right: 8rpx;
+}
+
+.verify-group {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.verify-input {
+  flex: 1;
+}
+
+.verify-btn {
+  width: 200rpx !important;
+  height: 88rpx;
+  line-height: 88rpx;
+  font-size: 26rpx;
+  border-radius: 44rpx;
+  padding: 0;
+}
+
+.submit-btn {
+  width: 100% !important;
+  height: 88rpx;
+  line-height: 88rpx;
+  font-size: 32rpx;
+  border-radius: 44rpx;
+  margin-top: 40rpx;
+}
+
+.action-links {
+  margin-top: 30rpx;
+  display: flex;
+  justify-content: space-between;
+  font-size: 26rpx;
+}
+
+.link {
+  color: #1296db;
+}
+
+.divider {
+  margin-top: 80rpx;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 24rpx;
+}
+
+.line {
+  width: 100rpx;
+  height: 1px;
+  background: #E5E5E5;
+  margin: 0 20rpx;
+}
+
+.other-login {
+  margin-top: 40rpx;
+  width: 100%;
+}
+
+.wx-login-btn {
+  width: 100% !important;
+  height: 88rpx;
+  line-height: 88rpx;
+  font-size: 32rpx;
+  border-radius: 44rpx;
+  background: #07C160 !important;
+} 

@@ -1,73 +1,79 @@
 <!--pages/product/detail/index.wxml-->
 <view class="container">
-  <block wx:if="{{!loading && product}}">
-    <!-- 商品图片 -->
-    <swiper class="product-images" indicator-dots autoplay circular>
-      <swiper-item>
-        <image src="{{product.cover_image}}" mode="aspectFill"></image>
+  <view class="product-detail" wx:if="{{product}}">
+    <!-- 商品图片轮播 -->
+    <swiper 
+      class="product-swiper" 
+      indicator-dots 
+      autoplay 
+      circular
+      bindchange="onSwiperChange"
+    >
+      <!-- 主图 -->
+      <swiper-item wx:if="{{product.mainImage}}">
+        <image 
+          src="{{product.mainImage}}" 
+          mode="aspectFill"
+          bindtap="previewImage"
+          data-current="{{product.mainImage}}"
+          class="swiper-image"
+        />
+      </swiper-item>
+      <!-- 其他图片 -->
+      <swiper-item wx:for="{{images}}" wx:key="id">
+        <image 
+          src="{{item.url}}" 
+          mode="aspectFill"
+          bindtap="previewImage"
+          data-current="{{item.url}}"
+          class="swiper-image"
+        />
+      </swiper-item>
+      <!-- 占位图 -->
+      <swiper-item wx:if="{{!product.mainImage && (!images || images.length === 0)}}">
+        <image 
+          src="../../../static/images/placeholder.png" 
+          mode="aspectFill"
+          class="swiper-image"
+        />
       </swiper-item>
     </swiper>
 
+    <!-- 图片计数器 -->
+    <view class="image-counter" wx:if="{{product.mainImage || images.length > 0}}">
+      {{currentImageIndex + 1}}/{{(product.mainImage ? 1 : 0) + images.length}}
+    </view>
+
     <!-- 商品信息 -->
     <view class="product-info">
-      <view class="product-name">{{product.name}}</view>
-      <view class="product-price">¥{{product.price}}</view>
-      <view class="product-desc">{{product.description}}</view>
-      <view class="product-specs">
-        <view class="spec-item">
-          <text class="spec-label">品牌</text>
-          <text class="spec-value">{{product.brand}}</text>
+      <view class="name">{{product.name}}</view>
+      <view class="price">¥{{product.amount/100}}</view>
+      <view class="stock">库存：{{product.stock}}</view>
+      
+      <!-- 商品数量 -->
+      <view class="quantity-section">
+        <text>数量</text>
+        <view class="quantity-control">
+          <button class="minus" bindtap="onQuantityMinus">-</button>
+          <text class="number">{{quantity}}</text>
+          <button class="plus" bindtap="onQuantityPlus">+</button>
         </view>
-        <view class="spec-item">
-          <text class="spec-label">感光度</text>
-          <text class="spec-value">{{product.iso}} ISO</text>
-        </view>
-        <view class="spec-item">
-          <text class="spec-label">曝光张数</text>
-          <text class="spec-value">{{product.exposures}}张</text>
-        </view>
-        <view class="spec-item">
-          <text class="spec-label">库存</text>
-          <text class="spec-value">{{product.stock}}卷</text>
-        </view>
-        <view class="spec-item">
-          <text class="spec-label">保质期</text>
-          <text class="spec-value">{{product.expiry_date}}</text>
-        </view>
+      </view>
+
+      <!-- 商品描述 -->
+      <view class="description">
+        <text class="title">商品描述</text>
+        <text class="content">{{product.desc}}</text>
       </view>
     </view>
 
-    <!-- 购买数量 -->
-    <view class="quantity-section">
-      <text class="section-title">购买数量</text>
-      <view class="quantity-control">
-        <text class="minus {{quantity <= 1 ? 'disabled' : ''}}" bindtap="onQuantityMinus">-</text>
-        <text class="quantity">{{quantity}}</text>
-        <text class="plus {{quantity >= product.stock ? 'disabled' : ''}}" bindtap="onQuantityPlus">+</text>
-      </view>
+    <!-- 底部操作栏 -->
+    <view class="bottom-bar">
+      <button class="add-cart" bindtap="addToCart">加入购物车</button>
+      <button class="buy-now" bindtap="buyNow">立即购买</button>
     </view>
-
-    <!-- 商品详情 -->
-    <view class="detail-section">
-      <text class="section-title">商品详情</text>
-      <rich-text nodes="{{product.detail}}"></rich-text>
-      <view class="storage-tips">
-        <view class="tips-title">储存建议</view>
-        <view class="tips-content">
-          <view>• 请将胶卷存放在阴凉干燥处</view>
-          <view>• 避免阳光直射和高温环境</view>
-          <view>• 建议储存温度: 10-20℃</view>
-          <view>• 建议使用前取出回温2小时</view>
-        </view>
-      </view>
-    </view>
-  </block>
-
-  <view wx:if="{{loading}}" class="loading">加载中...</view>
-
-  <!-- 底部操作栏 -->
-  <view class="bottom-bar">
-    <view class="cart-btn" bindtap="addToCart">加入购物车</view>
-    <view class="buy-btn" bindtap="buyNow">立即购买</view>
   </view>
+
+  <!-- 加载中 -->
+  <view class="loading" wx:if="{{loading}}">加载中...</view>
 </view>

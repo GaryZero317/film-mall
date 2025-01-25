@@ -143,18 +143,6 @@ type StockResponse struct {
 	Data StockData `json:"data"`
 }
 
-type Banner struct {
-	Id       int64  `json:"id"`
-	ImageUrl string `json:"imageUrl"`
-	Link     string `json:"link"`
-}
-
-type BannerListResponse struct {
-	Code int64    `json:"code"`
-	Msg  string   `json:"msg"`
-	Data []Banner `json:"data"`
-}
-
 type GetProductImagesRequest struct {
 	ProductId int64 `json:"productId"`
 }

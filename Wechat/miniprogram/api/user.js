@@ -1,14 +1,12 @@
 import request from '../utils/request'
 
-// 账号密码登录
+// 用户登录
 export const login = (data) => {
   return request({
     url: 'http://localhost:8000/api/user/login',
     method: 'POST',
-    data: {
-      mobile: data.mobile,
-      password: data.password
-    }
+    data,
+    noAuth: true
   })
 }
 
@@ -17,21 +15,18 @@ export const wxLogin = (code) => {
   return request({
     url: 'http://localhost:8000/api/user/wx-login',
     method: 'POST',
-    data: { code }
+    data: { code },
+    noAuth: true
   })
 }
 
-// 注册
+// 用户注册
 export const register = (data) => {
   return request({
     url: 'http://localhost:8000/api/user/register',
     method: 'POST',
-    data: {
-      name: data.name,
-      mobile: data.mobile,
-      gender: parseInt(data.gender),
-      password: data.password
-    }
+    data,
+    noAuth: true
   })
 }
 

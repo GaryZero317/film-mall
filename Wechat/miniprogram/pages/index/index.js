@@ -51,17 +51,7 @@ Page({
         pageSize: this.data.pageSize
       }
 
-      // 如果有选中的分类
-      if (this.data.selectedCategory !== 0) {
-        params.categoryId = this.data.selectedCategory
-      }
-
-      // 如果有搜索关键词
-      if (this.data.searchValue) {
-        params.keyword = this.data.searchValue
-      }
-
-      console.log('请求参数:', params)
+      console.log('开始加载商品列表，参数:', params)
       const res = await getProductList(params)
       console.log('商品列表响应:', res)
 
@@ -76,7 +66,7 @@ Page({
               console.log('商品图片响应:', imageRes)
               if (imageRes && imageRes.code === 0 && imageRes.data) {
                 const mainImage = imageRes.data.find(img => img.isMain)
-                console.log('主图信息:', mainImage)
+                console.log('商品ID:', product.id, '主图信息:', mainImage)
                 const imageUrl = mainImage ? `http://localhost:8001${mainImage.imageUrl}` : (imageRes.data[0] ? `http://localhost:8001${imageRes.data[0].imageUrl}` : '')
                 console.log('最终图片URL:', imageUrl)
                 return {
@@ -105,7 +95,8 @@ Page({
         console.log('处理后的数据:', {
           productsLength: products.length,
           page,
-          hasMore
+          hasMore,
+          products
         })
 
         this.setData({

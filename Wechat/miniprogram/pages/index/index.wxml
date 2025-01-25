@@ -74,4 +74,9 @@
   <view class="empty-container" wx:if="{{!loading && products.length === 0}}">
     <text>暂无商品</text>
   </view>
+
+  <!-- 加载更多 -->
+  <view class="load-more" wx:if="{{hasMore && !loading}}">
+    <text>上拉加载更多</text>
+  </view>
 </view> 

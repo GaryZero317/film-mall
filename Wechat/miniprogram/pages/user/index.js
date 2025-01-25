@@ -1,10 +1,9 @@
 // pages/user/index.js
-import { loginGuard } from '../../utils/auth'
 import { getUserInfo } from '../../api/user'
 
 const app = getApp()
 
-Page(loginGuard({
+Page({
   data: {
     isLogin: false,
     userInfo: null,
@@ -17,34 +16,61 @@ Page(loginGuard({
   },
 
   onLoad() {
-    this.loadUserInfo()
+    this.checkLoginStatus()
   },
 
   onShow() {
-    // 每次显示页面时检查登录状态
     this.checkLoginStatus()
     if (this.data.isLogin) {
       this.loadUserInfo()
-      this.loadOrderCount()
     }
   },
 
   // 检查登录状态
   checkLoginStatus() {
     const token = wx.getStorageSync('token')
-    this.setData({ isLogin: !!token })
+    console.log('当前token:', token)
+    this.setData({ 
+      isLogin: !!token,
+      userInfo: token ? wx.getStorageSync('userInfo') : null
+    })
   },
 
   // 加载用户信息
   async loadUserInfo() {
+    if (!this.data.isLogin) {
+      return
+    }
+
     try {
       this.setData({ loading: true })
       const res = await getUserInfo()
-      if (res.code === 0) {
-        this.setData({ userInfo: res.data })
+      console.log('获取用户信息结果:', res)
+      if (res.code === 0 && res.data) {
+        this.setData({ 
+          userInfo: res.data,
+          isLogin: true
+        })
+        // 保存用户信息到本地存储
+        wx.setStorageSync('userInfo', res.data)
+      } else {
+        // 如果获取用户信息失败，可能是token失效
+        this.setData({ 
+          isLogin: false,
+          userInfo: null 
+        })
+        wx.removeStorageSync('token')
+        wx.removeStorageSync('userInfo')
       }
     } catch (error) {
       console.error('获取用户信息失败:', error)
+      // 获取用户信息失败时，清除登录状态
+      this.setData({ 
+        isLogin: false,
+        userInfo: null 
+      })
+      wx.removeStorageSync('token')
+      wx.removeStorageSync('userInfo')
     } finally {
       this.setData({ loading: false })
     }
@@ -70,72 +96,34 @@ Page(loginGuard({
   },
 
   // 登录
-  async onLogin() {
-    try {
-      // 获取用户信息
-      const userInfoRes = await wx.getUserProfile({
-        desc: '用于完善会员资料'
-      })
-
-      // 获取登录code
-      const loginRes = await wx.login()
-      
-      // 发送登录请求
-      const res = await wx.request({
-        url: `${app.globalData.baseUrl}/api/login`,
-        method: 'POST',
-        data: {
-          code: loginRes.code,
-          user_info: userInfoRes.userInfo
-        }
-      })
-
-      if (res.statusCode === 200) {
-        // 保存token
-        wx.setStorageSync('token', res.data.token)
-        this.setData({ 
-          isLogin: true,
-          userInfo: res.data.user
-        })
-        // 加载订单数量
-        this.loadOrderCount()
-      } else {
-        wx.showToast({
-          title: '登录失败',
-          icon: 'none'
-        })
-      }
-    } catch (error) {
-      console.error('登录失败:', error)
-      wx.showToast({
-        title: '登录失败',
-        icon: 'none'
-      })
-    }
+  onLogin() {
+    wx.navigateTo({
+      url: '/pages/login/index'
+    })
   },
 
   // 退出登录
-  async onLogout() {
-    const res = await wx.showModal({
+  onLogout() {
+    wx.showModal({
       title: '提示',
       content: '确定要退出登录吗？',
-      confirmText: '退出',
-      cancelText: '取消'
-    })
-
-    if (res.confirm) {
-      // 清除token和用户信息
-      wx.removeStorageSync('token')
-      this.setData({
-        isLogin: false,
-        userInfo: null,
-        orderCount: {
-          unpaid: 0,
-          undelivered: 0,
-          delivered: 0
+      success: (res) => {
+        if (res.confirm) {
+          // 清除token和用户信息
+          wx.removeStorageSync('token')
+          wx.removeStorageSync('userInfo')
+          this.setData({
+            isLogin: false,
+            userInfo: null,
+            orderCount: {
+              unpaid: 0,
+              undelivered: 0,
+              delivered: 0
+            }
+          })
         }
-      })
-    }
+      }
+    })
   },
 
   // 查看全部订单
@@ -208,4 +196,4 @@ Page(loginGuard({
       icon: 'none'
     })
   }
-}))
+})

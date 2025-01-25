@@ -1,14 +1,15 @@
 import request from '../utils/request'
 
 // 获取商品列表
-export const getProductList = (data) => {
+export const getProductList = (params = {}) => {
   return request({
     url: 'http://localhost:8001/api/product/list',
     method: 'GET',
     data: {
-      page: data.page || 1,
-      pageSize: data.pageSize || 10
-    }
+      page: params.page || 1,
+      pageSize: params.pageSize || 10
+    },
+    noAuth: true  // 标记该请求不需要认证
   })
 }
 
@@ -17,7 +18,8 @@ export const getProductDetail = (id) => {
   return request({
     url: 'http://localhost:8001/api/product/detail',
     method: 'POST',
-    data: { id: parseInt(id) }
+    data: { id: parseInt(id) },
+    noAuth: true  // 标记该请求不需要认证
   })
 }
 
@@ -123,10 +125,11 @@ export const getProductStock = (id) => {
 // 获取商品图片
 export function getProductImages(productId) {
   return request({
-    url: '/api/product/images',
+    url: 'http://localhost:8001/api/product/images/list',
     method: 'POST',
     data: {
       productId
-    }
+    },
+    noAuth: true  // 标记该请求不需要认证
   })
 } 

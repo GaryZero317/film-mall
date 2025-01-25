@@ -18,14 +18,14 @@
   ],
   "window": {
     "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#1296db",
+    "navigationBarBackgroundColor": "#fff",
     "navigationBarTitleText": "胶卷商城",
-    "navigationBarTextStyle": "white"
+    "navigationBarTextStyle": "black"
   },
   "tabBar": {
-    "color": "#999999",
-    "selectedColor": "#1296db",
-    "backgroundColor": "#ffffff",
+    "color": "#999",
+    "selectedColor": "#333",
+    "backgroundColor": "#fff",
     "borderStyle": "black",
     "list": [
       {

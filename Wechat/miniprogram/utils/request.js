@@ -1,26 +1,33 @@
 const app = getApp()
 
 const request = (options) => {
-  const { url, method = 'GET', data } = options
+  const { url, method = 'GET', data, noAuth = false } = options
 
-  const token = wx.getStorageSync('token')
+  // 只有在需要认证且有token的情况下才添加token
+  const token = noAuth ? '' : wx.getStorageSync('token')
   
   return new Promise((resolve, reject) => {
     console.log('发起请求:', {
       url,
       method,
-      data
+      data,
+      noAuth
     })
+
+    const headers = {
+      'Content-Type': 'application/json'
+    }
+
+    // 只有在需要认证时才添加token
+    if (!noAuth && token) {
+      headers['Authorization'] = `Bearer ${token}`
+    }
 
     wx.request({
       url: url.startsWith('http') ? url : `${app.globalData.baseUrl}${url}`,
       method,
       data,
-      header: {
-        'Content-Type': 'application/json',
-        'Authorization': token ? `Bearer ${token}` : '',
-        ...options.header
-      },
+      header: headers,
       success: (res) => {
         console.log('请求成功:', res)
         if (res.statusCode === 200) {
@@ -28,9 +35,9 @@ const request = (options) => {
           if (res.data && (res.data.code !== undefined)) {
             // 标准格式：{ code: 0, msg: '', data: {} }
             if (res.data.code === 0) {
-              resolve(res.data)  // 返回完整的响应数据，包括 code, msg, data
+              resolve(res.data)
             } else {
-              reject(res.data)
+              reject(new Error(res.data.msg || '请求失败'))
             }
           } else {
             // 直接返回数据格式
@@ -40,8 +47,8 @@ const request = (options) => {
               data: res.data
             })
           }
-        } else if (res.statusCode === 401) {
-          // token过期或无效，需要重新登录
+        } else if (res.statusCode === 401 && !noAuth) {
+          // 只有需要认证的请求才处理401错误
           wx.removeStorageSync('token')
           wx.showToast({
             title: '请先登录',
@@ -49,29 +56,22 @@ const request = (options) => {
             duration: 2000,
             complete: () => {
               setTimeout(() => {
-                wx.navigateTo({
+                wx.redirectTo({
                   url: '/pages/login/index'
                 })
               }, 1000)
             }
           })
-          reject(res)
+          reject(new Error('未登录或登录已过期'))
         } else {
-          console.error('请求失败:', res)
-          wx.showToast({
-            title: (res.data && res.data.msg) || '请求失败',
-            icon: 'none'
-          })
-          reject(res)
+          const errorMsg = (res.data && res.data.msg) || '请求失败'
+          console.error('请求失败:', errorMsg)
+          reject(new Error(errorMsg))
         }
       },
       fail: (error) => {
         console.error('请求错误:', error)
-        wx.showToast({
-          title: '网络错误',
-          icon: 'none'
-        })
-        reject(error)
+        reject(new Error('网络错误，请检查网络连接'))
       }
     })
   })

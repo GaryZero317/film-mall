@@ -149,8 +149,6 @@ type (
 		Data StockData `json:"data"`
 	}
 
-
-
 	// 获取商品图片
 	GetProductImagesRequest {
 		ProductId int64 `json:"productId"`
@@ -170,6 +168,21 @@ type (
 	}
 )
 
+// 不需要认证的接口
+service Product {
+	@doc "获取商品列表"
+	@handler ProductList
+	get /api/product/list (ProductListRequest) returns (ProductListResponse)
+	
+	@doc "获取商品图片"
+	@handler GetProductImages
+	post /api/product/images/list (GetProductImagesRequest) returns (GetProductImagesResponse)
+	
+	@doc "获取商品详情"
+	@handler Detail
+	post /api/product/detail (DetailRequest) returns (DetailResponse)
+}
+
 @server(
 	jwt: Auth
 )
@@ -183,9 +196,6 @@ service Product {
 	@handler Remove
 	post /api/product/remove (RemoveRequest) returns (RemoveResponse)
 	
-	@handler Detail
-	post /api/product/detail (DetailRequest) returns (DetailResponse)
-	
 	@handler AddProductImages
 	post /api/product/images/add (AddProductImagesRequest) returns (AddProductImagesResponse)
 	
@@ -197,12 +207,6 @@ service Product {
 	
 	@handler Upload
 	post /api/upload returns (UploadResponse)
-	
-	@handler ProductList
-	get /api/product/list (ProductListRequest) returns (ProductListResponse)
-	
-	@handler GetProductImages
-	post /api/product/images/list (GetProductImagesRequest) returns (GetProductImagesResponse)
 }
 
 @server(

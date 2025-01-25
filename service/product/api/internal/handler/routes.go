@@ -13,6 +13,26 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 	server.AddRoutes(
 		[]rest.Route{
 			{
+				Method:  http.MethodGet,
+				Path:    "/api/product/list",
+				Handler: ProductListHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/api/product/images/list",
+				Handler: GetProductImagesHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/api/product/detail",
+				Handler: DetailHandler(serverCtx),
+			},
+		},
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
 				Method:  http.MethodPost,
 				Path:    "/api/product/create",
 				Handler: CreateHandler(serverCtx),
@@ -26,11 +46,6 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Method:  http.MethodPost,
 				Path:    "/api/product/remove",
 				Handler: RemoveHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/api/product/detail",
-				Handler: DetailHandler(serverCtx),
 			},
 			{
 				Method:  http.MethodPost,
@@ -51,16 +66,6 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Method:  http.MethodPost,
 				Path:    "/api/upload",
 				Handler: UploadHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodGet,
-				Path:    "/api/product/list",
-				Handler: ProductListHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/api/product/images",
-				Handler: GetProductImagesHandler(serverCtx),
 			},
 		},
 		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),

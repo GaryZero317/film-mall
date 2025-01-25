@@ -77,12 +77,13 @@ Page({
     })
   },
 
-  // 账号密码登录
+  // 登录
   async handleLogin() {
     const { mobile, password } = this.data
+    
     if (!mobile || !password) {
       wx.showToast({
-        title: '请输入手机号和密码',
+        title: '请填写完整信息',
         icon: 'none'
       })
       return
@@ -104,16 +105,12 @@ Page({
         password
       })
       
-      console.log('登录响应数据:', res) // 打印响应数据，方便调试
+      console.log('登录响应数据:', res)
       
-      // 检查返回的数据结构
-      if (res && res.accessToken) {
-        // 保存token
-        wx.setStorageSync('token', res.accessToken)
-        if (res.accessExpire) {
-          wx.setStorageSync('tokenExpire', res.accessExpire)
-        }
-        getApp().globalData.token = res.accessToken
+      if (res && res.code === 0 && res.data) {
+        // 保存token和过期时间
+        wx.setStorageSync('token', res.data.accessToken)
+        wx.setStorageSync('tokenExpire', res.data.accessExpire)
         
         wx.showToast({
           title: '登录成功',
@@ -121,11 +118,14 @@ Page({
           duration: 1500
         })
         
+        // 延迟跳转，让用户看到成功提示
         setTimeout(() => {
-          this.navigateBack()
+          wx.switchTab({
+            url: '/pages/index/index'
+          })
         }, 1500)
       } else {
-        throw new Error('登录失败，请检查账号密码')
+        throw new Error(res?.msg || '登录失败，请检查账号密码')
       }
     } catch (error) {
       console.error('登录失败，详细错误:', error)
@@ -178,7 +178,6 @@ Page({
       
       console.log('注册响应数据:', res)
       
-      // 后端直接返回用户数据，包含 id、name、gender、mobile
       if (res && res.id) {
         wx.showToast({
           title: '注册成功',
@@ -186,17 +185,19 @@ Page({
           duration: 1500
         })
         
-        // 注册成功后切换到登录页，并自动填充手机号
+        // 注册成功后切换到登录页，并自动填充手机号和密码
         setTimeout(() => {
           this.setData({
             isRegister: false,
-            mobile: res.mobile, // 使用返回的手机号
-            password: '',
+            mobile: mobile,
+            password: password,
             loading: false
           })
+          // 自动触发登录
+          this.handleLogin()
         }, 1500)
       } else {
-        throw new Error('注册失败，请重试')
+        throw new Error(res?.msg || '注册失败，请重试')
       }
     } catch (error) {
       console.error('注册失败，详细错误:', error)

@@ -2,7 +2,26 @@ import { getProductList, searchProducts, getProductImages } from '../../api/prod
 
 Page({
   data: {
-    banners: [],
+    banners: [
+      {
+        id: 1,
+        imageUrl: '/images/banner1.jpg',
+        type: 'product',
+        productId: 1
+      },
+      {
+        id: 2,
+        imageUrl: '/images/banner2.jpg',
+        type: 'product',
+        productId: 2
+      },
+      {
+        id: 3,
+        imageUrl: '/images/banner3.jpg',
+        type: 'product',
+        productId: 3
+      }
+    ],
     categories: [
       { id: 0, name: '全部' },
       { id: 1, name: '彩色胶卷' },
@@ -35,7 +54,7 @@ Page({
   },
 
   onLoad() {
-    this.loadProducts()
+    this.loadProducts(true)
   },
 
   // 加载商品列表
@@ -48,7 +67,8 @@ Page({
       // 构建请求参数
       const params = {
         page: refresh ? 1 : this.data.page,
-        pageSize: this.data.pageSize
+        pageSize: this.data.pageSize,
+        keyword: this.data.searchValue
       }
 
       console.log('开始加载商品列表，参数:', params)
@@ -167,5 +187,15 @@ Page({
     wx.navigateTo({
       url: `/pages/product/detail/index?id=${id}`
     })
+  },
+
+  // 点击banner
+  onBannerTap(e) {
+    const item = e.currentTarget.dataset.item
+    if (item.type === 'product') {
+      wx.navigateTo({
+        url: `/pages/product/detail/index?id=${item.productId}`
+      })
+    }
   }
 }) 

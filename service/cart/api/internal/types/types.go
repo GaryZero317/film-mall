@@ -9,11 +9,16 @@ type CartItem struct {
 	ProductName  string  `json:"productName"`
 	ProductImage string  `json:"productImage"`
 	Price        float64 `json:"price"`
+	Stock        int     `json:"stock"`
 }
 
 type AddCartReq struct {
 	ProductId int64 `json:"productId"`
 	Quantity  int   `json:"quantity,optional"`
+}
+
+type RemoveCartReq struct {
+	Id int64 `path:"id"`
 }
 
 type UpdateQuantityReq struct {

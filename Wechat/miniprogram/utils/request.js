@@ -37,8 +37,14 @@ const request = (options) => {
             if (res.data.code === 0) {
               resolve(res.data)
             } else {
-              reject(new Error(res.data.msg || '请求失败'))
+              const errorMsg = res.data.msg || '请求失败'
+              console.error('业务错误:', errorMsg)
+              reject(new Error(errorMsg))
             }
+          } else if (typeof res.data === 'string' && res.data.includes('field')) {
+            // 处理验证错误
+            console.error('验证错误:', res.data)
+            reject(new Error(res.data))
           } else {
             // 直接返回数据格式
             resolve({
@@ -64,8 +70,11 @@ const request = (options) => {
           })
           reject(new Error('未登录或登录已过期'))
         } else {
-          const errorMsg = (res.data && res.data.msg) || '请求失败'
-          console.error('请求失败:', errorMsg)
+          let errorMsg = '请求失败'
+          if (res.data) {
+            errorMsg = typeof res.data === 'string' ? res.data : (res.data.msg || '请求失败')
+          }
+          console.error('HTTP错误:', errorMsg)
           reject(new Error(errorMsg))
         }
       },

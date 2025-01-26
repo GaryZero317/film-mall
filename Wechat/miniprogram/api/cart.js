@@ -3,7 +3,7 @@ import request from '../utils/request'
 // 获取购物车列表
 export const getCartList = () => {
   return request({
-    url: '/cart/list',
+    url: '/api/cart/list',
     method: 'GET'
   })
 }
@@ -11,7 +11,7 @@ export const getCartList = () => {
 // 添加商品到购物车
 export const addToCart = (data) => {
   return request({
-    url: '/cart/add',
+    url: '/api/cart/add',
     method: 'POST',
     data
   })
@@ -20,7 +20,7 @@ export const addToCart = (data) => {
 // 更新购物车商品数量
 export const updateCartItem = (data) => {
   return request({
-    url: '/cart/update',
+    url: '/api/cart/quantity',
     method: 'PUT',
     data
   })
@@ -29,7 +29,7 @@ export const updateCartItem = (data) => {
 // 删除购物车商品
 export const removeFromCart = (id) => {
   return request({
-    url: `/cart/remove/${id}`,
+    url: `/api/cart/${id}`,
     method: 'DELETE'
   })
 }
@@ -37,7 +37,7 @@ export const removeFromCart = (id) => {
 // 清空购物车
 export const clearCart = () => {
   return request({
-    url: '/cart/clear',
+    url: '/api/cart/clear',
     method: 'DELETE'
   })
 }
@@ -45,7 +45,7 @@ export const clearCart = () => {
 // 购物车商品选中状态
 export const updateCartItemStatus = (data) => {
   return request({
-    url: '/cart/status',
+    url: '/api/cart/selected',
     method: 'PUT',
     data
   })

@@ -1,7 +1,7 @@
 App({
   globalData: {
     userInfo: null,
-    baseUrl: 'http://localhost:8001', // 修改为正确的端口号
+    baseUrl: 'http://localhost:8004', // 修改为购物车服务的端口
     token: ''
   },
   onLaunch() {

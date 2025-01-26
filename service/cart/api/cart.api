@@ -18,12 +18,18 @@ type (
 		ProductName  string  `json:"productName"`
 		ProductImage string  `json:"productImage"`
 		Price        float64 `json:"price"`
+		Stock        int     `json:"stock"`
 	}
 
 	// 添加购物车请求
 	AddCartReq {
 		ProductId int64 `json:"productId"`
 		Quantity  int   `json:"quantity,optional"`
+	}
+
+	// 删除购物车请求
+	RemoveCartReq {
+		Id int64 `path:"id"`
 	}
 
 	// 更新购物车数量请求

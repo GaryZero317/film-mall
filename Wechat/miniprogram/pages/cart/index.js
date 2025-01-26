@@ -4,28 +4,7 @@ import { loginGuard } from '../../utils/auth'
 
 Page(loginGuard({
   data: {
-    cartItems: [
-      {
-        id: 1,
-        product_id: 1,
-        name: 'Kodak Gold 200 柯达金200胶卷',
-        price: 65,
-        stock: 100,
-        quantity: 2,
-        selected: false,
-        cover_image: '/assets/images/kodak-gold-200.jpg'
-      },
-      {
-        id: 2,
-        product_id: 2,
-        name: 'Fujifilm C200 富士C200胶卷',
-        price: 55,
-        stock: 80,
-        quantity: 1,
-        selected: false,
-        cover_image: '/assets/images/fuji-c200.jpg'
-      }
-    ],
+    cartItems: [],
     loading: false,
     totalPrice: 0,
     selectedCount: 0,
@@ -44,19 +23,28 @@ Page(loginGuard({
   async loadCartList() {
     try {
       this.setData({ loading: true })
-      const res = await wx.request({
-        url: `${getApp().globalData.baseUrl}/api/cart/list`,
-        method: 'GET',
-        header: {
-          'Authorization': wx.getStorageSync('token')
-        }
-      })
+      const res = await getCartList()
+      console.log('购物车列表响应:', res)
       
-      if (res.statusCode === 200) {
+      if (res && res.code === 0) {
+        // 处理图片URL
+        const cartItems = (res.data.list || []).map(item => ({
+          ...item,
+          productImage: item.productImage ? `http://localhost:8001${item.productImage}` : '/assets/images/default.png'
+        }))
+        console.log('处理后的购物车商品列表:', cartItems)
+        
         this.setData({ 
-          cartItems: res.data.data,
+          cartItems,
           selectedAll: false,
           totalPrice: 0
+        })
+        this.calculateTotal()
+      } else {
+        console.error('获取购物车列表失败:', res)
+        wx.showToast({
+          title: res?.msg || '获取购物车列表失败',
+          icon: 'none'
         })
       }
     } catch (error) {
@@ -86,20 +74,29 @@ Page(loginGuard({
     }
 
     try {
-      await updateCartItem({
-        id,
+      console.log('更新购物车数量:', { id, quantity: newQuantity })
+      const res = await updateCartItem({
+        id: parseInt(id),
         quantity: newQuantity
       })
+      console.log('更新购物车数量响应:', res)
       
-      const cartItems = this.data.cartItems.map(item => {
-        if (item.id === id) {
-          return { ...item, quantity: newQuantity }
-        }
-        return item
-      })
-      
-      this.setData({ cartItems })
-      this.calculateTotal()
+      if (res.code === 0) {
+        const cartItems = this.data.cartItems.map(item => {
+          if (item.id === id) {
+            return { ...item, quantity: newQuantity }
+          }
+          return item
+        })
+        
+        this.setData({ cartItems })
+        this.calculateTotal()
+      } else {
+        wx.showToast({
+          title: res.msg || '更新数量失败',
+          icon: 'none'
+        })
+      }
     } catch (error) {
       console.error('更新数量失败:', error)
       wx.showToast({

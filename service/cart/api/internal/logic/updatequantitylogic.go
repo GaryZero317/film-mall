@@ -68,14 +68,14 @@ func (l *UpdateQuantityLogic) UpdateQuantity(req *types.UpdateQuantityReq) (resp
 	result := l.svcCtx.DB.Where("id = ? AND user_id = ?", req.Id, userId).First(&cart)
 	if result.Error != nil {
 		return &types.BaseResp{
-			Code:    400,
+			Code:    1,
 			Message: "购物车商品不存在",
 		}, nil
 	}
 
 	if req.Quantity <= 0 {
 		return &types.BaseResp{
-			Code:    400,
+			Code:    1,
 			Message: "商品数量必须大于0",
 		}, nil
 	}
@@ -83,13 +83,13 @@ func (l *UpdateQuantityLogic) UpdateQuantity(req *types.UpdateQuantityReq) (resp
 	cart.Quantity = req.Quantity
 	if err := l.svcCtx.DB.Save(&cart).Error; err != nil {
 		return &types.BaseResp{
-			Code:    500,
+			Code:    1,
 			Message: "更新失败",
 		}, nil
 	}
 
 	return &types.BaseResp{
-		Code:    200,
+		Code:    0,
 		Message: "更新成功",
 	}, nil
 }

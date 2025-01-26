@@ -72,7 +72,7 @@ func (l *AddCartLogic) AddCart(req *types.AddCartReq) (resp *types.BaseResp, err
 	if err != nil {
 		l.Logger.Errorf("DEBUG AddCart - Failed to get product details: %v", err)
 		return &types.BaseResp{
-			Code:    400,
+			Code:    1,
 			Message: "商品不存在",
 		}, nil
 	}
@@ -91,7 +91,7 @@ func (l *AddCartLogic) AddCart(req *types.AddCartReq) (resp *types.BaseResp, err
 		cart.Quantity += quantity
 		if err := l.svcCtx.DB.Save(&cart).Error; err != nil {
 			return &types.BaseResp{
-				Code:    500,
+				Code:    1,
 				Message: "更新购物车失败",
 			}, nil
 		}
@@ -105,14 +105,14 @@ func (l *AddCartLogic) AddCart(req *types.AddCartReq) (resp *types.BaseResp, err
 		}
 		if err := l.svcCtx.DB.Create(&cart).Error; err != nil {
 			return &types.BaseResp{
-				Code:    500,
+				Code:    1,
 				Message: "添加购物车失败",
 			}, nil
 		}
 	}
 
 	return &types.BaseResp{
-		Code:    200,
+		Code:    0,
 		Message: "添加成功",
 	}, nil
 }

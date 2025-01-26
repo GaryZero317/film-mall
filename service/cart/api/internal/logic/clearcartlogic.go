@@ -64,15 +64,16 @@ func (l *ClearCartLogic) ClearCart() (resp *types.BaseResp, err error) {
 
 	l.Logger.Infof("DEBUG ClearCart - Converted userId to int64: %d", userId)
 
-	if err := l.svcCtx.DB.Where("user_id = ?", userId).Delete(&model.Cart{}).Error; err != nil {
+	result := l.svcCtx.DB.Where("user_id = ?", userId).Delete(&model.Cart{})
+	if result.Error != nil {
 		return &types.BaseResp{
-			Code:    500,
+			Code:    1,
 			Message: "清空购物车失败",
 		}, nil
 	}
 
 	return &types.BaseResp{
-		Code:    200,
-		Message: "清空购物车成功",
+		Code:    0,
+		Message: "清空成功",
 	}, nil
 }

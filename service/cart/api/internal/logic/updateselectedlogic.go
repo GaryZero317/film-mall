@@ -68,7 +68,7 @@ func (l *UpdateSelectedLogic) UpdateSelected(req *types.UpdateSelectedReq) (resp
 	result := l.svcCtx.DB.Where("id = ? AND user_id = ?", req.Id, userId).First(&cart)
 	if result.Error != nil {
 		return &types.BaseResp{
-			Code:    400,
+			Code:    1,
 			Message: "购物车商品不存在",
 		}, nil
 	}
@@ -76,13 +76,13 @@ func (l *UpdateSelectedLogic) UpdateSelected(req *types.UpdateSelectedReq) (resp
 	cart.Selected = req.Selected
 	if err := l.svcCtx.DB.Save(&cart).Error; err != nil {
 		return &types.BaseResp{
-			Code:    500,
+			Code:    1,
 			Message: "更新失败",
 		}, nil
 	}
 
 	return &types.BaseResp{
-		Code:    200,
+		Code:    0,
 		Message: "更新成功",
 	}, nil
 }

@@ -116,7 +116,7 @@ Page({
     
     try {
       await addToCart({
-        product_id: product.id,
+        productId: product.id,
         quantity: quantity
       })
       

@@ -6,7 +6,6 @@ import (
 	"mall/service/cart/api/internal/svc"
 	"mall/service/cart/api/internal/types"
 	"mall/service/cart/model"
-	"strconv"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -25,7 +24,7 @@ func NewRemoveCartLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Remove
 	}
 }
 
-func (l *RemoveCartLogic) RemoveCart(id string) (resp *types.BaseResp, err error) {
+func (l *RemoveCartLogic) RemoveCart(req *types.RemoveCartReq) (resp *types.BaseResp, err error) {
 	// 打印完整的context信息
 	l.Logger.Infof("DEBUG RemoveCart - Context values: %+v", l.ctx)
 
@@ -65,32 +64,23 @@ func (l *RemoveCartLogic) RemoveCart(id string) (resp *types.BaseResp, err error
 
 	l.Logger.Infof("DEBUG RemoveCart - Converted userId to int64: %d", userId)
 
-	cartId, err := strconv.ParseInt(id, 10, 64)
-	if err != nil {
-		return &types.BaseResp{
-			Code:    400,
-			Message: "无效的购物车ID",
-		}, nil
-	}
-
-	var cart model.Cart
-	result := l.svcCtx.DB.Where("id = ? AND user_id = ?", cartId, userId).First(&cart)
+	result := l.svcCtx.DB.Where("id = ? AND user_id = ?", req.Id, userId).Delete(&model.Cart{})
 	if result.Error != nil {
 		return &types.BaseResp{
-			Code:    400,
-			Message: "购物车商品不存在",
-		}, nil
-	}
-
-	if err := l.svcCtx.DB.Delete(&cart).Error; err != nil {
-		return &types.BaseResp{
-			Code:    500,
+			Code:    1,
 			Message: "删除失败",
 		}, nil
 	}
 
+	if result.RowsAffected == 0 {
+		return &types.BaseResp{
+			Code:    1,
+			Message: "购物车商品不存在",
+		}, nil
+	}
+
 	return &types.BaseResp{
-		Code:    200,
+		Code:    0,
 		Message: "删除成功",
 	}, nil
 }

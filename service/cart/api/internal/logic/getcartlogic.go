@@ -107,6 +107,7 @@ func (l *GetCartLogic) GetCart() (resp *types.CartListResp, err error) {
 			ProductName:  product.Name,
 			ProductImage: productImage,
 			Price:        float64(product.Amount) / 100,
+			Stock:        int(product.Stock),
 		})
 	}
 

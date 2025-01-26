@@ -5,7 +5,7 @@
     <block wx:if="{{isLogin}}">
       <image class="avatar" src="{{userInfo.avatar || '/assets/images/default-avatar.png'}}" mode="aspectFill"></image>
       <view class="info">
-        <text class="nickname">{{userInfo.nickname}}</text>
+        <text class="nickname">{{userInfo.name}}</text>
         <text class="mobile">{{userInfo.mobile}}</text>
       </view>
     </block>

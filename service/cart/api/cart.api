@@ -1,0 +1,74 @@
+syntax = "v1"
+
+info (
+	title: "购物车服务"
+	desc: "购物车相关接口"
+	author: "team"
+	version: "v1"
+)
+
+type (
+	// 购物车项
+	CartItem {
+		Id        int64 `json:"id"`
+		ProductId int64 `json:"productId"`
+		Quantity  int   `json:"quantity"`
+		Selected  bool  `json:"selected"`
+		// 冗余信息
+		ProductName  string  `json:"productName"`
+		ProductImage string  `json:"productImage"`
+		Price        float64 `json:"price"`
+	}
+
+	// 添加购物车请求
+	AddCartReq {
+		ProductId int64 `json:"productId"`
+		Quantity  int   `json:"quantity,optional"`
+	}
+
+	// 更新购物车数量请求
+	UpdateQuantityReq {
+		Id       int64 `json:"id"`
+		Quantity int   `json:"quantity"`
+	}
+
+	// 更新选中状态请求
+	UpdateSelectedReq {
+		Id       int64 `json:"id"`
+		Selected bool  `json:"selected"`
+	}
+
+	// 购物车列表响应
+	CartListResp {
+		List []CartItem `json:"list"`
+	}
+
+	// 基础响应
+	BaseResp {
+		Code    int    `json:"code"`
+		Message string `json:"message"`
+	}
+)
+
+@server(
+	jwt: Auth
+)
+service Cart {
+	@handler AddCart
+	post /api/cart/add (AddCartReq) returns (BaseResp)
+	
+	@handler RemoveCart
+	delete /api/cart/:id returns (BaseResp)
+	
+	@handler UpdateQuantity
+	put /api/cart/quantity (UpdateQuantityReq) returns (BaseResp)
+	
+	@handler UpdateSelected
+	put /api/cart/selected (UpdateSelectedReq) returns (BaseResp)
+	
+	@handler GetCart
+	get /api/cart/list returns (CartListResp)
+	
+	@handler ClearCart
+	delete /api/cart/clear returns (BaseResp)
+}

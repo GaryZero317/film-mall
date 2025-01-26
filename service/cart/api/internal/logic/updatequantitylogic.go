@@ -1,0 +1,95 @@
+package logic
+
+import (
+	"context"
+	"encoding/json"
+	"mall/service/cart/api/internal/svc"
+	"mall/service/cart/api/internal/types"
+	"mall/service/cart/model"
+
+	"github.com/zeromicro/go-zero/core/logx"
+)
+
+type UpdateQuantityLogic struct {
+	logx.Logger
+	ctx    context.Context
+	svcCtx *svc.ServiceContext
+}
+
+func NewUpdateQuantityLogic(ctx context.Context, svcCtx *svc.ServiceContext) *UpdateQuantityLogic {
+	return &UpdateQuantityLogic{
+		Logger: logx.WithContext(ctx),
+		ctx:    ctx,
+		svcCtx: svcCtx,
+	}
+}
+
+func (l *UpdateQuantityLogic) UpdateQuantity(req *types.UpdateQuantityReq) (resp *types.BaseResp, err error) {
+	// 打印完整的context信息
+	l.Logger.Infof("DEBUG UpdateQuantity - Context values: %+v", l.ctx)
+
+	// 从context中获取uid，JWT中的数字类型为json.Number
+	uidValue := l.ctx.Value("uid")
+	l.Logger.Infof("DEBUG UpdateQuantity - Raw uid value type: %T", uidValue)
+
+	if uidValue == nil {
+		l.Logger.Errorf("DEBUG UpdateQuantity - uid not found in context")
+		return &types.BaseResp{
+			Code:    401,
+			Message: "请先登录",
+		}, nil
+	}
+
+	// 尝试将uid转换为int64
+	var userId int64
+	switch v := uidValue.(type) {
+	case float64:
+		userId = int64(v)
+	case json.Number:
+		userId, err = v.Int64()
+		if err != nil {
+			l.Logger.Errorf("DEBUG UpdateQuantity - Failed to convert uid to int64: %v", err)
+			return &types.BaseResp{
+				Code:    401,
+				Message: "请先登录",
+			}, nil
+		}
+	default:
+		l.Logger.Errorf("DEBUG UpdateQuantity - Unexpected uid type: %T", v)
+		return &types.BaseResp{
+			Code:    401,
+			Message: "请先登录",
+		}, nil
+	}
+
+	l.Logger.Infof("DEBUG UpdateQuantity - Converted userId to int64: %d", userId)
+
+	var cart model.Cart
+	result := l.svcCtx.DB.Where("id = ? AND user_id = ?", req.Id, userId).First(&cart)
+	if result.Error != nil {
+		return &types.BaseResp{
+			Code:    400,
+			Message: "购物车商品不存在",
+		}, nil
+	}
+
+	if req.Quantity <= 0 {
+		return &types.BaseResp{
+			Code:    400,
+			Message: "商品数量必须大于0",
+		}, nil
+	}
+
+	cart.Quantity = req.Quantity
+	if err := l.svcCtx.DB.Save(&cart).Error; err != nil {
+		return &types.BaseResp{
+			Code:    500,
+			Message: "更新失败",
+		}, nil
+	}
+
+	return &types.BaseResp{
+		Code:    200,
+		Message: "更新成功",
+	}, nil
+}

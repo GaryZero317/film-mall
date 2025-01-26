@@ -35,12 +35,28 @@ func (l *DetailLogic) Detail(in *product.DetailRequest) (*product.DetailResponse
 		return nil, status.Error(500, err.Error())
 	}
 
+	// 查询商品图片
+	var productImages []model.ProductImage
+	if err := l.svcCtx.DB.Where("product_id = ?", in.Id).Order("is_main DESC, sort_order ASC").Find(&productImages).Error; err != nil {
+		l.Logger.Errorf("查询商品图片失败: %v", err)
+		return nil, status.Error(500, err.Error())
+	}
+
+	// 提取图片URL列表
+	var imageUrls []string
+	for _, img := range productImages {
+		imageUrls = append(imageUrls, img.ImageUrl)
+	}
+
+	l.Logger.Infof("商品 %d 的图片URLs: %v", in.Id, imageUrls)
+
 	return &product.DetailResponse{
-		Id:     res.Id,
-		Name:   res.Name,
-		Desc:   res.Desc,
-		Stock:  res.Stock,
-		Amount: res.Amount,
-		Status: res.Status,
+		Id:        res.Id,
+		Name:      res.Name,
+		Desc:      res.Desc,
+		Stock:     res.Stock,
+		Amount:    res.Amount,
+		Status:    res.Status,
+		ImageUrls: imageUrls,
 	}, nil
 }

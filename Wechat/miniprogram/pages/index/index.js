@@ -91,18 +91,18 @@ Page({
                 console.log('最终图片URL:', imageUrl)
                 return {
                   ...product,
-                  mainImage: imageUrl || 'http://localhost:8001/uploads/placeholder.png'
+                  mainImage: imageUrl || '/assets/images/default.png'
                 }
               }
               return {
                 ...product,
-                mainImage: 'http://localhost:8001/uploads/placeholder.png'
+                mainImage: '/assets/images/default.png'
               }
             } catch (error) {
               console.error('获取商品图片失败:', error)
               return {
                 ...product,
-                mainImage: 'http://localhost:8001/uploads/placeholder.png'
+                mainImage: '/assets/images/default.png'
               }
             }
           })

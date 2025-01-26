@@ -128,7 +128,7 @@ export function getProductImages(productId) {
     url: 'http://localhost:8001/api/product/images/list',
     method: 'POST',
     data: {
-      productId
+      productId: Number(productId)
     },
     noAuth: true  // 标记该请求不需要认证
   })

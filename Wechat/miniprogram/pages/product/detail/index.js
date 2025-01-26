@@ -10,7 +10,8 @@ Page({
     quantity: 1,
     currentImageIndex: 0,
     imageList: [], // 用于存储所有图片URL
-    mainImage: ''
+    mainImage: '',
+    formattedAmount: '0.00' // 添加格式化后的金额
   },
 
   onLoad(options) {
@@ -25,20 +26,30 @@ Page({
     try {
       this.setData({ loading: true })
       const res = await getProductDetail(id)
-      this.setData({ 
-        product: res,
-        loading: false
-      })
-      // 设置页面标题
-      wx.setNavigationBarTitle({
-        title: this.data.product.name
-      })
-      // 加载商品图片
-      await this.loadProductImages(id)
+      console.log('商品详情响应:', res)
+      
+      if (res && res.code === 0 && res.data) {
+        // 格式化金额
+        const formattedAmount = res.data.amount ? (res.data.amount / 100).toFixed(2) : '0.00'
+        
+        this.setData({ 
+          product: res.data,
+          formattedAmount,
+          loading: false
+        })
+        // 设置页面标题
+        wx.setNavigationBarTitle({
+          title: res.data.name || '商品详情'
+        })
+        // 加载商品图片
+        await this.loadProductImages(id)
+      } else {
+        throw new Error(res?.msg || '获取商品详情失败')
+      }
     } catch (error) {
       console.error('加载商品详情失败:', error)
       wx.showToast({
-        title: '加载商品详情失败',
+        title: error.message || '加载商品详情失败',
         icon: 'none'
       })
       this.setData({ loading: false })
@@ -53,7 +64,7 @@ Page({
         const mainImage = res.data.find(img => img.isMain)
         const imageList = res.data.map(img => `http://localhost:8001${img.imageUrl}`)
         
-        this.setData({ 
+        this.setData({
           images: res.data,
           imageList: imageList,
           mainImage: mainImage ? `http://localhost:8001${mainImage.imageUrl}` : (imageList[0] || 'http://localhost:8001/uploads/placeholder.png')

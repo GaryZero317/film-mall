@@ -32,7 +32,7 @@
       <!-- 无图片时显示占位图 -->
       <swiper-item wx:if="{{!mainImage && (!imageList || imageList.length === 0)}}">
         <image 
-          src="../../../static/images/placeholder.png" 
+          src="/assets/images/default.png" 
           mode="aspectFill"
           class="swiper-image"
         />
@@ -46,24 +46,24 @@
 
     <!-- 商品信息 -->
     <view class="product-info">
-      <view class="name">{{product.name}}</view>
-      <view class="price">¥{{product.amount/100}}</view>
-      <view class="stock">库存：{{product.stock}}</view>
+      <view class="name">{{product.name || '暂无名称'}}</view>
+      <view class="price">¥{{formattedAmount}}</view>
+      <view class="stock">库存：{{product.stock || 0}}</view>
       
       <!-- 商品数量 -->
       <view class="quantity-section">
         <text>数量</text>
         <view class="quantity-control">
-          <button class="minus" bindtap="onQuantityMinus">-</button>
+          <button class="minus {{quantity <= 1 ? 'disabled' : ''}}" bindtap="onQuantityMinus">-</button>
           <text class="number">{{quantity}}</text>
-          <button class="plus" bindtap="onQuantityPlus">+</button>
+          <button class="plus {{quantity >= (product.stock || 0) ? 'disabled' : ''}}" bindtap="onQuantityPlus">+</button>
         </view>
       </view>
 
       <!-- 商品描述 -->
       <view class="description">
         <text class="title">商品描述</text>
-        <text class="content">{{product.desc}}</text>
+        <text class="content">{{product.desc || '暂无描述'}}</text>
       </view>
     </view>
 

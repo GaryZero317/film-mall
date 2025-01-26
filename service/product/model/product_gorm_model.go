@@ -20,6 +20,7 @@ type ProductGorm struct {
 	Stock      int64          `gorm:"column:stock;not null;default:0" json:"stock"`
 	Amount     int64          `gorm:"column:amount;not null;default:0" json:"amount"`
 	Status     int64          `gorm:"column:status;not null;default:0" json:"status"`
+	MainImage  string         `gorm:"column:main_image;not null;default:''" json:"mainImage"`
 	CreateTime time.Time      `gorm:"column:create_time;autoCreateTime" json:"createTime"`
 	UpdateTime time.Time      `gorm:"column:update_time;autoUpdateTime" json:"updateTime"`
 	Images     []ProductImage `gorm:"foreignKey:ProductId" json:"images,omitempty"`
@@ -104,6 +105,25 @@ func (m *GormProductModel) DecrStock(ctx context.Context, id int64) error {
 	}
 
 	return nil
+}
+
+func (m *GormProductModel) Search(ctx context.Context, keyword string, page, pageSize int64) ([]*Product, int64, error) {
+	var total int64
+	var products []*Product
+
+	query := m.db.WithContext(ctx).Model(&Product{}).
+		Where("name LIKE ? OR desc LIKE ?", "%"+keyword+"%", "%"+keyword+"%")
+
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	offset := (page - 1) * pageSize
+	if err := query.Offset(int(offset)).Limit(int(pageSize)).Find(&products).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return products, total, nil
 }
 
 type lastInsertIDResult struct {

@@ -100,3 +100,22 @@ func (m *defaultGormProductModel) DecrStock(ctx context.Context, id int64) error
 
 	return nil
 }
+
+func (m *defaultGormProductModel) Search(ctx context.Context, keyword string, page, pageSize int64) ([]*Product, int64, error) {
+	var total int64
+	var products []*Product
+
+	query := m.db.WithContext(ctx).Model(&Product{}).
+		Where("name LIKE ? OR `desc` LIKE ?", "%"+keyword+"%", "%"+keyword+"%")
+
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	offset := (page - 1) * pageSize
+	if err := query.Offset(int(offset)).Limit(int(pageSize)).Find(&products).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return products, total, nil
+}

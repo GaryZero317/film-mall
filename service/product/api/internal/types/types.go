@@ -159,3 +159,15 @@ type GetProductImagesResponse struct {
 	Msg  string             `json:"msg"`
 	Data []ProductImageInfo `json:"data"`
 }
+
+type SearchRequest struct {
+	Keyword  string `form:"keyword"`
+	Page     int64  `form:"page,optional"`
+	PageSize int64  `form:"pageSize,optional"`
+}
+
+type SearchResponse struct {
+	Code int64            `json:"code"`
+	Msg  string           `json:"msg"`
+	Data *ProductListData `json:"data"`
+}

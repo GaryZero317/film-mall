@@ -27,6 +27,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Path:    "/api/product/detail",
 				Handler: DetailHandler(serverCtx),
 			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/api/product/search",
+				Handler: SearchHandler(serverCtx),
+			},
 		},
 	)
 

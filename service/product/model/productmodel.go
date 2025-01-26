@@ -15,6 +15,7 @@ type ProductModel interface {
 	Delete(ctx context.Context, id int64) error
 	FindPageListByPage(ctx context.Context, page, pageSize int64) ([]*Product, int64, error)
 	DecrStock(ctx context.Context, id int64) error
+	Search(ctx context.Context, keyword string, page, pageSize int64) ([]*Product, int64, error)
 }
 
 type customProductModel struct {
@@ -45,4 +46,9 @@ func (m *customProductModel) FindPageListByPage(ctx context.Context, page, pageS
 // DecrStock 减少库存
 func (m *customProductModel) DecrStock(ctx context.Context, id int64) error {
 	return m.defaultGormProductModel.DecrStock(ctx, id)
+}
+
+// Search 搜索商品
+func (m *customProductModel) Search(ctx context.Context, keyword string, page, pageSize int64) ([]*Product, int64, error) {
+	return m.defaultGormProductModel.Search(ctx, keyword, page, pageSize)
 }

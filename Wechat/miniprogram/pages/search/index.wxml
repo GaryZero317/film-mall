@@ -1,0 +1,84 @@
+<view class="container">
+  <!-- 搜索栏 -->
+  <view class="search-header">
+    <view class="search-bar">
+      <icon type="search" size="14"></icon>
+      <input 
+        type="text" 
+        placeholder="输入关键词搜索" 
+        value="{{keyword}}"
+        focus="{{true}}"
+        bindinput="onInput"
+        bindconfirm="onSearch"
+      />
+      <icon type="clear" size="14" bindtap="onClear" wx:if="{{keyword}}"></icon>
+    </view>
+    <view class="cancel" bindtap="onCancel">取消</view>
+  </view>
+
+  <!-- 搜索历史 -->
+  <view class="history" wx:if="{{!keyword && history.length > 0}}">
+    <view class="header">
+      <text>搜索历史</text>
+      <icon type="clear" size="16" bindtap="clearHistory"></icon>
+    </view>
+    <view class="tags">
+      <text 
+        class="tag" 
+        wx:for="{{history}}" 
+        wx:key="*this" 
+        bindtap="onTagTap" 
+        data-keyword="{{item}}"
+      >{{item}}</text>
+    </view>
+  </view>
+
+  <!-- 搜索结果 -->
+  <view class="product-list" wx:if="{{products.length > 0}}">
+    <view class="product-item" wx:for="{{products}}" wx:key="id" bindtap="goToDetail" data-id="{{item.id}}">
+      <image 
+        class="product-image" 
+        src="{{item.mainImage}}" 
+        mode="aspectFill"
+        lazy-load
+      />
+      <view class="product-info">
+        <text class="product-name">{{item.name}}</text>
+        <text class="product-price">¥{{item.amount/100}}</text>
+        <text class="product-stock">库存: {{item.stock}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-container" wx:if="{{!loading && products.length === 0}}">
+    <block wx:if="{{!keyword}}">
+      <!-- 热门品牌 -->
+      <view class="hot-section">
+        <view class="header">
+          <text>热门品牌</text>
+        </view>
+        <view class="tags">
+          <view class="tag" wx:for="{{brands}}" wx:key="*this" bindtap="onTagTap" data-keyword="{{item}}">{{item}}</view>
+        </view>
+      </view>
+      <!-- 热门型号 -->
+      <view class="hot-section">
+        <view class="header">
+          <text>热门型号</text>
+        </view>
+        <view class="tags">
+          <view class="tag" wx:for="{{models}}" wx:key="*this" bindtap="onTagTap" data-keyword="{{item}}">{{item}}</view>
+        </view>
+      </view>
+    </block>
+    <block wx:else>
+      <text>暂无商品</text>
+    </block>
+  </view>
+
+  <!-- 加载中 -->
+  <view class="loading" wx:if="{{loading}}">
+    <text>搜索中...</text>
+  </view>
+</view> 

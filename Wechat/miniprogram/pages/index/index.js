@@ -197,5 +197,12 @@ Page({
         url: `/pages/product/detail/index?id=${item.productId}`
       })
     }
+  },
+
+  // 跳转到搜索页面
+  goToSearch() {
+    wx.navigateTo({
+      url: '/pages/search/index'
+    })
   }
 }) 

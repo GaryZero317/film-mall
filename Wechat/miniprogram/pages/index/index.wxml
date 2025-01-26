@@ -1,16 +1,4 @@
 <view class="container">
-  <!-- 搜索栏 -->
-  <view class="search-bar">
-    <input 
-      type="text" 
-      placeholder="搜索商品" 
-      value="{{searchValue}}"
-      bindinput="onSearchInput"
-      bindconfirm="onSearch"
-    />
-    <button bindtap="onSearch">搜索</button>
-  </view>
-
   <!-- Banner轮播图 -->
   <swiper 
     class="banner" 
@@ -26,6 +14,14 @@
       <image src="{{item.imageUrl}}" mode="aspectFill" class="banner-image" />
     </swiper-item>
   </swiper>
+
+  <!-- 搜索栏 -->
+  <view class="search-container">
+    <view class="search-bar" bindtap="goToSearch">
+      <icon type="search" size="14"></icon>
+      <view class="search-placeholder">输入关键词搜索</view>
+    </view>
+  </view>
 
   <!-- 分类导航 -->
   <view class="category-section">
@@ -49,9 +45,9 @@
           bindtap="switchCategory"
         >
           {{item.name}}
-        </view>
-      </view>
     </view>
+    </view>
+  </view>
   </view>
 
   <!-- 商品列表 -->

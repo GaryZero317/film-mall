@@ -105,11 +105,16 @@ export const getBanners = () => {
 }
 
 // 搜索商品
-export const searchProducts = (keyword) => {
+export const searchProducts = (params = {}) => {
   return request({
     url: 'http://localhost:8001/api/product/search',
-    method: 'POST',
-    data: { keyword }
+    method: 'GET',
+    data: {
+      keyword: params.keyword,
+      page: params.page || 1,
+      pageSize: params.pageSize || 10
+    },
+    noAuth: true
   })
 }
 

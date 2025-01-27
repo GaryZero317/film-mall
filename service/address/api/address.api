@@ -1,0 +1,82 @@
+syntax = "v1"
+
+info (
+	title: "地址服务"
+	desc: "地址管理相关接口"
+	author: "FilmMall"
+	version: "v1"
+)
+
+type (
+	Address {
+		Id         int64  `json:"id"`
+		UserId     int64  `json:"userId"`
+		Name       string `json:"name"`       // 收货人姓名
+		Phone      string `json:"phone"`      // 联系电话
+		Province   string `json:"province"`   // 省份
+		City       string `json:"city"`       // 城市
+		District   string `json:"district"`   // 区/县
+		DetailAddr string `json:"detailAddr"` // 详细地址
+		IsDefault  bool   `json:"isDefault"`  // 是否为默认地址
+		CreateTime int64  `json:"createTime"`
+		UpdateTime int64  `json:"updateTime"`
+	}
+
+	AddAddressReq {
+		Name       string `json:"name"`
+		Phone      string `json:"phone"`
+		Province   string `json:"province"`
+		City       string `json:"city"`
+		District   string `json:"district"`
+		DetailAddr string `json:"detailAddr"`
+		IsDefault  bool   `json:"isDefault"`
+	}
+
+	AddAddressResp {
+		Id int64 `json:"id"`
+	}
+
+	UpdateAddressReq {
+		Id         int64  `json:"id"`
+		Name       string `json:"name,optional"`
+		Phone      string `json:"phone,optional"`
+		Province   string `json:"province,optional"`
+		City       string `json:"city,optional"`
+		District   string `json:"district,optional"`
+		DetailAddr string `json:"detailAddr,optional"`
+		IsDefault  bool   `json:"isDefault,optional"`
+	}
+
+	DeleteAddressReq {
+		Id int64 `json:"id"`
+	}
+
+	GetAddressListResp {
+		List []Address `json:"list"`
+	}
+
+	SetDefaultAddressReq {
+		Id int64 `json:"id"`
+	}
+)
+
+@server(
+	jwt: Auth
+	group: address
+)
+service address-api {
+	@handler AddAddress
+	post /api/address/add (AddAddressReq) returns (AddAddressResp)
+	
+	@handler UpdateAddress
+	put /api/address/update (UpdateAddressReq) returns ()
+	
+	@handler DeleteAddress
+	delete /api/address/delete (DeleteAddressReq) returns ()
+	
+	@handler GetAddressList
+	get /api/address/list returns (GetAddressListResp)
+	
+	@handler SetDefaultAddress
+	put /api/address/setDefault (SetDefaultAddressReq) returns ()
+}

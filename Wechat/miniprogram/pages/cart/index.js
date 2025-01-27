@@ -219,12 +219,13 @@ Page(loginGuard({
       const quantity = parseInt(item.quantity || 1)
       const checkoutItem = {
         product_id: item.id,
-        name: item.name,
+        name: item.productName || item.name || '未知商品',  // 优先使用productName
+        productName: item.productName || item.name || '未知商品',  // 同时保存两个字段
         price: price,
         quantity: quantity,
-        cover_image: item.productImage || '/assets/images/default.png'
+        cover_image: item.productImage || item.cover_image || '/assets/images/default.png'
       }
-      console.log(`[购物车] 结算 - 处理商品 ${item.name}:`, {
+      console.log(`[购物车] 结算 - 处理商品 ${checkoutItem.name}:`, {
         原始数据: item,
         处理后数据: checkoutItem
       })

@@ -5,7 +5,7 @@ module.exports = {
   // 获取地址列表
   getAddressList() {
     return request({
-      url: `${app.globalData.baseUrl.address}/api/address/list`,
+      url: '/api/address/list',
       method: 'GET'
     })
   },
@@ -13,7 +13,7 @@ module.exports = {
   // 新增地址
   createAddress(data) {
     return request({
-      url: `${app.globalData.baseUrl.address}/api/address/add`,
+      url: '/api/address/add',
       method: 'POST',
       data
     })
@@ -22,7 +22,7 @@ module.exports = {
   // 更新地址
   updateAddress(id, data) {
     return request({
-      url: `${app.globalData.baseUrl.address}/api/address/update`,
+      url: '/api/address/update',
       method: 'POST',
       data: {
         id,
@@ -34,7 +34,7 @@ module.exports = {
   // 删除地址
   deleteAddress(id) {
     return request({
-      url: `${app.globalData.baseUrl.address}/api/address/delete`,
+      url: '/api/address/delete',
       method: 'POST',
       data: {
         id
@@ -45,7 +45,7 @@ module.exports = {
   // 设置默认地址
   setDefaultAddress(id) {
     return request({
-      url: `${app.globalData.baseUrl.address}/api/address/setDefault`,
+      url: '/api/address/setDefault',
       method: 'POST',
       data: {
         id

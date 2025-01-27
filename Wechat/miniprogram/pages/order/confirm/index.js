@@ -20,9 +20,8 @@ Page(loginGuard({
     // 从购物车结算进入
     const { from } = options
     if (from === 'cart') {
-      const cartItems = wx.getStorageSync('selectedCartItems') || []
-      console.log('[订单确认] 从购物车进入, 商品数据:', cartItems)
-      this.setOrderItems(cartItems)
+      console.log('[订单确认] 从购物车进入')
+      this.loadCartProductsAndSetOrderItems()
     } 
     // 从商品详情页直接购买进入
     else {
@@ -145,6 +144,48 @@ Page(loginGuard({
     }
   },
 
+  // 加载购物车商品详情并设置订单商品
+  async loadCartProductsAndSetOrderItems() {
+    console.log('[订单确认] 开始加载购物车商品')
+    try {
+      const cartProducts = wx.getStorageSync('selectedCartItems') || []
+      console.log('[订单确认] 购物车商品列表:', cartProducts)
+      
+      if (!cartProducts.length) {
+        wx.showToast({
+          title: '请先选择商品',
+          icon: 'none'
+        })
+        setTimeout(() => {
+          wx.navigateBack()
+        }, 1500)
+        return
+      }
+
+      // 获取每个商品的详细信息
+      const orderItemsPromises = cartProducts.map(item => this.getProductDetail(item))
+      const orderItems = await Promise.all(orderItemsPromises)
+      
+      console.log('[订单确认] 订单商品列表:', orderItems)
+      
+      // 计算总价
+      const totalPrice = orderItems.reduce((total, item) => {
+        return total + (item.price * item.quantity)
+      }, 0)
+      
+      this.setData({
+        orderItems,
+        totalPrice: totalPrice.toFixed(2)
+      })
+    } catch (error) {
+      console.error('[订单确认] 加载商品失败:', error)
+      wx.showToast({
+        title: '加载商品失败',
+        icon: 'none'
+      })
+    }
+  },
+
   // 加载收货地址
   async loadAddress() {
     console.log('[订单确认] 开始加载地址列表')
@@ -179,8 +220,19 @@ Page(loginGuard({
     }
 
     const orderItems = items.map(item => {
-      const price = parseFloat(item.price || 0)
+      // 确保价格是有效数字，如果是字符串则转换为数字
+      const price = typeof item.price === 'string' ? parseFloat(item.price) : item.price
       const quantity = parseInt(item.quantity || 1)
+      
+      if (isNaN(price) || price <= 0) {
+        console.error('[订单确认] 商品价格无效:', item)
+        wx.showToast({
+          title: '商品价格数据无效',
+          icon: 'none'
+        })
+        return null
+      }
+
       const processedItem = {
         id: item.id,  // 原始ID
         product_id: parseInt(item.product_id || item.id),  // 确保product_id是数字类型
@@ -193,10 +245,21 @@ Page(loginGuard({
         原始数据: item,
         处理后数据: processedItem,
         product_id类型: typeof processedItem.product_id,
-        product_id值: processedItem.product_id
+        product_id值: processedItem.product_id,
+        价格类型: typeof processedItem.price,
+        价格值: processedItem.price
       })
       return processedItem
-    })
+    }).filter(item => item !== null)  // 过滤掉无效的商品
+
+    if (orderItems.length === 0) {
+      console.error('[订单确认] 没有有效的商品数据')
+      wx.showToast({
+        title: '商品数据无效',
+        icon: 'none'
+      })
+      return
+    }
 
     const totalPrice = orderItems.reduce((sum, item) => {
       const itemTotal = item.price * item.quantity
@@ -223,9 +286,9 @@ Page(loginGuard({
     console.log('[订单确认] 订单数据汇总:', {
       商品列表: orderItems,
       商品总价: totalPrice,
-       运费: shippingFee,
-       订单总价: finalTotalPrice,
-       总数量: totalCount
+      运费: shippingFee,
+      订单总价: finalTotalPrice,
+      总数量: totalCount
     })
 
     this.setData({
@@ -345,6 +408,70 @@ Page(loginGuard({
       })
     } finally {
       this.setData({ loading: false })
+    }
+  },
+
+  async getProductDetail(cartItem) {
+    console.log('[订单确认] 开始获取商品详情:', cartItem)
+    try {
+      // 使用product_id而不是productId
+      const productId = cartItem.product_id || cartItem.productId
+      if (!productId) {
+        console.error('[订单确认] 商品ID无效:', cartItem)
+        throw new Error('无效的商品ID')
+      }
+
+      const res = await getProductDetail(productId)
+      console.log('[订单确认] 商品详情获取结果:', res)
+      
+      // 如果商品存在且有数据，使用API返回的数据
+      if (res && res.code === 0 && res.data) {
+        return {
+          id: res.data.id,
+          product_id: productId,
+          name: res.data.name || res.data.productName || cartItem.name || cartItem.productName || '未知商品',
+          price: res.data.price || cartItem.price,
+          quantity: cartItem.quantity,
+          cover_image: res.data.mainImage || res.data.coverImage || cartItem.cover_image || '/assets/images/default.png'
+        }
+      }
+      
+      // 如果商品不存在，使用购物车数据
+      if (res && res.notFound) {
+        console.log('[订单确认] 商品不存在，使用购物车数据:', cartItem)
+        return {
+          id: cartItem.id || productId,
+          product_id: productId,
+          name: cartItem.name || cartItem.productName || '未知商品',
+          price: cartItem.price,
+          quantity: cartItem.quantity,
+          cover_image: cartItem.cover_image || cartItem.mainImage || '/assets/images/default.png'
+        }
+      }
+
+      // 其他错误情况
+      throw new Error(res.msg || '获取商品详情失败')
+    } catch (error) {
+      console.error(`[订单确认] 商品 ${cartItem.product_id || cartItem.productId} 详情获取出错:`, error)
+      
+      // 如果是网络错误或其他错误，尝试使用购物车数据
+      if (cartItem.price && cartItem.quantity) {
+        console.log('[订单确认] 使用购物车数据作为回退:', cartItem)
+        return {
+          id: cartItem.id || productId,
+          product_id: cartItem.product_id || cartItem.productId,
+          name: cartItem.name || cartItem.productName || '未知商品',
+          price: cartItem.price,
+          quantity: cartItem.quantity,
+          cover_image: cartItem.cover_image || cartItem.mainImage || '/assets/images/default.png'
+        }
+      }
+
+      wx.showToast({
+        title: `商品信息获取失败`,
+        icon: 'none'
+      })
+      throw error
     }
   }
 }))

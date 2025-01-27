@@ -10,7 +10,12 @@ const request = (options) => {
   let baseUrl = 'http://localhost:8001' // 默认baseUrl
   
   try {
-    if (url.startsWith('/api/cart')) {
+    // 如果url已经包含完整域名，不使用baseUrl
+    if (url.indexOf('localhost:') !== -1) {
+      baseUrl = ''
+    }
+    // 根据API路径选择不同的服务地址
+    else if (url.startsWith('/api/cart')) {
       baseUrl = 'http://localhost:8004'
     } else if (url.startsWith('/api/address')) {
       baseUrl = 'http://localhost:8005'
@@ -29,7 +34,7 @@ const request = (options) => {
   const token = noAuth ? '' : wx.getStorageSync('token')
   
   return new Promise((resolve, reject) => {
-    const fullUrl = url.startsWith('http') ? url : `${baseUrl}${url}`
+    const fullUrl = baseUrl ? `${baseUrl}${url}` : url
     console.log('完整请求URL:', fullUrl)
 
     console.log('发起请求:', {
@@ -38,7 +43,8 @@ const request = (options) => {
       fullUrl,
       method,
       data,
-      noAuth
+      noAuth,
+      headers: options.header
     })
 
     const headers = {
@@ -59,7 +65,7 @@ const request = (options) => {
         console.log('请求成功:', res)
         
         // 处理500错误中的业务错误信息
-        if (res.statusCode === 500 && typeof res.data === 'string' && res.data.includes('code = Code')) {
+        if (res.statusCode === 500 && typeof res.data === 'string' && res.data.indexOf('code = Code') !== -1) {
           const errorMsg = res.data.split('desc = ')[1] || '请求失败'
           console.error('业务错误:', errorMsg)
           reject(new Error(errorMsg))
@@ -77,7 +83,7 @@ const request = (options) => {
               console.error('业务错误:', errorMsg)
               reject(new Error(errorMsg))
             }
-          } else if (typeof res.data === 'string' && res.data.includes('field')) {
+          } else if (typeof res.data === 'string' && res.data.indexOf('field') !== -1) {
             // 处理验证错误
             console.error('验证错误:', res.data)
             reject(new Error(res.data))
@@ -105,6 +111,24 @@ const request = (options) => {
             }
           })
           reject(new Error('未登录或登录已过期'))
+        } else if (res.statusCode === 400) {
+          // 处理400错误，通常是请求参数错误或资源不存在
+          let errorMsg = '请求参数错误'
+          if (res.data) {
+            if (typeof res.data === 'string' && res.data.indexOf('no rows') !== -1) {
+              // 对于"no rows in result set"错误，返回特定的响应格式
+              resolve({
+                code: 404,
+                msg: '商品不存在',
+                data: null,
+                notFound: true
+              })
+              return
+            }
+            errorMsg = typeof res.data === 'string' ? res.data : (res.data.msg || '请求参数错误')
+          }
+          console.error('请求错误:', errorMsg, res)
+          reject(new Error(errorMsg))
         } else {
           let errorMsg = '请求失败'
           if (res.data) {

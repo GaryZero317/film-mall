@@ -58,6 +58,16 @@ type (
 	SetDefaultAddressReq {
 		Id int64 `json:"id"`
 	}
+
+	UpdateAddressResp {
+		Code    int64  `json:"code"`
+		Message string `json:"message"`
+	}
+
+	SetDefaultAddressResp {
+		Code    int64  `json:"code"`
+		Message string `json:"message"`
+	}
 )
 
 @server(
@@ -69,14 +79,14 @@ service address-api {
 	post /api/address/add (AddAddressReq) returns (AddAddressResp)
 	
 	@handler UpdateAddress
-	put /api/address/update (UpdateAddressReq) returns ()
+	post /api/address/update (UpdateAddressReq) returns (UpdateAddressResp)
 	
 	@handler DeleteAddress
-	delete /api/address/delete (DeleteAddressReq) returns ()
+	post /api/address/delete (DeleteAddressReq)
 	
 	@handler GetAddressList
 	get /api/address/list returns (GetAddressListResp)
 	
 	@handler SetDefaultAddress
-	put /api/address/setDefault (SetDefaultAddressReq) returns ()
+	post /api/address/setDefault (SetDefaultAddressReq) returns (SetDefaultAddressResp)
 }

@@ -19,12 +19,12 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Handler: address.AddAddressHandler(serverCtx),
 			},
 			{
-				Method:  http.MethodPut,
+				Method:  http.MethodPost,
 				Path:    "/api/address/update",
 				Handler: address.UpdateAddressHandler(serverCtx),
 			},
 			{
-				Method:  http.MethodDelete,
+				Method:  http.MethodPost,
 				Path:    "/api/address/delete",
 				Handler: address.DeleteAddressHandler(serverCtx),
 			},
@@ -34,7 +34,7 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Handler: address.GetAddressListHandler(serverCtx),
 			},
 			{
-				Method:  http.MethodPut,
+				Method:  http.MethodPost,
 				Path:    "/api/address/setDefault",
 				Handler: address.SetDefaultAddressHandler(serverCtx),
 			},

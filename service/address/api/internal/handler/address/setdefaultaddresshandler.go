@@ -3,26 +3,27 @@ package address
 import (
 	"net/http"
 
-	"github.com/zeromicro/go-zero/rest/httpx"
 	"mall/service/address/api/internal/logic/address"
 	"mall/service/address/api/internal/svc"
 	"mall/service/address/api/internal/types"
+
+	"github.com/zeromicro/go-zero/rest/httpx"
 )
 
 func SetDefaultAddressHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req types.SetDefaultAddressReq
 		if err := httpx.Parse(r, &req); err != nil {
-			httpx.Error(w, err)
+			httpx.ErrorCtx(r.Context(), w, err)
 			return
 		}
 
 		l := address.NewSetDefaultAddressLogic(r.Context(), svcCtx)
-		err := l.SetDefaultAddress(&req)
+		resp, err := l.SetDefaultAddress(&req)
 		if err != nil {
-			httpx.Error(w, err)
+			httpx.ErrorCtx(r.Context(), w, err)
 		} else {
-			httpx.Ok(w)
+			httpx.OkJsonCtx(r.Context(), w, resp)
 		}
 	}
 }

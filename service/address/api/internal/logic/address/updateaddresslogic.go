@@ -27,10 +27,10 @@ func NewUpdateAddressLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Upd
 	}
 }
 
-func (l *UpdateAddressLogic) UpdateAddress(req *types.UpdateAddressReq) error {
+func (l *UpdateAddressLogic) UpdateAddress(req *types.UpdateAddressReq) (*types.UpdateAddressResp, error) {
 	uidAny := l.ctx.Value("uid")
 	if uidAny == nil {
-		return errors.New("未登录")
+		return nil, errors.New("未登录")
 	}
 
 	var userId int64
@@ -38,30 +38,30 @@ func (l *UpdateAddressLogic) UpdateAddress(req *types.UpdateAddressReq) error {
 	if jsonNumber, ok := uidAny.(json.Number); ok {
 		userId, err = jsonNumber.Int64()
 		if err != nil {
-			return err
+			return nil, err
 		}
 	} else {
-		return errors.New("无效的用户ID")
+		return nil, errors.New("无效的用户ID")
 	}
 
 	// 检查地址是否存在且属于当前用户
 	address, err := l.svcCtx.AddressModel.FindOne(l.ctx, req.Id)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil
+			return nil, errors.New("地址不存在")
 		}
-		return err
+		return nil, err
 	}
 
 	if address.UserId != userId {
-		return nil
+		return nil, errors.New("无权操作此地址")
 	}
 
 	// 如果设置为默认地址，需要将其他地址设置为非默认
 	if req.IsDefault {
 		err = l.svcCtx.AddressModel.UpdateDefaultByUserId(l.ctx, userId, false)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
@@ -88,8 +88,11 @@ func (l *UpdateAddressLogic) UpdateAddress(req *types.UpdateAddressReq) error {
 
 	err = l.svcCtx.AddressModel.Update(l.ctx, address)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return &types.UpdateAddressResp{
+		Code:    0,
+		Message: "更新成功",
+	}, nil
 }

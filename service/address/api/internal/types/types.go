@@ -51,3 +51,13 @@ type GetAddressListResp struct {
 type SetDefaultAddressReq struct {
 	Id int64 `json:"id"`
 }
+
+type UpdateAddressResp struct {
+	Code    int64  `json:"code"`
+	Message string `json:"message"`
+}
+
+type SetDefaultAddressResp struct {
+	Code    int64  `json:"code"`
+	Message string `json:"message"`
+}

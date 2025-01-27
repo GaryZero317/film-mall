@@ -172,13 +172,28 @@ Page(loginGuard({
   // 计算总价和选中数量
   calculateTotal() {
     const { cartItems } = this.data
+    console.log('[购物车] 计算总价 - 购物车商品列表:', cartItems)
+    
     const selectedItems = cartItems.filter(item => item.selected)
-    const totalPrice = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
+    console.log('[购物车] 计算总价 - 选中的商品:', selectedItems)
+    
+    const totalPrice = selectedItems.reduce((sum, item) => {
+      const itemTotal = item.price * item.quantity
+      console.log(`[购物车] 计算总价 - 商品 ${item.name}: ${itemTotal} = ${item.price} × ${item.quantity}`)
+      return sum + itemTotal
+    }, 0)
+    
     const selectedCount = selectedItems.length
     const allSelected = selectedCount === cartItems.length && cartItems.length > 0
     
-    this.setData({
+    console.log('[购物车] 计算总价结果:', {
       totalPrice,
+      selectedCount,
+      allSelected
+    })
+    
+    this.setData({
+      totalPrice: totalPrice.toFixed(2),
       selectedCount,
       allSelected
     })
@@ -187,7 +202,10 @@ Page(loginGuard({
   // 去结算
   onCheckout() {
     const selectedItems = this.data.cartItems.filter(item => item.selected)
+    console.log('[购物车] 结算 - 选中的商品原始数据:', selectedItems)
+    
     if (selectedItems.length === 0) {
+      console.warn('[购物车] 结算 - 未选择商品')
       wx.showToast({
         title: '请选择商品',
         icon: 'none'
@@ -195,15 +213,25 @@ Page(loginGuard({
       return
     }
     
-    // 保存选中的商品到本地存储
-    const checkoutItems = selectedItems.map(item => ({
-      product_id: item.productId,
-      name: item.productName,
-      price: parseFloat(item.price),
-      quantity: parseInt(item.quantity),
-      cover_image: item.productImage
-    }))
-    console.log('[购物车] 准备结算的商品:', checkoutItems)
+    // 保存选中的商品到本地存储，确保字段名称正确
+    const checkoutItems = selectedItems.map(item => {
+      const price = parseFloat(item.price || 0)
+      const quantity = parseInt(item.quantity || 1)
+      const checkoutItem = {
+        product_id: item.id,
+        name: item.name,
+        price: price,
+        quantity: quantity,
+        cover_image: item.productImage || '/assets/images/default.png'
+      }
+      console.log(`[购物车] 结算 - 处理商品 ${item.name}:`, {
+        原始数据: item,
+        处理后数据: checkoutItem
+      })
+      return checkoutItem
+    })
+    
+    console.log('[购物车] 结算 - 准备结算的商品:', checkoutItems)
     wx.setStorageSync('selectedCartItems', checkoutItems)
     
     wx.navigateTo({

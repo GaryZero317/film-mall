@@ -1,9 +1,12 @@
+import { categories } from '../../utils/categories'
+import { searchProducts } from '../../api/product'
+
 const app = getApp()
 
 Page({
   data: {
-    categories: [],
-    currentCategory: null,
+    categories: categories,
+    currentCategory: categories[0],
     products: [],
     loading: false,
     hasMore: true,
@@ -12,7 +15,7 @@ Page({
   },
 
   onLoad() {
-    this.loadCategories()
+    this.loadProducts()
   },
 
   // 加载分类列表
@@ -43,54 +46,40 @@ Page({
 
   // 切换分类
   onCategoryClick(e) {
-    const id = e.currentTarget.dataset.id
-    const currentCategory = this.data.categories.find(item => item.id === id)
-    
-    this.setData({
-      currentCategory,
-      products: [],
-      page: 1,
-      hasMore: true
+    const category = e.currentTarget.dataset.category
+    this.setData({ 
+      currentCategory: category,
+      products: []
     })
-    
     this.loadProducts()
   },
 
-  // 加载商品列表
+  // 加载商品
   async loadProducts() {
-    if (this.data.loading || !this.data.hasMore) return
-
-    this.setData({ loading: true })
+    const { currentCategory } = this.data
+    if (!currentCategory) return
 
     try {
-      const { page, pageSize, currentCategory } = this.data
-      const res = await wx.request({
-        url: `${app.globalData.baseUrl}/api/products`,
-        method: 'GET',
-        data: {
-          page,
-          page_size: pageSize,
-          category_id: currentCategory.id
-        }
-      })
-
-      if (res.statusCode === 200) {
-        const { data, total } = res.data
-        this.setData({
-          products: [...this.data.products, ...data],
-          page: page + 1,
-          hasMore: this.data.products.length + data.length < total
+      this.setData({ loading: true })
+      // 使用分类关键词搜索商品
+      const keywords = currentCategory.keywords.join('|')
+      const res = await searchProducts({ keywords })
+      console.log('分类商品搜索结果:', res)
+      
+      if (res.code === 0) {
+        this.setData({ 
+          products: res.data.list || []
         })
       } else {
         wx.showToast({
-          title: '加载失败',
+          title: res.msg || '加载商品失败',
           icon: 'none'
         })
       }
     } catch (error) {
-      console.error('加载商品列表失败:', error)
+      console.error('加载商品失败:', error)
       wx.showToast({
-        title: '加载失败',
+        title: '加载商品失败',
         icon: 'none'
       })
     } finally {
@@ -98,9 +87,9 @@ Page({
     }
   },
 
-  // 点击商品跳转到详情页
+  // 点击商品
   onProductClick(e) {
-    const id = e.currentTarget.dataset.id
+    const { id } = e.currentTarget.dataset
     wx.navigateTo({
       url: `/pages/product/detail/index?id=${id}`
     })

@@ -32,16 +32,13 @@
       </view>
     </view>
 
-    <!-- 底部支付按钮 -->
+    <!-- 底部操作栏 -->
     <view class="bottom-bar">
-      <view class="total-section">
-        <text>实付金额：</text>
-        <text class="total-price">¥{{order.total_price}}</text>
+      <view class="total-amount">
+        <text>实付款：</text>
+        <text class="amount">¥{{order.amount}}</text>
       </view>
-      <view class="button-group">
-        <button class="btn-cancel" bindtap="onCancel">取消</button>
-        <button class="btn-pay" bindtap="onPayment" loading="{{loading}}">立即支付</button>
-      </view>
+      <view class="action-btn primary" bindtap="onPayment">立即支付</view>
     </view>
   </block>
 </view> 

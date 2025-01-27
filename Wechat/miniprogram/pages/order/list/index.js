@@ -70,11 +70,7 @@ Page({
   // 加载订单列表
   async loadOrders() {
     if (this.data.loading) {
-      console.log('[订单列表] 正在加载中，跳过重复请求', {
-        currentTab: this.data.currentTab,
-        page: this.data.page,
-        hasMore: this.data.hasMore
-      })
+      console.log('[订单列表] 正在加载中，跳过重复请求')
       return
     }
 
@@ -82,8 +78,7 @@ Page({
       console.log('[订单列表] 开始加载订单', {
         currentTab: this.data.currentTab,
         page: this.data.page,
-        pageSize: this.data.pageSize,
-        hasMore: this.data.hasMore
+        pageSize: this.data.pageSize
       })
       
       this.setData({ loading: true })
@@ -91,7 +86,6 @@ Page({
       // 获取用户信息
       const userInfo = wx.getStorageSync('userInfo')
       if (!userInfo || !userInfo.id) {
-        console.error('[订单列表] 用户未登录')
         throw new Error('请先登录')
       }
 
@@ -99,12 +93,11 @@ Page({
       const params = {
         uid: parseInt(userInfo.id),
         page: this.data.page,
-        pageSize: this.data.pageSize
+        pageSize: 10  // 固定每页显示10条
       }
 
       // 根据当前标签添加状态过滤
       if (this.data.currentTab > 0) {
-        // 将界面状态映射到后端状态
         const statusMap = {
           1: 0, // 待付款
           2: 1, // 待发货
@@ -118,14 +111,13 @@ Page({
       const res = await getOrderList(params)
       console.log('[订单列表] 响应数据:', res)
 
-      if (!res || res.code !== 0 || !res.data) {
-        console.error('[订单列表] 响应数据异常:', res)
+      if (!res || res.code !== 0) {
         throw new Error(res?.msg || '加载订单失败')
       }
 
       // 处理订单数据
       const orders = Array.isArray(res.data) ? res.data : []
-      console.log('[订单列表] 原始订单数据:', orders)
+      console.log('[订单列表] 获取到订单数量:', orders.length)
 
       // 获取所有订单中的商品详情
       const processOrders = orders.map(async (order) => {
@@ -212,35 +204,41 @@ Page({
       console.log('[订单列表] 处理后的订单数据:', processedOrders)
 
       // 更新订单列表和分页状态
-      const newOrders = this.data.page === 1 ? processedOrders : [...this.data.orders, ...processedOrders]
-      const hasMore = processedOrders.length >= this.data.pageSize
+      if (this.data.page === 1) {
+        // 第一页直接替换数据
+        this.setData({
+          orders: processedOrders,
+          loading: false,
+          hasMore: processedOrders.length === 10
+        })
+      } else {
+        // 加载更多时追加数据
+        const newOrders = [...this.data.orders]
+        processedOrders.forEach(order => {
+          newOrders.push(order)
+        })
+        
+        this.setData({
+          orders: newOrders,
+          loading: false,
+          hasMore: processedOrders.length === 10
+        })
+      }
 
       console.log('[订单列表] 更新状态:', {
-        是否第一页: this.data.page === 1,
-        原订单数量: this.data.orders.length,
-        新增订单数量: processedOrders.length,
-        更新后总数量: newOrders.length,
-        是否有更多: hasMore,
-        订单状态统计: processedOrders.reduce((acc, order) => {
-          acc[order.status_text] = (acc[order.status_text] || 0) + 1
-          return acc
-        }, {})
-      })
-
-      this.setData({
-        orders: newOrders,
-        loading: false,
-        hasMore
+        当前页: this.data.page,
+        新增数量: processedOrders.length,
+        总数量: this.data.page === 1 ? processedOrders.length : newOrders.length,
+        是否有更多: processedOrders.length === 10
       })
     } catch (error) {
-      console.error('[订单列表] 加载订单列表失败:', error)
+      console.error('[订单列表] 加载失败:', error)
       this.setData({ 
-        orders: [],
         loading: false,
         hasMore: false
       })
       wx.showToast({
-        title: error.message || '加载订单失败',
+        title: error.message || '加载失败',
         icon: 'none'
       })
     }
@@ -408,8 +406,14 @@ Page({
 
   // 下拉刷新
   onPullDownRefresh() {
-    this.loadOrders().then(() => {
-      wx.stopPullDownRefresh()
+    console.log('[订单列表] 触发下拉刷新')
+    this.setData({
+      page: 1,
+      hasMore: true
+    }, () => {
+      this.loadOrders().then(() => {
+        wx.stopPullDownRefresh()
+      })
     })
   },
 
@@ -430,24 +434,36 @@ Page({
 
   // 触底加载更多
   onReachBottom() {
-    console.log('[订单列表] 触底加载', {
-      当前页码: this.data.page,
+    console.log('[订单列表] 触发触底加载', {
+      当前页: this.data.page,
       是否加载中: this.data.loading,
-      是否有更多: this.data.hasMore,
-      当前数据量: this.data.orders.length
+      是否有更多: this.data.hasMore
     })
 
-    if (this.data.hasMore && !this.data.loading) {
-      const nextPage = this.data.page + 1
-      console.log('[订单列表] 加载下一页:', nextPage)
-      
-      this.setData({
-        page: nextPage
-      }, () => {
-        this.loadOrders()
+    // 如果没有更多数据，直接返回
+    if (!this.data.hasMore) {
+      console.log('[订单列表] 没有更多数据了')
+      wx.showToast({
+        title: '没有更多订单了',
+        icon: 'none',
+        duration: 1500
       })
-    } else {
-      console.log('[订单列表] 不满足加载条件，跳过加载')
+      return
     }
+
+    // 如果正在加载中，跳过重复请求
+    if (this.data.loading) {
+      console.log('[订单列表] 正在加载中，跳过重复请求')
+      return
+    }
+
+    const nextPage = this.data.page + 1
+    console.log('[订单列表] 加载下一页:', nextPage)
+    
+    this.setData({
+      page: nextPage
+    }, () => {
+      this.loadOrders()
+    })
   }
 })

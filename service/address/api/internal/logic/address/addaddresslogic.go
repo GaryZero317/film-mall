@@ -2,6 +2,8 @@ package address
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 
 	"mall/service/address/api/internal/svc"
 	"mall/service/address/api/internal/types"
@@ -10,6 +12,13 @@ import (
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
+
+func boolToInt64(b bool) int64 {
+	if b {
+		return 1
+	}
+	return 0
+}
 
 type AddAddressLogic struct {
 	logx.Logger
@@ -26,7 +35,20 @@ func NewAddAddressLogic(ctx context.Context, svcCtx *svc.ServiceContext) *AddAdd
 }
 
 func (l *AddAddressLogic) AddAddress(req *types.AddAddressReq) (resp *types.AddAddressResp, err error) {
-	userId := l.ctx.Value("userId").(int64)
+	uidAny := l.ctx.Value("uid")
+	if uidAny == nil {
+		return nil, errors.New("未登录")
+	}
+
+	var userId int64
+	if jsonNumber, ok := uidAny.(json.Number); ok {
+		userId, err = jsonNumber.Int64()
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		return nil, errors.New("无效的用户ID")
+	}
 
 	// 如果设置为默认地址，需要将其他地址设置为非默认
 	if req.IsDefault {

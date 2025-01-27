@@ -7,9 +7,14 @@ Auth:
   AccessExpire: 86400
 
 MySQL:
-  DataSource: root:200317@tcp(localhost:3306)/film_mall?charset=utf8mb4&parseTime=true&loc=Asia%2FShanghai
-
+  DataSource: root:200317@tcp(localhost:3306)/mall?charset=utf8mb4&parseTime=true&loc=Asia%2FShanghai
 CacheRedis:
   - Host: localhost:6379
     Pass: "123456"
     Type: node
+
+UserRpc:
+  Etcd:
+    Hosts:
+      - localhost:2379
+    Key: user.rpc

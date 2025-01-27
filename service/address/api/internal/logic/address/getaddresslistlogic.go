@@ -2,8 +2,11 @@ package address
 
 import (
 	"context"
+	"encoding/json"
 	"mall/service/address/api/internal/svc"
 	"mall/service/address/api/internal/types"
+
+	"errors"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -23,7 +26,20 @@ func NewGetAddressListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Ge
 }
 
 func (l *GetAddressListLogic) GetAddressList() (resp *types.GetAddressListResp, err error) {
-	userId := l.ctx.Value("userId").(int64)
+	uidAny := l.ctx.Value("uid")
+	if uidAny == nil {
+		return nil, errors.New("未登录")
+	}
+
+	var userId int64
+	if jsonNumber, ok := uidAny.(json.Number); ok {
+		userId, err = jsonNumber.Int64()
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		return nil, errors.New("无效的用户ID")
+	}
 
 	addresses, err := l.svcCtx.AddressModel.FindByUserId(l.ctx, userId)
 	if err != nil {

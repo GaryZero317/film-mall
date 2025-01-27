@@ -3,6 +3,8 @@ package address
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
+	"errors"
 	"mall/service/address/api/internal/svc"
 	"mall/service/address/api/internal/types"
 
@@ -24,7 +26,21 @@ func NewDeleteAddressLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Del
 }
 
 func (l *DeleteAddressLogic) DeleteAddress(req *types.DeleteAddressReq) error {
-	userId := l.ctx.Value("userId").(int64)
+	uidAny := l.ctx.Value("uid")
+	if uidAny == nil {
+		return errors.New("未登录")
+	}
+
+	var userId int64
+	var err error
+	if jsonNumber, ok := uidAny.(json.Number); ok {
+		userId, err = jsonNumber.Int64()
+		if err != nil {
+			return err
+		}
+	} else {
+		return errors.New("无效的用户ID")
+	}
 
 	// 检查地址是否存在且属于当前用户
 	address, err := l.svcCtx.AddressModel.FindOne(l.ctx, req.Id)

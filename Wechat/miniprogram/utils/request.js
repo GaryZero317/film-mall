@@ -3,12 +3,39 @@ const app = getApp()
 const request = (options) => {
   const { url, method = 'GET', data, noAuth = false } = options
 
+  console.log('app.globalData:', app.globalData)
+  console.log('baseUrl配置:', app.globalData?.baseUrl)
+
+  // 获取服务类型和实际路径
+  let baseUrl = 'http://localhost:8001' // 默认baseUrl
+  
+  try {
+    if (url.startsWith('/api/cart')) {
+      baseUrl = 'http://localhost:8004'
+    } else if (url.startsWith('/api/address')) {
+      baseUrl = 'http://localhost:8005'
+    } else if (url.startsWith('/api/order')) {
+      baseUrl = 'http://localhost:8002'
+    } else if (url.startsWith('/api/pay')) {
+      baseUrl = 'http://localhost:8003'
+    }
+
+    console.log('选择的baseUrl:', baseUrl, '请求路径:', url)
+  } catch (error) {
+    console.error('处理baseUrl时出错:', error)
+  }
+
   // 只有在需要认证且有token的情况下才添加token
   const token = noAuth ? '' : wx.getStorageSync('token')
   
   return new Promise((resolve, reject) => {
+    const fullUrl = url.startsWith('http') ? url : `${baseUrl}${url}`
+    console.log('完整请求URL:', fullUrl)
+
     console.log('发起请求:', {
+      baseUrl,
       url,
+      fullUrl,
       method,
       data,
       noAuth
@@ -24,7 +51,7 @@ const request = (options) => {
     }
 
     wx.request({
-      url: url.startsWith('http') ? url : `${app.globalData.baseUrl}${url}`,
+      url: fullUrl,
       method,
       data,
       header: headers,

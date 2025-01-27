@@ -1,5 +1,5 @@
 // pages/order/list/index.js
-import { getOrderList, cancelOrder, confirmOrder, deleteOrder } from '../../../api/order'
+import { getOrderList, cancelOrder, confirmOrder, updateOrderStatus } from '../../../api/order'
 import { getProductDetail, getProductImages } from '../../../api/product'
 
 const app = getApp()
@@ -271,15 +271,40 @@ Page({
   },
 
   // 支付订单
-  onPayOrder(e) {
+  async onPayOrder(e) {
     const { id } = e.currentTarget.dataset
     if (!id) {
       console.error('[订单列表] 无效的订单ID')
       return
     }
-    wx.navigateTo({
-      url: `/pages/order/payment/index?orderId=${id}`
-    })
+
+    try {
+      console.log('[订单列表] 更新订单状态:', { orderId: id })
+      const result = await updateOrderStatus(id)
+      console.log('[订单列表] 更新订单状态响应:', result)
+
+      if (result && result.code === 0) {
+        // 显示支付成功提示
+        wx.showToast({
+          title: '支付成功',
+          icon: 'success',
+          duration: 2000
+        })
+
+        // 延迟1.5秒后刷新订单列表
+        setTimeout(() => {
+          this.loadOrders()
+        }, 1500)
+      } else {
+        throw new Error(result.msg || '支付失败')
+      }
+    } catch (error) {
+      console.error('[订单列表] 支付失败:', error)
+      wx.showToast({
+        title: error.message || '支付失败',
+        icon: 'none'
+      })
+    }
   },
 
   // 取消订单
@@ -359,47 +384,6 @@ Page({
       console.error('[订单列表] 确认收货失败:', error)
       wx.showToast({
         title: error.message || '确认失败',
-        icon: 'none'
-      })
-    }
-  },
-
-  // 删除订单
-  async onDeleteOrder(e) {
-    const { id } = e.currentTarget.dataset
-    if (!id) {
-      console.error('[订单列表] 无效的订单ID')
-      return
-    }
-    
-    try {
-      const res = await wx.showModal({
-        title: '提示',
-        content: '确定要删除该订单吗？',
-        confirmText: '删除',
-        cancelText: '取消'
-      })
-
-      if (res.confirm) {
-        console.log('[订单列表] 删除订单:', { orderId: id })
-        const result = await deleteOrder(id)
-        console.log('[订单列表] 删除订单响应:', result)
-
-        if (result && result.code === 0) {
-          wx.showToast({
-            title: '删除成功',
-            icon: 'success'
-          })
-          // 刷新订单列表
-          this.loadOrders()
-        } else {
-          throw new Error(result.msg || '删除订单失败')
-        }
-      }
-    } catch (error) {
-      console.error('[订单列表] 删除订单失败:', error)
-      wx.showToast({
-        title: error.message || '删除失败',
         icon: 'none'
       })
     }

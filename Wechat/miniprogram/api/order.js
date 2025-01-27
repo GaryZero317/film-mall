@@ -116,4 +116,17 @@ export const getOrderPayStatus = (orderId) => {
     method: 'POST',
     data: { orderId }
   })
+}
+
+// 更新订单状态为已支付
+export function updateOrderStatus(orderId) {
+  return request({
+    url: `http://localhost:8002/api/order/update`,
+    method: 'POST',
+    data: {
+      id: orderId,
+      status: 1,  // 1表示已支付，待发货
+      status_desc: '待发货'
+    }
+  })
 } 

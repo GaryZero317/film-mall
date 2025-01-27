@@ -1,6 +1,6 @@
 // pages/order/confirm/index.js
 import { createOrder } from '../../../api/order'
-import { getAddressList } from '../../../api/user'
+import { getAddressList } from '../../../api/address'
 import { loginGuard } from '../../../utils/auth'
 
 Page(loginGuard({
@@ -37,30 +37,43 @@ Page(loginGuard({
   async loadAddress() {
     try {
       const res = await getAddressList()
-      // 获取默认地址
-      const defaultAddress = res.data.find(item => item.is_default) || res.data[0]
-      this.setData({ address: defaultAddress })
+      console.log('[订单确认] 获取地址列表响应:', res)
+      if (res && res.data) {
+        // 获取默认地址
+        const defaultAddress = res.data.list.find(item => item.isDefault) || res.data.list[0]
+        console.log('[订单确认] 默认地址:', defaultAddress)
+        this.setData({ address: defaultAddress })
+      } else {
+        console.error('[订单确认] 获取地址列表失败:', res)
+      }
     } catch (error) {
-      console.error('加载地址失败:', error)
+      console.error('[订单确认] 加载地址失败:', error)
     }
   },
 
   // 设置订单商品
   setOrderItems(items) {
+    console.log('[订单确认] 设置订单商品:', items)
     const orderItems = items.map(item => ({
       id: item.product_id,
       name: item.name,
-      price: item.price,
-      quantity: item.quantity,
+      price: parseFloat(item.price),
+      quantity: parseInt(item.quantity),
       cover_image: item.cover_image
     }))
 
     const totalPrice = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
     const totalCount = orderItems.reduce((sum, item) => sum + item.quantity, 0)
 
-    this.setData({
+    console.log('[订单确认] 处理后的订单商品:', {
       orderItems,
       totalPrice,
+      totalCount
+    })
+
+    this.setData({
+      orderItems,
+      totalPrice: totalPrice.toFixed(2),
       totalCount
     })
   },

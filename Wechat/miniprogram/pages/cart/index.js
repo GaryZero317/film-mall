@@ -195,8 +195,19 @@ Page(loginGuard({
       return
     }
     
+    // 保存选中的商品到本地存储
+    const checkoutItems = selectedItems.map(item => ({
+      product_id: item.productId,
+      name: item.productName,
+      price: parseFloat(item.price),
+      quantity: parseInt(item.quantity),
+      cover_image: item.productImage
+    }))
+    console.log('[购物车] 准备结算的商品:', checkoutItems)
+    wx.setStorageSync('selectedCartItems', checkoutItems)
+    
     wx.navigateTo({
-      url: '/pages/order/confirm/index'
+      url: '/pages/order/confirm/index?from=cart'
     })
   }
 }))

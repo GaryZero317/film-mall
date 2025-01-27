@@ -3,10 +3,11 @@ package address
 import (
 	"net/http"
 
-	"github.com/zeromicro/go-zero/rest/httpx"
 	"mall/service/address/api/internal/logic/address"
 	"mall/service/address/api/internal/svc"
 	"mall/service/address/api/internal/types"
+
+	"github.com/zeromicro/go-zero/rest/httpx"
 )
 
 func DeleteAddressHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {

@@ -63,6 +63,25 @@ textarea {
   line-height: 88rpx;
   font-size: 32rpx;
   border-radius: 44rpx;
+  background: #07c160;
+  color: #fff;
+}
+
+/* 设置默认地址开关的颜色 */
+.form-item switch {
+  zoom: 0.8;
+}
+
+/* 修改switch开关的颜色 */
+wx-switch .wx-switch-input {
+  border-color: #dfdfdf !important;
+  background-color: #dfdfdf !important;
+}
+
+/* 开关打开时的样式 */
+wx-switch .wx-switch-input.wx-switch-input-checked {
+  background-color: #07c160 !important;
+  border-color: #07c160 !important;
 }
 
 /* 地区选择器 */

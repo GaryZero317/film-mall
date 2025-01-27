@@ -1,4 +1,7 @@
 const app = getApp()
+const { getAddressList, setDefaultAddress, deleteAddress } = require('../../../api/address')
+
+console.log('[地址列表] baseUrl:', app.globalData.baseUrl)
 
 Page({
   data: {
@@ -7,6 +10,7 @@ Page({
   },
 
   onLoad(options) {
+    console.log('[地址列表] onLoad options:', options)
     // 如果是从确认订单页面跳转来的，设置为选择模式
     if (options.select) {
       this.setData({ isSelectMode: true })
@@ -14,25 +18,32 @@ Page({
   },
 
   onShow() {
+    console.log('[地址列表] onShow')
     this.loadAddresses()
   },
 
   // 加载地址列表
   async loadAddresses() {
+    console.log('[地址列表] 开始加载地址列表')
     try {
-      const res = await wx.request({
-        url: `${app.globalData.baseUrl}/api/addresses`,
-        method: 'GET',
-        header: {
-          'Authorization': `Bearer ${wx.getStorageSync('token')}`
-        }
-      })
+      const token = wx.getStorageSync('token')
+      console.log('[地址列表] token:', token)
+      
+      const res = await getAddressList()
+      console.log('[地址列表] 获取地址列表响应:', res)
 
-      if (res.statusCode === 200) {
-        this.setData({ addresses: res.data })
+      if (res && res.data) {
+        console.log('[地址列表] 地址列表数据:', res.data)
+        this.setData({ addresses: res.data.list || [] })
+      } else {
+        console.error('[地址列表] 获取地址列表失败:', res)
+        wx.showToast({
+          title: '加载失败',
+          icon: 'none'
+        })
       }
     } catch (error) {
-      console.error('加载地址列表失败:', error)
+      console.error('[地址列表] 加载地址列表失败:', error)
       wx.showToast({
         title: '加载失败',
         icon: 'none'
@@ -42,10 +53,12 @@ Page({
 
   // 选择地址
   onSelectAddress(e) {
+    console.log('[地址列表] 选择地址:', e.currentTarget.dataset)
     if (!this.data.isSelectMode) return
     
     const id = e.currentTarget.dataset.id
     const address = this.data.addresses.find(item => item.id === id)
+    console.log('[地址列表] 选中的地址:', address)
     
     // 返回到上一页并传递选中的地址
     const pages = getCurrentPages()
@@ -57,30 +70,27 @@ Page({
   // 设为默认地址
   async onSetDefault(e) {
     const id = e.currentTarget.dataset.id
+    console.log('[地址列表] 设置默认地址, id:', id)
     
     try {
-      const res = await wx.request({
-        url: `${app.globalData.baseUrl}/api/addresses/${id}/default`,
-        method: 'POST',
-        header: {
-          'Authorization': `Bearer ${wx.getStorageSync('token')}`
-        }
-      })
+      const res = await setDefaultAddress(id)
+      console.log('[地址列表] 设置默认地址响应:', res)
 
-      if (res.statusCode === 200) {
+      if (res && res.data && res.data.code === 0) {
         wx.showToast({
           title: '设置成功',
           icon: 'success'
         })
         this.loadAddresses()
       } else {
+        console.error('[地址列表] 设置默认地址失败:', res)
         wx.showToast({
           title: '设置失败',
           icon: 'none'
         })
       }
     } catch (error) {
-      console.error('设置默认地址失败:', error)
+      console.error('[地址列表] 设置默认地址失败:', error)
       wx.showToast({
         title: '设置失败',
         icon: 'none'
@@ -91,6 +101,7 @@ Page({
   // 编辑地址
   onEdit(e) {
     const id = e.currentTarget.dataset.id
+    console.log('[地址列表] 编辑地址, id:', id)
     wx.navigateTo({
       url: `/pages/address/edit/index?id=${id}`
     })
@@ -99,6 +110,7 @@ Page({
   // 删除地址
   async onDelete(e) {
     const id = e.currentTarget.dataset.id
+    console.log('[地址列表] 准备删除地址, id:', id)
     
     const res = await wx.showModal({
       title: '提示',
@@ -109,28 +121,26 @@ Page({
 
     if (res.confirm) {
       try {
-        const result = await wx.request({
-          url: `${app.globalData.baseUrl}/api/addresses/${id}`,
-          method: 'DELETE',
-          header: {
-            'Authorization': `Bearer ${wx.getStorageSync('token')}`
-          }
-        })
+        console.log('[地址列表] 开始删除地址')
+        const result = await deleteAddress(id)
+        console.log('[地址列表] 删除地址响应:', result)
 
-        if (result.statusCode === 200) {
+        // 删除地址接口没有返回值，只要状态码是200就表示成功
+        if (result && result.statusCode === 200) {
           wx.showToast({
             title: '删除成功',
             icon: 'success'
           })
           this.loadAddresses()
         } else {
+          console.error('[地址列表] 删除地址失败:', result)
           wx.showToast({
             title: '删除失败',
             icon: 'none'
           })
         }
       } catch (error) {
-        console.error('删除地址失败:', error)
+        console.error('[地址列表] 删除地址失败:', error)
         wx.showToast({
           title: '删除失败',
           icon: 'none'
@@ -141,6 +151,7 @@ Page({
 
   // 新增地址
   onAdd() {
+    console.log('[地址列表] 跳转到新增地址页面')
     wx.navigateTo({
       url: '/pages/address/edit/index'
     })

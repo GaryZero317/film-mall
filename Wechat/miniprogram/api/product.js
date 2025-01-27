@@ -7,7 +7,8 @@ export const getProductList = (params = {}) => {
     method: 'GET',
     data: {
       page: params.page || 1,
-      pageSize: params.pageSize || 10
+      pageSize: params.pageSize || 10,
+      keyword: params.keyword || ''
     },
     noAuth: true  // 标记该请求不需要认证
   })

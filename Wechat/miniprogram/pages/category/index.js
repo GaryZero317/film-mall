@@ -1,5 +1,38 @@
-import { categories } from '../../utils/categories'
+import { getProductList } from '../../api/product'
 import { searchProducts } from '../../api/product'
+
+const categories = [
+  {
+    id: 1,
+    name: '彩色胶卷',
+    icon: '/assets/images/categories/color.png',
+    keywords: ['彩色']
+  },
+  {
+    id: 2,
+    name: '黑白胶卷',
+    icon: '/assets/images/categories/bw.png',
+    keywords: ['黑白']
+  },
+  {
+    id: 3,
+    name: '中画幅胶卷',
+    icon: '/assets/images/categories/medium.png',
+    keywords: ['120']
+  },
+  {
+    id: 4,
+    name: '拍立得',
+    icon: '/assets/images/categories/instant.png',
+    keywords: ['拍立得']
+  },
+  {
+    id: 5,
+    name: '电影胶片',
+    icon: '/assets/images/categories/cinema.png',
+    keywords: ['电影卷']
+  }
+]
 
 const app = getApp()
 
@@ -61,14 +94,27 @@ Page({
 
     try {
       this.setData({ loading: true })
-      // 使用分类关键词搜索商品
-      const keywords = currentCategory.keywords.join('|')
-      const res = await searchProducts({ keywords })
-      console.log('分类商品搜索结果:', res)
+      // 使用分类的关键词搜索商品
+      const keyword = currentCategory.keywords[0]
+      console.log('使用关键词搜索商品:', keyword)
+      
+      const res = await searchProducts({ 
+        keyword,
+        page: 1,
+        pageSize: 50
+      })
+      console.log('商品列表响应:', res)
       
       if (res.code === 0) {
+        const products = res.data.list || []
+        // 处理图片URL
+        const processedProducts = products.map(item => ({
+          ...item,
+          imageUrl: item.imageUrl ? `http://localhost:8001${item.imageUrl}` : '/assets/images/default.png'
+        }))
+        
         this.setData({ 
-          products: res.data.list || []
+          products: processedProducts
         })
       } else {
         wx.showToast({

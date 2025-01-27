@@ -2,14 +2,15 @@ package logic
 
 import (
 	"context"
+	"fmt"
+	"math/rand"
+	"time"
+
 	"mall/service/order/model"
 	"mall/service/order/rpc/internal/svc"
-	"mall/service/order/rpc/order"
-	"mall/service/product/rpc/product"
-	"mall/service/user/rpc/pb/user"
+	"mall/service/order/rpc/types"
 
 	"github.com/zeromicro/go-zero/core/logx"
-	"google.golang.org/grpc/status"
 )
 
 type CreateLogic struct {
@@ -26,57 +27,46 @@ func NewCreateLogic(ctx context.Context, svcCtx *svc.ServiceContext) *CreateLogi
 	}
 }
 
-func (l *CreateLogic) Create(in *order.CreateRequest) (*order.CreateResponse, error) {
-	// 查询用户是否存在
-	_, err := l.svcCtx.UserRpc.UserInfo(l.ctx, &user.UserInfoRequest{
-		Id: in.Uid,
-	})
-	if err != nil {
-		return nil, err
-	}
+// 生成订单号
+func generateOrderID(uid int64) string {
+	// 获取当前时间
+	now := time.Now()
+	// 生成4位随机数
+	random := rand.Intn(10000)
+	// 格式化订单号：时间戳(14位) + 随机数(4位) + 用户ID
+	return fmt.Sprintf("%s%04d%d",
+		now.Format("20060102150405"),
+		random,
+		uid)
+}
 
-	// 查询产品是否存在
-	productRes, err := l.svcCtx.ProductRpc.Detail(l.ctx, &product.DetailRequest{
-		Id: in.Pid,
-	})
-	if err != nil {
-		return nil, err
-	}
-	// 判断产品库存是否充足
-	if productRes.Stock <= 0 {
-		return nil, status.Error(500, "产品库存不足")
-	}
+func (l *CreateLogic) Create(in *types.CreateRequest) (*types.CreateResponse, error) {
+	// 生成订单号
+	oid := generateOrderID(in.Uid)
 
-	newOrder := model.Order{
+	// 创建订单记录
+	order := &model.Order{
 		Uid:    in.Uid,
 		Pid:    in.Pid,
 		Amount: in.Amount,
-		Status: 0,
-	}
-	// 创建订单
-	res, err := l.svcCtx.OrderModel.Insert(l.ctx, &newOrder)
-	if err != nil {
-		return nil, status.Error(500, err.Error())
+		Status: in.Status,
+		Oid:    oid,
 	}
 
-	newOrder.Id, err = res.LastInsertId()
-	if err != nil {
-		return nil, status.Error(500, err.Error())
-	}
-	// 更新产品库存
-	_, err = l.svcCtx.ProductRpc.Update(l.ctx, &product.UpdateRequest{
-		Id:     productRes.Id,
-		Name:   productRes.Name,
-		Desc:   productRes.Desc,
-		Stock:  productRes.Stock - 1,
-		Amount: productRes.Amount,
-		Status: productRes.Status,
-	})
+	// 插入数据库
+	result, err := l.svcCtx.OrderModel.Insert(l.ctx, order)
 	if err != nil {
 		return nil, err
 	}
 
-	return &order.CreateResponse{
-		Id: newOrder.Id,
+	// 获取自增ID
+	newOrder, err := result.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.CreateResponse{
+		Id:  newOrder,
+		Oid: oid,
 	}, nil
 }

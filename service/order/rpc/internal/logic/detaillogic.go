@@ -3,12 +3,10 @@ package logic
 import (
 	"context"
 
-	"mall/service/order/model"
 	"mall/service/order/rpc/internal/svc"
-	"mall/service/order/rpc/types/order"
+	"mall/service/order/rpc/types"
 
 	"github.com/zeromicro/go-zero/core/logx"
-	"google.golang.org/grpc/status"
 )
 
 type DetailLogic struct {
@@ -25,21 +23,21 @@ func NewDetailLogic(ctx context.Context, svcCtx *svc.ServiceContext) *DetailLogi
 	}
 }
 
-func (l *DetailLogic) Detail(in *order.DetailRequest) (*order.DetailResponse, error) {
-	// 查询订单是否存在
-	res, err := l.svcCtx.OrderModel.FindOne(l.ctx, in.Id)
+func (l *DetailLogic) Detail(in *types.DetailRequest) (*types.DetailResponse, error) {
+	// 查询订单详情
+	order, err := l.svcCtx.OrderModel.FindOne(l.ctx, in.Id)
 	if err != nil {
-		if err == model.ErrNotFound {
-			return nil, status.Error(100, "订单不存在")
-		}
-		return nil, status.Error(500, err.Error())
+		return nil, err
 	}
 
-	return &order.DetailResponse{
-		Id:     res.Id,
-		Uid:    res.Uid,
-		Pid:    res.Pid,
-		Amount: res.Amount,
-		Status: res.Status,
+	return &types.DetailResponse{
+		Id:         order.Id,
+		Oid:        order.Oid,
+		Uid:        order.Uid,
+		Pid:        order.Pid,
+		Amount:     order.Amount,
+		Status:     order.Status,
+		CreateTime: order.CreateTime.Format("2006-01-02 15:04:05"),
+		UpdateTime: order.UpdateTime.Format("2006-01-02 15:04:05"),
 	}, nil
 }

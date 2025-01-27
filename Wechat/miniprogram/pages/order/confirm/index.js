@@ -182,8 +182,8 @@ Page(loginGuard({
       const price = parseFloat(item.price || 0)
       const quantity = parseInt(item.quantity || 1)
       const processedItem = {
-        id: item.product_id || item.id,  // 保存原始商品ID
-        product_id: item.product_id || item.id,  // 额外保存一份，确保不丢失
+        id: item.id,  // 原始ID
+        product_id: parseInt(item.product_id || item.id),  // 确保product_id是数字类型
         name: item.name || '未知商品',
         price: price,
         quantity: quantity,
@@ -191,7 +191,9 @@ Page(loginGuard({
       }
       console.log(`[订单确认] 处理商品 ${processedItem.name}:`, {
         原始数据: item,
-        处理后数据: processedItem
+        处理后数据: processedItem,
+        product_id类型: typeof processedItem.product_id,
+        product_id值: processedItem.product_id
       })
       return processedItem
     })
@@ -280,8 +282,8 @@ Page(loginGuard({
       const orderData = {
         uid: userInfo.id,
         address_id: address.id,
-        pid: orderItems[0].id,  // 直接使用商品ID
-        quantity: orderItems[0].quantity,  // 直接使用商品数量
+        pid: orderItems[0].product_id,  // 使用product_id作为pid
+        quantity: orderItems[0].quantity,
         amount: Math.round(orderItems[0].price * 100),  // 转换为分为单位
         remark,
         total_price: Math.round(parseFloat(this.data.totalPrice) * 100),  // 转换为分为单位
@@ -291,6 +293,8 @@ Page(loginGuard({
 
       console.log('[订单确认] 提交订单数据:', {
         ...orderData,
+        pid_type: typeof orderItems[0].product_id,
+        original_id: orderItems[0].id,
         amount_yuan: orderItems[0].price,
         total_price_yuan: parseFloat(this.data.totalPrice),
         shipping_fee_yuan: parseFloat(this.data.shippingFee),

@@ -1,106 +1,111 @@
+syntax = "v1"
+
+info (
+	title: "订单服务"
+	desc: "订单服务API"
+	author: "filmall"
+	version: "v1"
+)
+
 type (
-	// 订单创建
-	CreateRequest {
-		Uid    int64 `json:"uid"`
-		Pid    int64 `json:"pid"`
-		Amount int64 `json:"amount"`
-		Status int64 `json:"status"`
-	}
-	CreateResponse {
-		Id int64 `json:"id"`
-	}
-	// 订单创建
-
-	// 订单修改
-	UpdateRequest {
-		Id     int64 `json:"id"`
-		Uid    int64 `json:"uid,optional"`
-		Pid    int64 `json:"pid,optional"`
-		Amount int64 `json:"amount,optional"`
-		Status int64 `json:"status,optional"`
-	}
-	UpdateResponse {
-	}
-	// 订单修改
-
-	// 订单删除
-	RemoveRequest {
-		Id int64 `json:"id"`
-	}
-	RemoveResponse {
-	}
-	// 订单删除
-
-	// 订单详情
-	DetailRequest {
-		Id int64 `json:"id"`
-	}
-	DetailResponse {
-		Id         int64  `json:"id"`
-		Uid        int64  `json:"uid"`
-		Pid        int64  `json:"pid"`
-		Amount     int64  `json:"amount"`
-		Status     int64  `json:"status"`
-		CreateTime string `json:"createTime"`
-		UpdateTime string `json:"updateTime"`
+	OrderItem {
+		Id           int64  `json:"id"`            // 订单商品ID
+		OrderId      int64  `json:"order_id"`      // 订单ID
+		Pid          int64  `json:"pid"`           // 商品ID
+		ProductName  string `json:"product_name"`  // 商品名称
+		ProductImage string `json:"product_image"` // 商品图片
+		Price        int64  `json:"price"`         // 商品单价(分)
+		Quantity     int64  `json:"quantity"`      // 购买数量
+		Amount       int64  `json:"amount"`        // 商品总价(分)
 	}
 
-	// 订单列表
-	ListRequest {
-		Uid int64 `json:"uid"`
-	}
-	ListResponse {
-		Id     int64 `json:"id"`
-		Uid    int64 `json:"uid"`
-		Pid    int64 `json:"pid"`
-		Amount int64 `json:"amount"`
-		Status int64 `json:"status"`
-	}
-
-	// 订单信息
 	Order {
-		Id         int64  `json:"id"`
-		Uid        int64  `json:"uid"`
-		Pid        int64  `json:"pid"`
-		Amount     int64  `json:"amount"`
-		Status     int64  `json:"status"`
-		CreateTime string `json:"createTime"`
-		UpdateTime string `json:"updateTime"`
+		Id          int64       `json:"id"`           // 订单ID
+		Oid         string      `json:"oid"`          // 订单号
+		Uid         int64       `json:"uid"`          // 用户ID
+		AddressId   int64       `json:"address_id"`   // 收货地址ID
+		TotalPrice  int64       `json:"total_price"`  // 订单总价(分)
+		ShippingFee int64       `json:"shipping_fee"` // 运费(分)
+		Status      int64       `json:"status"`       // 订单状态:0待付款,1待发货,2待收货,3已完成
+		StatusDesc  string      `json:"status_desc"`  // 状态描述
+		Remark      string      `json:"remark"`       // 订单备注
+		Items       []OrderItem `json:"items"`        // 订单商品列表
+		CreateTime  string      `json:"create_time"`  // 创建时间
+		UpdateTime  string      `json:"update_time"`  // 更新时间
 	}
 
-	// 管理员获取订单列表
-	AdminOrderListRequest {
-		Page     int64 `json:"page,optional"`
-		PageSize int64 `json:"pageSize,optional"`
+	CreateOrderReq {
+		Uid         int64       `json:"uid"`          // 用户ID
+		AddressId   int64       `json:"address_id"`   // 收货地址ID
+		TotalPrice  int64       `json:"total_price"`  // 订单总价(分)
+		ShippingFee int64       `json:"shipping_fee"` // 运费(分)
+		Remark      string      `json:"remark"`       // 订单备注
+		Items       []OrderItem `json:"items"`        // 订单商品列表
 	}
 
-	AdminOrderListResponse {
-		Total int64   `json:"total"`
-		List  []Order `json:"list"`
+	CreateOrderResp {
+		Id  int64  `json:"id"`  // 订单ID
+		Oid string `json:"oid"` // 订单号
+	}
+
+	UpdateOrderReq {
+		Id         int64  `path:"id"`          // 订单ID
+		Status     int64  `json:"status"`      // 订单状态
+		StatusDesc string `json:"status_desc"` // 状态描述
+	}
+
+	UpdateOrderResp {
+	}
+
+	DeleteOrderReq {
+		Id int64 `path:"id"` // 订单ID
+	}
+
+	DeleteOrderResp {
+	}
+
+	GetOrderReq {
+		Id int64 `path:"id"` // 订单ID
+	}
+
+	GetOrderResp {
+		Order Order `json:"order"` // 订单信息
+	}
+
+	ListOrderReq {
+		Uid      int64 `form:"uid"`       // 用户ID
+		Status   int64 `form:"status"`    // 订单状态
+		Page     int64 `form:"page"`      // 页码
+		PageSize int64 `form:"page_size"` // 每页数量
+	}
+
+	ListOrderResp {
+		Total int64   `json:"total"` // 总数
+		Data  []Order `json:"data"`  // 订单列表
 	}
 )
 
 @server(
-	jwt: Auth
+	prefix: /api/order
 )
-service Order {
-	@handler Create
-	post /api/order/create (CreateRequest) returns (CreateResponse)
+service order {
+	@doc "创建订单"
+	@handler create
+	post / (CreateOrderReq) returns (CreateOrderResp)
 	
-	@handler Update
-	post /api/order/update (UpdateRequest) returns (UpdateResponse)
+	@doc "修改订单"
+	@handler update
+	put /:id (UpdateOrderReq) returns (UpdateOrderResp)
 	
-	@handler Remove
-	post /api/order/remove (RemoveRequest) returns (RemoveResponse)
+	@doc "删除订单"
+	@handler delete
+	delete /:id (DeleteOrderReq) returns (DeleteOrderResp)
 	
-	@handler Detail
-	post /api/order/detail (DetailRequest) returns (DetailResponse)
-}
-
-@server(
-	jwt: AdminAuth
-)
-service Order {
-	@handler AdminOrderList
-	post /api/admin/order/list (AdminOrderListRequest) returns (AdminOrderListResponse)
+	@doc "获取订单"
+	@handler get
+	get /:id (GetOrderReq) returns (GetOrderResp)
+	
+	@doc "订单列表"
+	@handler list
+	get /list (ListOrderReq) returns (ListOrderResp)
 }

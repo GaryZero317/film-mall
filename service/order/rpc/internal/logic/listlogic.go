@@ -3,13 +3,10 @@ package logic
 import (
 	"context"
 
-	"mall/service/order/model"
 	"mall/service/order/rpc/internal/svc"
-	"mall/service/order/rpc/types/order"
-	"mall/service/user/rpc/pb/user"
+	"mall/service/order/rpc/types"
 
 	"github.com/zeromicro/go-zero/core/logx"
-	"google.golang.org/grpc/status"
 )
 
 type ListLogic struct {
@@ -26,36 +23,28 @@ func NewListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *ListLogic {
 	}
 }
 
-func (l *ListLogic) List(in *order.ListRequest) (*order.ListResponse, error) {
-	// 查询用户是否存在
-	_, err := l.svcCtx.UserRpc.UserInfo(l.ctx, &user.UserInfoRequest{
-		Id: in.Uid,
-	})
+func (l *ListLogic) List(in *types.ListRequest) (*types.ListResponse, error) {
+	// 查询用户订单列表
+	orders, err := l.svcCtx.OrderModel.FindAllByUid(l.ctx, in.Uid)
 	if err != nil {
 		return nil, err
 	}
 
-	// 查询订单是否存在
-	list, err := l.svcCtx.OrderModel.FindAllByUid(l.ctx, in.Uid)
-	if err != nil {
-		if err == model.ErrNotFound {
-			return nil, status.Error(100, "订单不存在")
-		}
-		return nil, status.Error(500, err.Error())
-	}
-
-	orderList := make([]*order.DetailResponse, 0)
-	for _, item := range list {
-		orderList = append(orderList, &order.DetailResponse{
-			Id:     item.Id,
-			Uid:    item.Uid,
-			Pid:    item.Pid,
-			Amount: item.Amount,
-			Status: item.Status,
+	var orderList []*types.DetailResponse
+	for _, order := range orders {
+		orderList = append(orderList, &types.DetailResponse{
+			Id:         order.Id,
+			Oid:        order.Oid,
+			Uid:        order.Uid,
+			Pid:        order.Pid,
+			Amount:     order.Amount,
+			Status:     order.Status,
+			CreateTime: order.CreateTime.Format("2006-01-02 15:04:05"),
+			UpdateTime: order.UpdateTime.Format("2006-01-02 15:04:05"),
 		})
 	}
 
-	return &order.ListResponse{
+	return &types.ListResponse{
 		Data: orderList,
 	}, nil
 }

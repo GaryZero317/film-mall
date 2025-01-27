@@ -2,69 +2,70 @@ syntax = "proto3";
 
 package order;
 
-option go_package = "./order";
+option go_package = "./types";
 
 // 订单创建
 message CreateRequest {
-  int64 Uid = 1;
-  int64 Pid = 2;
-  int64 Amount = 3;
-  int64 Status = 4;
+  int64 uid = 1;  // 用户ID
+  int64 pid = 2;  // 产品ID
+  int64 amount = 3;  // 订单金额
+  int64 status = 4;  // 订单状态
 }
+
 message CreateResponse {
-  int64 id = 1;
+  int64 id = 1;  // 订单ID
+  string oid = 2;  // 订单号
 }
-// 订单创建
 
 // 订单修改
 message UpdateRequest {
-  int64 id = 1;
-  int64 Uid = 2;
-  int64 Pid = 3;
-  int64 Amount = 4;
-  int64 Status = 5;
+  int64 id = 1;  // 订单ID
+  int64 uid = 2;  // 用户ID
+  int64 pid = 3;  // 产品ID
+  int64 amount = 4;  // 订单金额
+  int64 status = 5;  // 订单状态
 }
-message UpdateResponse {
-}
-// 订单修改
+
+message UpdateResponse {}
 
 // 订单删除
 message RemoveRequest {
-  int64 id = 1;
+  int64 id = 1;  // 订单ID
 }
-message RemoveResponse {
-}
-// 订单删除
+
+message RemoveResponse {}
 
 // 订单详情
 message DetailRequest {
-  int64 id = 1;
+  int64 id = 1;  // 订单ID
 }
+
 message DetailResponse {
-  int64 id = 1;
-  int64 Uid = 2;
-  int64 Pid = 3;
-  int64 Amount = 4;
-  int64 Status = 5;
+  int64 id = 1;  // 订单ID
+  string oid = 2;  // 订单号
+  int64 uid = 3;  // 用户ID
+  int64 pid = 4;  // 产品ID
+  int64 amount = 5;  // 订单金额
+  int64 status = 6;  // 订单状态
+  string create_time = 7;  // 创建时间
+  string update_time = 8;  // 更新时间
 }
-// 订单详情
 
 // 订单列表
 message ListRequest {
-  int64 uid = 1;
+  int64 uid = 1;  // 用户ID
 }
+
 message ListResponse {
-  repeated DetailResponse data = 1;
+  repeated DetailResponse data = 1;  // 订单列表
 }
-// 订单列表
 
 // 订单支付
 message PaidRequest {
-  int64 id = 1;
+  int64 id = 1;  // 订单ID
 }
-message PaidResponse {
-}
-// 订单支付
+
+message PaidResponse {}
 
 service Order {
   rpc Create(CreateRequest) returns(CreateResponse);

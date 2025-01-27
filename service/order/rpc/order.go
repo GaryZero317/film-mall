@@ -7,7 +7,7 @@ import (
 	"mall/service/order/rpc/internal/config"
 	"mall/service/order/rpc/internal/server"
 	"mall/service/order/rpc/internal/svc"
-	"mall/service/order/rpc/types/order"
+	"mall/service/order/rpc/types"
 
 	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/core/service"
@@ -27,7 +27,7 @@ func main() {
 	svr := server.NewOrderServer(ctx)
 
 	s := zrpc.MustNewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
-		order.RegisterOrderServer(grpcServer, svr)
+		types.RegisterOrderServer(grpcServer, svr)
 
 		if c.Mode == service.DevMode || c.Mode == service.TestMode {
 			reflection.Register(grpcServer)

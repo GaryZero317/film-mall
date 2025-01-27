@@ -40,6 +40,7 @@ type (
 
 	Order struct {
 		Id         int64     `db:"id"`
+		Oid        string    `db:"oid"`    // 订单号
 		Uid        int64     `db:"uid"`    // 用户ID
 		Pid        int64     `db:"pid"`    // 产品ID
 		Amount     int64     `db:"amount"` // 订单金额
@@ -59,8 +60,8 @@ func newOrderModel(conn sqlx.SqlConn, c cache.CacheConf) *defaultOrderModel {
 func (m *defaultOrderModel) Insert(ctx context.Context, data *Order) (sql.Result, error) {
 	orderIdKey := fmt.Sprintf("%s%v", cacheOrderIdPrefix, data.Id)
 	ret, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?)", m.table, orderRowsExpectAutoSet)
-		return conn.ExecCtx(ctx, query, data.Uid, data.Pid, data.Amount, data.Status)
+		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?)", m.table, orderRowsExpectAutoSet)
+		return conn.ExecCtx(ctx, query, data.Oid, data.Uid, data.Pid, data.Amount, data.Status)
 	}, orderIdKey)
 	return ret, err
 }
@@ -86,7 +87,7 @@ func (m *defaultOrderModel) Update(ctx context.Context, data *Order) error {
 	orderIdKey := fmt.Sprintf("%s%v", cacheOrderIdPrefix, data.Id)
 	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("update %s set %s where `id` = ?", m.table, orderRowsWithPlaceHolder)
-		return conn.ExecCtx(ctx, query, data.Uid, data.Pid, data.Amount, data.Status, data.Id)
+		return conn.ExecCtx(ctx, query, data.Oid, data.Uid, data.Pid, data.Amount, data.Status, data.Id)
 	}, orderIdKey)
 	return err
 }

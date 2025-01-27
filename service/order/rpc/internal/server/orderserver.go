@@ -8,12 +8,12 @@ import (
 
 	"mall/service/order/rpc/internal/logic"
 	"mall/service/order/rpc/internal/svc"
-	"mall/service/order/rpc/types/order"
+	"mall/service/order/rpc/types"
 )
 
 type OrderServer struct {
 	svcCtx *svc.ServiceContext
-	order.UnimplementedOrderServer
+	types.UnimplementedOrderServer
 }
 
 func NewOrderServer(svcCtx *svc.ServiceContext) *OrderServer {
@@ -22,32 +22,32 @@ func NewOrderServer(svcCtx *svc.ServiceContext) *OrderServer {
 	}
 }
 
-func (s *OrderServer) Create(ctx context.Context, in *order.CreateRequest) (*order.CreateResponse, error) {
+func (s *OrderServer) Create(ctx context.Context, in *types.CreateRequest) (*types.CreateResponse, error) {
 	l := logic.NewCreateLogic(ctx, s.svcCtx)
 	return l.Create(in)
 }
 
-func (s *OrderServer) Update(ctx context.Context, in *order.UpdateRequest) (*order.UpdateResponse, error) {
+func (s *OrderServer) Update(ctx context.Context, in *types.UpdateRequest) (*types.UpdateResponse, error) {
 	l := logic.NewUpdateLogic(ctx, s.svcCtx)
 	return l.Update(in)
 }
 
-func (s *OrderServer) Remove(ctx context.Context, in *order.RemoveRequest) (*order.RemoveResponse, error) {
+func (s *OrderServer) Remove(ctx context.Context, in *types.RemoveRequest) (*types.RemoveResponse, error) {
 	l := logic.NewRemoveLogic(ctx, s.svcCtx)
 	return l.Remove(in)
 }
 
-func (s *OrderServer) Detail(ctx context.Context, in *order.DetailRequest) (*order.DetailResponse, error) {
+func (s *OrderServer) Detail(ctx context.Context, in *types.DetailRequest) (*types.DetailResponse, error) {
 	l := logic.NewDetailLogic(ctx, s.svcCtx)
 	return l.Detail(in)
 }
 
-func (s *OrderServer) List(ctx context.Context, in *order.ListRequest) (*order.ListResponse, error) {
+func (s *OrderServer) List(ctx context.Context, in *types.ListRequest) (*types.ListResponse, error) {
 	l := logic.NewListLogic(ctx, s.svcCtx)
 	return l.List(in)
 }
 
-func (s *OrderServer) Paid(ctx context.Context, in *order.PaidRequest) (*order.PaidResponse, error) {
+func (s *OrderServer) Paid(ctx context.Context, in *types.PaidRequest) (*types.PaidResponse, error) {
 	l := logic.NewPaidLogic(ctx, s.svcCtx)
 	return l.Paid(in)
 }

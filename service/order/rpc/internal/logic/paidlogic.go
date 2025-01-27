@@ -3,12 +3,10 @@ package logic
 import (
 	"context"
 
-	"mall/service/order/model"
 	"mall/service/order/rpc/internal/svc"
-	"mall/service/order/rpc/types/order"
+	"mall/service/order/rpc/types"
 
 	"github.com/zeromicro/go-zero/core/logx"
-	"google.golang.org/grpc/status"
 )
 
 type PaidLogic struct {
@@ -25,22 +23,8 @@ func NewPaidLogic(ctx context.Context, svcCtx *svc.ServiceContext) *PaidLogic {
 	}
 }
 
-func (l *PaidLogic) Paid(in *order.PaidRequest) (*order.PaidResponse, error) {
-	// 查询订单是否存在
-	res, err := l.svcCtx.OrderModel.FindOne(l.ctx, in.Id)
-	if err != nil {
-		if err == model.ErrNotFound {
-			return nil, status.Error(100, "订单不存在")
-		}
-		return nil, status.Error(500, err.Error())
-	}
+func (l *PaidLogic) Paid(in *types.PaidRequest) (*types.PaidResponse, error) {
+	// todo: add your logic here and delete this line
 
-	res.Status = 1
-
-	err = l.svcCtx.OrderModel.Update(l.ctx, res)
-	if err != nil {
-		return nil, status.Error(500, err.Error())
-	}
-
-	return &order.PaidResponse{}, nil
+	return &types.PaidResponse{}, nil
 }

@@ -57,6 +57,15 @@ const request = (options) => {
       header: headers,
       success: (res) => {
         console.log('请求成功:', res)
+        
+        // 处理500错误中的业务错误信息
+        if (res.statusCode === 500 && typeof res.data === 'string' && res.data.includes('code = Code')) {
+          const errorMsg = res.data.split('desc = ')[1] || '请求失败'
+          console.error('业务错误:', errorMsg)
+          reject(new Error(errorMsg))
+          return
+        }
+        
         if (res.statusCode === 200) {
           // 处理不同的返回格式
           if (res.data && (res.data.code !== undefined)) {

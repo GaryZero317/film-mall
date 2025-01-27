@@ -14,41 +14,30 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 		[]rest.Route{
 			{
 				Method:  http.MethodPost,
-				Path:    "/api/order/create",
-				Handler: CreateHandler(serverCtx),
+				Path:    "/",
+				Handler: createHandler(serverCtx),
 			},
 			{
-				Method:  http.MethodPost,
-				Path:    "/api/order/update",
-				Handler: UpdateHandler(serverCtx),
+				Method:  http.MethodPut,
+				Path:    "/:id",
+				Handler: updateHandler(serverCtx),
 			},
 			{
-				Method:  http.MethodPost,
-				Path:    "/api/order/remove",
-				Handler: RemoveHandler(serverCtx),
+				Method:  http.MethodDelete,
+				Path:    "/:id",
+				Handler: deleteHandler(serverCtx),
 			},
 			{
-				Method:  http.MethodPost,
-				Path:    "/api/order/detail",
-				Handler: DetailHandler(serverCtx),
+				Method:  http.MethodGet,
+				Path:    "/:id",
+				Handler: getHandler(serverCtx),
 			},
 			{
-				Method:  http.MethodPost,
-				Path:    "/api/order/list",
-				Handler: ListHandler(serverCtx),
+				Method:  http.MethodGet,
+				Path:    "/list",
+				Handler: listHandler(serverCtx),
 			},
 		},
-		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
-	)
-
-	server.AddRoutes(
-		[]rest.Route{
-			{
-				Method:  http.MethodPost,
-				Path:    "/api/admin/order/list",
-				Handler: AdminOrderListHandler(serverCtx),
-			},
-		},
-		rest.WithJwt(serverCtx.Config.AdminAuth.AccessSecret),
+		rest.WithPrefix("/api/order"),
 	)
 }

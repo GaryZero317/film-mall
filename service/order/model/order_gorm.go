@@ -16,6 +16,7 @@ import (
 // GormOrder represents the order model for GORM
 type GormOrder struct {
 	ID         int64     `gorm:"primaryKey;column:id;autoIncrement"`
+	Oid        string    `gorm:"column:oid;type:varchar(32);uniqueIndex:uk_oid"`
 	Uid        int64     `gorm:"column:uid;index"`
 	Pid        int64     `gorm:"column:pid;index"`
 	Amount     int64     `gorm:"column:amount"`
@@ -82,6 +83,7 @@ func (m *GormOrderModel) Insert(ctx context.Context, data *Order) (sql.Result, e
 		Pid:    data.Pid,
 		Amount: data.Amount,
 		Status: data.Status,
+		Oid:    data.Oid,
 	}
 
 	err := m.db.WithContext(ctx).Create(gormOrder).Error
@@ -91,6 +93,7 @@ func (m *GormOrderModel) Insert(ctx context.Context, data *Order) (sql.Result, e
 
 	// Update the original order with the new ID and timestamps
 	data.Id = gormOrder.ID
+	data.Oid = gormOrder.Oid
 	data.CreateTime = gormOrder.CreateTime
 	data.UpdateTime = gormOrder.UpdateTime
 

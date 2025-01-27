@@ -15,9 +15,10 @@ export const getOrderList = (params = {}) => {
     url: 'http://localhost:8002/api/order/list',
     method: 'POST',
     data: {
+      uid: params.uid,
+      status: params.status || 0,
       page: params.page || 1,
-      pageSize: params.pageSize || 10,
-      status: params.status
+      page_size: params.pageSize || 10
     }
   })
 }
@@ -63,5 +64,56 @@ export const getOrderCount = () => {
   return request({
     url: 'http://localhost:8002/api/order/count',
     method: 'GET'
+  })
+}
+
+// 查询支付状态
+export const queryPayStatus = (payId) => {
+  return request({
+    url: 'http://localhost:8003/api/pay/detail',
+    method: 'POST',
+    data: { id: payId }
+  })
+}
+
+// 查询订单支付记录
+export function queryPayByOrderId(orderId) {
+  return request({
+    url: 'http://localhost:8003/api/pay/query/order',
+    method: 'POST',
+    data: {
+      orderId
+    }
+  })
+}
+
+// 查询支付参数
+export const getPayParams = (payId) => {
+  return request({
+    url: 'http://localhost:8003/api/pay/params',
+    method: 'POST',
+    data: { id: payId }
+  })
+}
+
+// 支付订单
+export const payOrder = (data) => {
+  return request({
+    url: 'http://localhost:8003/api/pay/create',
+    method: 'POST',
+    data: {
+      oid: data.oid,
+      uid: data.uid,
+      amount: data.amount
+    }
+  })
+}
+
+// 查询订单支付状态
+export const getOrderPayStatus = (orderId) => {
+  return request({
+    url: 'http://localhost:8003/api/pay/detail',
+    method: 'POST',
+    data: { orderId }
   })
 } 

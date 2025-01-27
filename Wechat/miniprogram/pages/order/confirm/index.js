@@ -114,6 +114,7 @@ Page(loginGuard({
         }
 
         const orderItem = {
+          id: product.id,
           product_id: parseInt(productId),
           name: product.name || product.productName || product.product_name || '未知商品',
           price: price,
@@ -181,7 +182,8 @@ Page(loginGuard({
       const price = parseFloat(item.price || 0)
       const quantity = parseInt(item.quantity || 1)
       const processedItem = {
-        id: item.product_id,
+        id: item.product_id || item.id,  // 保存原始商品ID
+        product_id: item.product_id || item.id,  // 额外保存一份，确保不丢失
         name: item.name || '未知商品',
         price: price,
         quantity: quantity,
@@ -205,16 +207,30 @@ Page(loginGuard({
       return sum + item.quantity
     }, 0)
 
+    // 计算运费：3件及以上免运费，否则7元运费
+    const shippingFee = totalCount >= 3 ? 0 : 7
+    console.log('[订单确认] 计算运费:', {
+      商品总数: totalCount,
+      是否免运费: totalCount >= 3,
+      运费金额: shippingFee
+    })
+
+    // 计算订单总价（商品总价 + 运费）
+    const finalTotalPrice = totalPrice + shippingFee
+
     console.log('[订单确认] 订单数据汇总:', {
       商品列表: orderItems,
-      总价: totalPrice,
-      总数量: totalCount
+      商品总价: totalPrice,
+       运费: shippingFee,
+       订单总价: finalTotalPrice,
+       总数量: totalCount
     })
 
     this.setData({
       orderItems,
-      totalPrice: totalPrice.toFixed(2),
-      totalCount
+      totalPrice: finalTotalPrice.toFixed(2),
+      totalCount,
+      shippingFee: shippingFee.toFixed(2)
     })
   },
 
@@ -253,14 +269,47 @@ Page(loginGuard({
 
     try {
       this.setData({ loading: true })
-      const res = await createOrder({
+      
+      // 获取用户ID
+      const userInfo = wx.getStorageSync('userInfo')
+      if (!userInfo || !userInfo.id) {
+        throw new Error('用户未登录')
+      }
+
+      // 构造订单数据
+      const orderData = {
+        uid: userInfo.id,
         address_id: address.id,
-        items: orderItems.map(item => ({
-          product_id: item.id,
-          quantity: item.quantity
-        })),
-        remark
+        pid: orderItems[0].id,  // 直接使用商品ID
+        quantity: orderItems[0].quantity,  // 直接使用商品数量
+        amount: Math.round(orderItems[0].price * 100),  // 转换为分为单位
+        remark,
+        total_price: Math.round(parseFloat(this.data.totalPrice) * 100),  // 转换为分为单位
+        shipping_fee: Math.round(parseFloat(this.data.shippingFee) * 100),  // 转换为分为单位
+        status: 1  // 1: 待支付
+      }
+
+      console.log('[订单确认] 提交订单数据:', {
+        ...orderData,
+        amount_yuan: orderItems[0].price,
+        total_price_yuan: parseFloat(this.data.totalPrice),
+        shipping_fee_yuan: parseFloat(this.data.shippingFee),
+        status_desc: '待支付'
       })
+
+      // 确保有pid和amount
+      if (!orderData.pid) {
+        throw new Error('商品ID无效')
+      }
+      if (!orderData.amount || orderData.amount <= 0) {
+        throw new Error('商品金额无效')
+      }
+
+      const res = await createOrder(orderData)
+
+      if (!res || !res.data || !res.data.id) {
+        throw new Error('创建订单失败：返回数据无效')
+      }
 
       // 下单成功后清除购物车中已购买的商品
       const cartItems = wx.getStorageSync('cartItems') || []
@@ -269,9 +318,20 @@ Page(loginGuard({
       )
       wx.setStorageSync('cartItems', newCartItems)
 
+      // 确保订单ID是数字类型
+      const orderId = parseInt(res.data.id)
+      if (isNaN(orderId)) {
+        throw new Error('创建订单失败：无效的订单ID')
+      }
+
+      console.log('[订单确认] 创建订单成功:', {
+        订单ID: orderId,
+        原始数据: res.data
+      })
+
       // 跳转到支付页面
       wx.navigateTo({
-        url: `/pages/order/payment/index?orderId=${res.data.id}`
+        url: `/pages/order/payment/index?orderId=${orderId}`
       })
     } catch (error) {
       console.error('创建订单失败:', error)

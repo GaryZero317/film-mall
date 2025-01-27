@@ -36,16 +36,15 @@
   <!-- 订单信息 -->
   <view class="order-info">
     <view class="info-item">
-      <text class="label">商品总数</text>
-      <text class="value">{{totalCount}}件</text>
+      <text>共{{totalCount}}件商品</text>
+      <text>商品总金额：¥{{totalPrice}}</text>
     </view>
     <view class="info-item">
-      <text class="label">商品总价</text>
-      <text class="value price">¥{{totalPrice}}</text>
+      <text>运费</text>
+      <text>¥{{shippingFee}}</text>
     </view>
-    <view class="info-item">
-      <text class="label">运费</text>
-      <text class="value">免运费</text>
+    <view class="info-item" wx:if="{{totalCount < 3}}">
+      <text class="shipping-tip">购买3件及以上商品免运费</text>
     </view>
   </view>
 

@@ -23,3 +23,9 @@ OrderRpc:
     Hosts:
       - localhost:2379
     Key: order.rpc
+
+ProductRpc:
+  Etcd:
+    Hosts:
+      - localhost:2379
+    Key: product.rpc

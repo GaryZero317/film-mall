@@ -9,9 +9,9 @@ import (
 	"mall/service/order/api/internal/types"
 )
 
-func UpdateHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
+func updateHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req types.UpdateRequest
+		var req types.UpdateOrderReq
 		if err := httpx.Parse(r, &req); err != nil {
 			httpx.Error(w, err)
 			return

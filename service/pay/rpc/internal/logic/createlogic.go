@@ -3,7 +3,7 @@ package logic
 import (
 	"context"
 
-	"mall/service/order/rpc/types/order"
+	"mall/service/order/rpc/order"
 	"mall/service/pay/model"
 	"mall/service/pay/rpc/internal/svc"
 	"mall/service/pay/rpc/types/pay"

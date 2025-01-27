@@ -15,14 +15,17 @@ import (
 
 // GormOrder represents the order model for GORM
 type GormOrder struct {
-	ID         int64     `gorm:"primaryKey;column:id;autoIncrement"`
-	Oid        string    `gorm:"column:oid;type:varchar(32);uniqueIndex:uk_oid"`
-	Uid        int64     `gorm:"column:uid;index"`
-	Pid        int64     `gorm:"column:pid;index"`
-	Amount     int64     `gorm:"column:amount"`
-	Status     int64     `gorm:"column:status"`
-	CreateTime time.Time `gorm:"column:create_time;type:datetime;not null;default:CURRENT_TIMESTAMP"`
-	UpdateTime time.Time `gorm:"column:update_time;type:datetime;not null;default:CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"`
+	ID          int64     `gorm:"primaryKey;column:id;autoIncrement"`
+	Oid         string    `gorm:"column:oid;type:varchar(32);uniqueIndex:uk_oid"`
+	Uid         int64     `gorm:"column:uid;index"`
+	AddressId   int64     `gorm:"column:address_id"`
+	TotalPrice  int64     `gorm:"column:total_price"`
+	ShippingFee int64     `gorm:"column:shipping_fee"`
+	Status      int64     `gorm:"column:status"`
+	StatusDesc  string    `gorm:"column:status_desc;type:varchar(32)"`
+	Remark      string    `gorm:"column:remark;type:varchar(255)"`
+	CreateTime  time.Time `gorm:"column:create_time;type:datetime;not null;default:CURRENT_TIMESTAMP"`
+	UpdateTime  time.Time `gorm:"column:update_time;type:datetime;not null;default:CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"`
 }
 
 // TableName specifies the table name for GORM
@@ -77,23 +80,30 @@ func NewGormOrderModel(sqlDB *sql.DB, c cache.CacheConf) (*GormOrderModel, error
 }
 
 // Insert adds a new order to the database
-func (m *GormOrderModel) Insert(ctx context.Context, data *Order) (sql.Result, error) {
+func (m *GormOrderModel) Insert(ctx context.Context, session Session, data *Order) (sql.Result, error) {
 	gormOrder := &GormOrder{
-		Uid:    data.Uid,
-		Pid:    data.Pid,
-		Amount: data.Amount,
-		Status: data.Status,
-		Oid:    data.Oid,
+		Uid:         data.Uid,
+		AddressId:   data.AddressId,
+		TotalPrice:  data.TotalPrice,
+		ShippingFee: data.ShippingFee,
+		Status:      data.Status,
+		StatusDesc:  data.StatusDesc,
+		Remark:      data.Remark,
+		Oid:         data.Oid,
 	}
 
-	err := m.db.WithContext(ctx).Create(gormOrder).Error
+	db := m.db
+	if session != nil {
+		db = session.(*GormSession).DB
+	}
+
+	err := db.WithContext(ctx).Create(gormOrder).Error
 	if err != nil {
 		return nil, err
 	}
 
 	// Update the original order with the new ID and timestamps
 	data.Id = gormOrder.ID
-	data.Oid = gormOrder.Oid
 	data.CreateTime = gormOrder.CreateTime
 	data.UpdateTime = gormOrder.UpdateTime
 
@@ -111,53 +121,55 @@ func (m *GormOrderModel) FindOne(ctx context.Context, id int64) (*Order, error) 
 		return nil, err
 	}
 
-	order := &Order{
-		Id:         gormOrder.ID,
-		Uid:        gormOrder.Uid,
-		Pid:        gormOrder.Pid,
-		Amount:     gormOrder.Amount,
-		Status:     gormOrder.Status,
-		CreateTime: gormOrder.CreateTime,
-		UpdateTime: gormOrder.UpdateTime,
-	}
-
-	return order, nil
-}
-
-// FindAllByUid retrieves all orders for a given user ID
-func (m *GormOrderModel) FindAllByUid(ctx context.Context, uid int64) ([]*Order, error) {
-	var gormOrders []GormOrder
-	err := m.db.WithContext(ctx).Where("uid = ?", uid).Find(&gormOrders).Error
-	if err != nil {
-		return nil, err
-	}
-
-	orders := make([]*Order, len(gormOrders))
-	for i, gormOrder := range gormOrders {
-		orders[i] = &Order{
-			Id:         gormOrder.ID,
-			Uid:        gormOrder.Uid,
-			Pid:        gormOrder.Pid,
-			Amount:     gormOrder.Amount,
-			Status:     gormOrder.Status,
-			CreateTime: gormOrder.CreateTime,
-			UpdateTime: gormOrder.UpdateTime,
-		}
-	}
-
-	return orders, nil
+	return convertToOrder(&gormOrder), nil
 }
 
 // Update modifies an existing order
 func (m *GormOrderModel) Update(ctx context.Context, data *Order) error {
-	// 只更新需要修改的字段，不包括创建时间
-	updates := map[string]interface{}{
-		"uid":         data.Uid,
-		"pid":         data.Pid,
-		"amount":      data.Amount,
-		"status":      data.Status,
-		"update_time": time.Now(),
+	// 先获取现有订单
+	var existingOrder GormOrder
+	if err := m.db.WithContext(ctx).First(&existingOrder, data.Id).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return sqlx.ErrNotFound
+		}
+		return err
 	}
+
+	updates := make(map[string]interface{})
+
+	// 只更新提供的字段，保持其他字段不变
+	if data.Status != 0 {
+		updates["status"] = data.Status
+	}
+	if data.StatusDesc != "" {
+		updates["status_desc"] = data.StatusDesc
+	}
+	if data.Remark != "" {
+		updates["remark"] = data.Remark
+	}
+	if data.Uid != 0 {
+		updates["uid"] = data.Uid
+	}
+	if data.AddressId != 0 {
+		updates["address_id"] = data.AddressId
+	}
+	if data.TotalPrice != 0 {
+		updates["total_price"] = data.TotalPrice
+	}
+	if data.ShippingFee != 0 {
+		updates["shipping_fee"] = data.ShippingFee
+	}
+	if data.Oid != "" {
+		updates["oid"] = data.Oid
+	}
+
+	// 如果没有任何字段需要更新，直接返回
+	if len(updates) == 0 {
+		return nil
+	}
+
+	// 添加更新时间
+	updates["update_time"] = time.Now()
 
 	result := m.db.WithContext(ctx).Model(&GormOrder{}).Where("id = ?", data.Id).Updates(updates)
 	if result.Error != nil {
@@ -173,7 +185,99 @@ func (m *GormOrderModel) Update(ctx context.Context, data *Order) error {
 
 // Delete removes an order from the database
 func (m *GormOrderModel) Delete(ctx context.Context, id int64) error {
-	return m.db.WithContext(ctx).Delete(&GormOrder{}, id).Error
+	result := m.db.WithContext(ctx).Delete(&GormOrder{}, id)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return sqlx.ErrNotFound
+	}
+
+	return nil
+}
+
+// FindAllByUid retrieves all orders for a given user ID
+func (m *GormOrderModel) FindAllByUid(ctx context.Context, uid int64) ([]*Order, error) {
+	var gormOrders []GormOrder
+	err := m.db.WithContext(ctx).Where("uid = ?", uid).Find(&gormOrders).Error
+	if err != nil {
+		return nil, err
+	}
+
+	orders := make([]*Order, len(gormOrders))
+	for i := range gormOrders {
+		orders[i] = convertToOrder(&gormOrders[i])
+	}
+
+	return orders, nil
+}
+
+// FindPageListByPage returns a page of orders
+func (m *GormOrderModel) FindPageListByPage(ctx context.Context, page, pageSize int64) ([]*Order, int64, error) {
+	var total int64
+	err := m.db.WithContext(ctx).Model(&GormOrder{}).Count(&total).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	var gormOrders []GormOrder
+	err = m.db.WithContext(ctx).Offset(int((page - 1) * pageSize)).Limit(int(pageSize)).Find(&gormOrders).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	orders := make([]*Order, len(gormOrders))
+	for i := range gormOrders {
+		orders[i] = convertToOrder(&gormOrders[i])
+	}
+
+	return orders, total, nil
+}
+
+// FindByUid returns orders for a given user ID with pagination
+func (m *GormOrderModel) FindByUid(ctx context.Context, uid, status, page, pageSize int64) ([]*Order, int64, error) {
+	var total int64
+	query := m.db.WithContext(ctx).Model(&GormOrder{}).Where("uid = ?", uid)
+
+	if status != 0 {
+		query = query.Where("status = ?", status)
+	}
+
+	err := query.Count(&total).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	var gormOrders []GormOrder
+	err = query.Offset(int((page - 1) * pageSize)).Limit(int(pageSize)).Find(&gormOrders).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	orders := make([]*Order, len(gormOrders))
+	for i := range gormOrders {
+		orders[i] = convertToOrder(&gormOrders[i])
+	}
+
+	return orders, total, nil
+}
+
+// convertToOrder converts a GormOrder to an Order
+func convertToOrder(gormOrder *GormOrder) *Order {
+	return &Order{
+		Id:          gormOrder.ID,
+		Oid:         gormOrder.Oid,
+		Uid:         gormOrder.Uid,
+		AddressId:   gormOrder.AddressId,
+		TotalPrice:  gormOrder.TotalPrice,
+		ShippingFee: gormOrder.ShippingFee,
+		Status:      gormOrder.Status,
+		StatusDesc:  gormOrder.StatusDesc,
+		Remark:      gormOrder.Remark,
+		CreateTime:  gormOrder.CreateTime,
+		UpdateTime:  gormOrder.UpdateTime,
+	}
 }
 
 // lastInsertIDResult implements sql.Result interface
@@ -189,42 +293,22 @@ func (r *lastInsertIDResult) RowsAffected() (int64, error) {
 	return 1, nil
 }
 
-// FindPageListByPage 分页获取订单列表
-func (m *GormOrderModel) FindPageListByPage(ctx context.Context, page, pageSize int64) ([]*Order, int64, error) {
-	if page < 1 {
-		page = 1
-	}
-	if pageSize < 1 {
-		pageSize = 10
-	}
-	offset := (page - 1) * pageSize
+// GormSession wraps gorm.DB to implement Session interface
+type GormSession struct {
+	*gorm.DB
+}
 
-	var gormOrders []*GormOrder
-	var total int64
+func (s *GormSession) Commit() error {
+	return s.DB.Commit().Error
+}
 
-	// 查询总数
-	if err := m.db.Table("order").Count(&total).Error; err != nil {
-		return nil, 0, err
-	}
+func (s *GormSession) Rollback() error {
+	return s.DB.Rollback().Error
+}
 
-	// 查询数据
-	if err := m.db.Table("order").Offset(int(offset)).Limit(int(pageSize)).Find(&gormOrders).Error; err != nil {
-		return nil, 0, err
-	}
-
-	// 转换为Order类型
-	var orders []*Order
-	for _, gorder := range gormOrders {
-		orders = append(orders, &Order{
-			Id:         gorder.ID,
-			Uid:        gorder.Uid,
-			Pid:        gorder.Pid,
-			Amount:     gorder.Amount,
-			Status:     gorder.Status,
-			CreateTime: gorder.CreateTime,
-			UpdateTime: gorder.UpdateTime,
-		})
-	}
-
-	return orders, total, nil
+// Trans executes given function in a transaction
+func (m *GormOrderModel) Trans(ctx context.Context, fn func(ctx context.Context, session Session) error) error {
+	return m.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		return fn(ctx, &GormSession{DB: tx})
+	})
 }

@@ -5,6 +5,7 @@ import (
 
 	"mall/service/order/api/internal/svc"
 	"mall/service/order/api/internal/types"
+	"mall/service/order/rpc/order"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -24,7 +25,13 @@ func NewDeleteLogic(ctx context.Context, svcCtx *svc.ServiceContext) *DeleteLogi
 }
 
 func (l *DeleteLogic) Delete(req *types.DeleteOrderReq) (resp *types.DeleteOrderResp, err error) {
-	// todo: add your logic here and delete this line
+	// 调用 RPC 删除订单
+	_, err = l.svcCtx.OrderRpc.Remove(l.ctx, &order.RemoveRequest{
+		Id: req.Id,
+	})
+	if err != nil {
+		return nil, err
+	}
 
-	return
+	return &types.DeleteOrderResp{}, nil
 }

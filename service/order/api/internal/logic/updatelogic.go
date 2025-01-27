@@ -5,7 +5,7 @@ import (
 
 	"mall/service/order/api/internal/svc"
 	"mall/service/order/api/internal/types"
-	"mall/service/order/rpc/types/order"
+	"mall/service/order/rpc/order"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -24,7 +24,8 @@ func NewUpdateLogic(ctx context.Context, svcCtx *svc.ServiceContext) *UpdateLogi
 	}
 }
 
-func (l *UpdateLogic) Update(req *types.UpdateRequest) (resp *types.UpdateResponse, err error) {
+func (l *UpdateLogic) Update(req *types.UpdateOrderReq) (resp *types.UpdateOrderResp, err error) {
+	// 调用 RPC 更新订单
 	_, err = l.svcCtx.OrderRpc.Update(l.ctx, &order.UpdateRequest{
 		Id:     req.Id,
 		Status: req.Status,
@@ -33,5 +34,5 @@ func (l *UpdateLogic) Update(req *types.UpdateRequest) (resp *types.UpdateRespon
 		return nil, err
 	}
 
-	return &types.UpdateResponse{}, nil
+	return &types.UpdateOrderResp{}, nil
 }

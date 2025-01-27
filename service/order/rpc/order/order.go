@@ -19,6 +19,7 @@ type (
 	DetailResponse = types.DetailResponse
 	ListRequest    = types.ListRequest
 	ListResponse   = types.ListResponse
+	OrderItem      = types.OrderItem
 	PaidRequest    = types.PaidRequest
 	PaidResponse   = types.PaidResponse
 	RemoveRequest  = types.RemoveRequest

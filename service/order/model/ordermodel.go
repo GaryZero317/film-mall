@@ -14,12 +14,22 @@ type (
 	// OrderModel is an interface to be customized, add more methods here,
 	// and implement the added methods in customOrderModel.
 	OrderModel interface {
-		Insert(ctx context.Context, data *Order) (sql.Result, error)
+		// base methods
+		Insert(ctx context.Context, session Session, data *Order) (sql.Result, error)
 		FindOne(ctx context.Context, id int64) (*Order, error)
 		Update(ctx context.Context, data *Order) error
 		Delete(ctx context.Context, id int64) error
+		Trans(ctx context.Context, fn func(ctx context.Context, session Session) error) error
+
+		// custom methods
+		FindByUid(ctx context.Context, uid, status, page, pageSize int64) ([]*Order, int64, error)
 		FindAllByUid(ctx context.Context, uid int64) ([]*Order, error)
 		FindPageListByPage(ctx context.Context, page, pageSize int64) ([]*Order, int64, error)
+	}
+
+	Session interface {
+		Commit() error
+		Rollback() error
 	}
 
 	customOrderModel struct {
@@ -27,9 +37,9 @@ type (
 	}
 )
 
-// NewOrderModel 返回数据库表的模型。
+// NewOrderModel returns a model for the database table.
 func NewOrderModel(conn sqlx.SqlConn, c cache.CacheConf) OrderModel {
-	// 获取原始数据库连接
+	// Get the raw database connection
 	rawDB, err := conn.RawDB()
 	if err != nil {
 		panic(err)
@@ -49,7 +59,7 @@ func (m *customOrderModel) FindAllByUid(ctx context.Context, uid int64) ([]*Orde
 	return m.GormOrderModel.FindAllByUid(ctx, uid)
 }
 
-// FindPageListByPage 分页获取订单列表
+// FindPageListByPage returns a page of orders
 func (m *customOrderModel) FindPageListByPage(ctx context.Context, page, pageSize int64) ([]*Order, int64, error) {
 	return m.GormOrderModel.FindPageListByPage(ctx, page, pageSize)
 }

@@ -7,13 +7,15 @@ import (
 	"mall/service/order/api/internal/svc"
 	"mall/service/order/api/internal/types"
 
+	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/rest/httpx"
 )
 
-func CreateHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
+func createHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req types.CreateRequest
+		var req types.CreateOrderReq
 		if err := httpx.Parse(r, &req); err != nil {
+			logx.Errorf("解析创建订单请求失败: %+v", err)
 			httpx.Error(w, err)
 			return
 		}

@@ -12,6 +12,15 @@ type OrderItem struct {
 	Amount       int64  `json:"amount"`        // 商品总价(分)
 }
 
+type CreateOrderItem struct {
+	Pid          int64  `json:"pid"`           // 商品ID
+	ProductName  string `json:"product_name"`  // 商品名称
+	ProductImage string `json:"product_image"` // 商品图片
+	Price        int64  `json:"price"`         // 商品单价(分)
+	Quantity     int64  `json:"quantity"`      // 购买数量
+	Amount       int64  `json:"amount"`        // 商品总价(分)
+}
+
 type Order struct {
 	Id          int64       `json:"id"`           // 订单ID
 	Oid         string      `json:"oid"`          // 订单号
@@ -28,12 +37,13 @@ type Order struct {
 }
 
 type CreateOrderReq struct {
-	Uid         int64       `json:"uid"`          // 用户ID
-	AddressId   int64       `json:"address_id"`   // 收货地址ID
-	TotalPrice  int64       `json:"total_price"`  // 订单总价(分)
-	ShippingFee int64       `json:"shipping_fee"` // 运费(分)
-	Remark      string      `json:"remark"`       // 订单备注
-	Items       []OrderItem `json:"items"`        // 订单商品列表
+	Uid         int64             `json:"uid"`          // 用户ID
+	AddressId   int64             `json:"address_id"`   // 收货地址ID
+	TotalPrice  int64             `json:"total_price"`  // 订单总价(分)
+	ShippingFee int64             `json:"shipping_fee"` // 运费(分)
+	Remark      string            `json:"remark"`       // 订单备注
+	Items       []CreateOrderItem `json:"items"`        // 订单商品列表
+	Status      int64             `json:"status"`       // 订单状态
 }
 
 type CreateOrderResp struct {
@@ -42,9 +52,8 @@ type CreateOrderResp struct {
 }
 
 type UpdateOrderReq struct {
-	Id         int64  `path:"id"`          // 订单ID
-	Status     int64  `json:"status"`      // 订单状态
-	StatusDesc string `json:"status_desc"` // 状态描述
+	Id     int64 `path:"id"`     // 订单ID
+	Status int64 `json:"status"` // 订单状态
 }
 
 type UpdateOrderResp struct {

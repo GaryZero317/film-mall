@@ -3,7 +3,6 @@ package logic
 import (
 	"context"
 	"fmt"
-	"math/rand"
 	"time"
 
 	"mall/service/order/model"
@@ -27,46 +26,80 @@ func NewCreateLogic(ctx context.Context, svcCtx *svc.ServiceContext) *CreateLogi
 	}
 }
 
-// 生成订单号
-func generateOrderID(uid int64) string {
-	// 获取当前时间
-	now := time.Now()
-	// 生成4位随机数
-	random := rand.Intn(10000)
-	// 格式化订单号：时间戳(14位) + 随机数(4位) + 用户ID
-	return fmt.Sprintf("%s%04d%d",
-		now.Format("20060102150405"),
-		random,
-		uid)
-}
-
 func (l *CreateLogic) Create(in *types.CreateRequest) (*types.CreateResponse, error) {
+	l.Logger.Infof("RPC创建订单请求: %+v", in)
+
 	// 生成订单号
-	oid := generateOrderID(in.Uid)
+	now := time.Now()
+	oid := fmt.Sprintf("%s%d", now.Format("20060102150405"), in.Uid)
 
-	// 创建订单记录
-	order := &model.Order{
-		Uid:    in.Uid,
-		Pid:    in.Pid,
-		Amount: in.Amount,
-		Status: in.Status,
-		Oid:    oid,
+	// 构建订单商品数据
+	var orderItems []model.OrderItem
+	for _, item := range in.Items {
+		orderItems = append(orderItems, model.OrderItem{
+			OrderId:      0, // 创建订单后更新
+			Pid:          item.Pid,
+			ProductName:  item.ProductName,
+			ProductImage: item.ProductImage,
+			Price:        item.Price,
+			Quantity:     item.Quantity,
+			Amount:       item.Amount,
+		})
 	}
 
-	// 插入数据库
-	result, err := l.svcCtx.OrderModel.Insert(l.ctx, order)
+	l.Logger.Info("开始创建订单")
+	// 创建订单
+	order := model.Order{
+		Oid:         oid,
+		Uid:         in.Uid,
+		AddressId:   in.AddressId,
+		TotalPrice:  in.TotalPrice,
+		ShippingFee: in.ShippingFee,
+		Status:      in.Status,
+		Remark:      in.Remark,
+		CreateTime:  now,
+		UpdateTime:  now,
+	}
+
+	// 开启事务
+	err := l.svcCtx.OrderModel.Trans(l.ctx, func(ctx context.Context, session model.Session) error {
+		l.Logger.Info("开始事务")
+		// 1. 创建订单
+		result, err := l.svcCtx.OrderModel.Insert(ctx, session, &order)
+		if err != nil {
+			l.Logger.Errorf("创建订单失败: %v", err)
+			return err
+		}
+
+		orderId, err := result.LastInsertId()
+		if err != nil {
+			l.Logger.Errorf("获取订单ID失败: %v", err)
+			return err
+		}
+
+		l.Logger.Info("开始创建订单商品")
+		// 2. 创建订单商品
+		for i := range orderItems {
+			orderItems[i].OrderId = orderId
+			_, err := l.svcCtx.OrderItemModel.Insert(ctx, session, &orderItems[i])
+			if err != nil {
+				l.Logger.Errorf("创建订单商品失败: %v", err)
+				return err
+			}
+		}
+
+		l.Logger.Info("事务完成")
+		return nil
+	})
+
 	if err != nil {
+		l.Logger.Errorf("事务执行失败: %v", err)
 		return nil, err
 	}
 
-	// 获取自增ID
-	newOrder, err := result.LastInsertId()
-	if err != nil {
-		return nil, err
-	}
-
+	l.Logger.Infof("创建订单成功: %+v", order)
 	return &types.CreateResponse{
-		Id:  newOrder,
-		Oid: oid,
+		Id:  order.Id,
+		Oid: order.Oid,
 	}, nil
 }

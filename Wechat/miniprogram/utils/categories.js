@@ -4,7 +4,7 @@ export const categories = [
     id: 1,
     name: '彩色胶卷',
     icon: '/assets/images/categories/color.png',
-    keywords: ['彩色', 'Color', 'Kodak', 'Fuji', 'CineStill']
+    keywords: ['彩色']
   },
   {
     id: 2,
@@ -28,6 +28,6 @@ export const categories = [
     id: 5,
     name: '电影胶片',
     icon: '/assets/images/categories/cinema.png',
-    keywords: ['电影', 'Cinema', 'Motion', 'Vision3']
+    keywords: ['电影']
   }
 ] 

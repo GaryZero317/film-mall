@@ -107,10 +107,10 @@ Page({
       
       if (res.code === 0) {
         const products = res.data.list || []
-        // 处理图片URL
+        // 处理图片URL：mainImage已经包含了完整的URL路径
         const processedProducts = products.map(item => ({
           ...item,
-          imageUrl: item.imageUrl ? `http://localhost:8001${item.imageUrl}` : '/assets/images/default.png'
+          imageUrl: item.mainImage || '/assets/images/default.png'
         }))
         
         this.setData({ 

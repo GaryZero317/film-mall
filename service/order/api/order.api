@@ -53,9 +53,15 @@ type (
 		Status      int64             `json:"status"`       // 订单状态
 	}
 
-	CreateOrderResp {
+	CreateOrderData {
 		Id  int64  `json:"id"`  // 订单ID
 		Oid string `json:"oid"` // 订单号
+	}
+
+	CreateOrderResp {
+		Code int64           `json:"code"`
+		Msg  string          `json:"msg"`
+		Data CreateOrderData `json:"data"`
 	}
 
 	UpdateOrderReq {
@@ -64,6 +70,8 @@ type (
 	}
 
 	UpdateOrderResp {
+		Code int64  `json:"code"`
+		Msg  string `json:"msg"`
 	}
 
 	DeleteOrderReq {
@@ -71,6 +79,8 @@ type (
 	}
 
 	DeleteOrderResp {
+		Code int64  `json:"code"`
+		Msg  string `json:"msg"`
 	}
 
 	GetOrderReq {
@@ -78,7 +88,9 @@ type (
 	}
 
 	GetOrderResp {
-		Order Order `json:"order"` // 订单信息
+		Code int64  `json:"code"`
+		Msg  string `json:"msg"`
+		Data Order  `json:"data"` // 订单信息
 	}
 
 	ListOrderReq {
@@ -88,9 +100,15 @@ type (
 		PageSize int64 `form:"page_size"` // 每页数量
 	}
 
-	ListOrderResp {
+	ListOrderData {
 		Total int64   `json:"total"` // 总数
-		Data  []Order `json:"data"`  // 订单列表
+		List  []Order `json:"list"`  // 订单列表
+	}
+
+	ListOrderResp {
+		Code int64         `json:"code"`
+		Msg  string        `json:"msg"`
+		Data ListOrderData `json:"data"`
 	}
 )
 

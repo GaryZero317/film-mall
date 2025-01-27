@@ -46,9 +46,15 @@ type CreateOrderReq struct {
 	Status      int64             `json:"status"`       // 订单状态
 }
 
-type CreateOrderResp struct {
+type CreateOrderData struct {
 	Id  int64  `json:"id"`  // 订单ID
 	Oid string `json:"oid"` // 订单号
+}
+
+type CreateOrderResp struct {
+	Code int64           `json:"code"`
+	Msg  string          `json:"msg"`
+	Data CreateOrderData `json:"data"`
 }
 
 type UpdateOrderReq struct {
@@ -57,6 +63,8 @@ type UpdateOrderReq struct {
 }
 
 type UpdateOrderResp struct {
+	Code int64  `json:"code"`
+	Msg  string `json:"msg"`
 }
 
 type DeleteOrderReq struct {
@@ -64,6 +72,8 @@ type DeleteOrderReq struct {
 }
 
 type DeleteOrderResp struct {
+	Code int64  `json:"code"`
+	Msg  string `json:"msg"`
 }
 
 type GetOrderReq struct {
@@ -71,7 +81,9 @@ type GetOrderReq struct {
 }
 
 type GetOrderResp struct {
-	Order Order `json:"order"` // 订单信息
+	Code int64  `json:"code"`
+	Msg  string `json:"msg"`
+	Data Order  `json:"data"` // 订单信息
 }
 
 type ListOrderReq struct {
@@ -81,7 +93,13 @@ type ListOrderReq struct {
 	PageSize int64 `form:"page_size"` // 每页数量
 }
 
-type ListOrderResp struct {
+type ListOrderData struct {
 	Total int64   `json:"total"` // 总数
-	Data  []Order `json:"data"`  // 订单列表
+	List  []Order `json:"list"`  // 订单列表
+}
+
+type ListOrderResp struct {
+	Code int64         `json:"code"`
+	Msg  string        `json:"msg"`
+	Data ListOrderData `json:"data"`
 }

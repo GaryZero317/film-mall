@@ -7,7 +7,7 @@ import (
 	"mall/service/order/api/internal/types"
 	"mall/service/order/rpc/order"
 
-	"errors"
+	"mall/service/order/api/internal/code"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -31,16 +31,28 @@ func (l *CreateLogic) Create(req *types.CreateOrderReq) (resp *types.CreateOrder
 
 	// 参数校验
 	if req.Uid == 0 {
-		return nil, errors.New("用户ID不能为空")
+		return &types.CreateOrderResp{
+			Code: code.InvalidParams,
+			Msg:  "用户ID不能为空",
+		}, nil
 	}
 	if req.AddressId == 0 {
-		return nil, errors.New("收货地址不能为空")
+		return &types.CreateOrderResp{
+			Code: code.InvalidParams,
+			Msg:  "收货地址不能为空",
+		}, nil
 	}
 	if req.TotalPrice <= 0 {
-		return nil, errors.New("订单总价必须大于0")
+		return &types.CreateOrderResp{
+			Code: code.OrderAmountInvalid,
+			Msg:  code.GetMsg(code.OrderAmountInvalid),
+		}, nil
 	}
 	if len(req.Items) == 0 {
-		return nil, errors.New("订单商品不能为空")
+		return &types.CreateOrderResp{
+			Code: code.InvalidParams,
+			Msg:  "订单商品不能为空",
+		}, nil
 	}
 
 	// 构建订单商品列表
@@ -70,12 +82,19 @@ func (l *CreateLogic) Create(req *types.CreateOrderReq) (resp *types.CreateOrder
 
 	if err != nil {
 		l.Logger.Errorf("RPC创建订单失败: %v", err)
-		return nil, err
+		return &types.CreateOrderResp{
+			Code: code.OrderCreateFailed,
+			Msg:  code.GetMsg(code.OrderCreateFailed),
+		}, nil
 	}
 
 	l.Logger.Infof("创建订单成功: %+v", res)
 	return &types.CreateOrderResp{
-		Id:  res.Id,
-		Oid: res.Oid,
+		Code: code.Success,
+		Msg:  code.GetMsg(code.Success),
+		Data: types.CreateOrderData{
+			Id:  res.Id,
+			Oid: res.Oid,
+		},
 	}, nil
 }

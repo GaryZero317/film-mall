@@ -3,6 +3,7 @@ package logic
 import (
 	"context"
 
+	"mall/service/order/api/internal/code"
 	"mall/service/order/api/internal/svc"
 	"mall/service/order/api/internal/types"
 	"mall/service/order/rpc/order"
@@ -25,18 +26,25 @@ func NewGetLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetLogic {
 }
 
 func (l *GetLogic) Get(req *types.GetOrderReq) (resp *types.GetOrderResp, err error) {
-	// 调用 RPC 获取订单详情
+	l.Logger.Infof("API获取订单请求: %+v", req)
+
+	// 调用 RPC 获取订单
 	res, err := l.svcCtx.OrderRpc.Detail(l.ctx, &order.DetailRequest{
 		Id: req.Id,
 	})
+
 	if err != nil {
-		return nil, err
+		l.Logger.Errorf("RPC获取订单失败: %v", err)
+		return &types.GetOrderResp{
+			Code: code.OrderNotExist,
+			Msg:  code.GetMsg(code.OrderNotExist),
+		}, nil
 	}
 
-	// 构造订单商品列表
-	var orderItems []types.OrderItem
+	// 转换订单商品列表
+	var items []types.OrderItem
 	for _, item := range res.Items {
-		orderItems = append(orderItems, types.OrderItem{
+		items = append(items, types.OrderItem{
 			Id:           item.Id,
 			OrderId:      item.OrderId,
 			Pid:          item.Pid,
@@ -48,9 +56,11 @@ func (l *GetLogic) Get(req *types.GetOrderReq) (resp *types.GetOrderResp, err er
 		})
 	}
 
-	// 构造订单信息
+	l.Logger.Info("获取订单成功")
 	return &types.GetOrderResp{
-		Order: types.Order{
+		Code: code.Success,
+		Msg:  code.GetMsg(code.Success),
+		Data: types.Order{
 			Id:          res.Id,
 			Oid:         res.Oid,
 			Uid:         res.Uid,
@@ -60,7 +70,7 @@ func (l *GetLogic) Get(req *types.GetOrderReq) (resp *types.GetOrderResp, err er
 			Status:      res.Status,
 			StatusDesc:  res.StatusDesc,
 			Remark:      res.Remark,
-			Items:       orderItems,
+			Items:       items,
 			CreateTime:  res.CreateTime,
 			UpdateTime:  res.UpdateTime,
 		},

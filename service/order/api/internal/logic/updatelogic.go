@@ -3,6 +3,7 @@ package logic
 import (
 	"context"
 
+	"mall/service/order/api/internal/code"
 	"mall/service/order/api/internal/svc"
 	"mall/service/order/api/internal/types"
 	"mall/service/order/rpc/order"
@@ -25,14 +26,33 @@ func NewUpdateLogic(ctx context.Context, svcCtx *svc.ServiceContext) *UpdateLogi
 }
 
 func (l *UpdateLogic) Update(req *types.UpdateOrderReq) (resp *types.UpdateOrderResp, err error) {
+	l.Logger.Infof("API更新订单请求: %+v", req)
+
+	// 参数校验
+	if req.Status < 0 || req.Status > 4 {
+		return &types.UpdateOrderResp{
+			Code: code.OrderStatusInvalid,
+			Msg:  code.GetMsg(code.OrderStatusInvalid),
+		}, nil
+	}
+
 	// 调用 RPC 更新订单
 	_, err = l.svcCtx.OrderRpc.Update(l.ctx, &order.UpdateRequest{
 		Id:     req.Id,
 		Status: req.Status,
 	})
+
 	if err != nil {
-		return nil, err
+		l.Logger.Errorf("RPC更新订单失败: %v", err)
+		return &types.UpdateOrderResp{
+			Code: code.OrderUpdateFailed,
+			Msg:  code.GetMsg(code.OrderUpdateFailed),
+		}, nil
 	}
 
-	return &types.UpdateOrderResp{}, nil
+	l.Logger.Info("更新订单成功")
+	return &types.UpdateOrderResp{
+		Code: code.Success,
+		Msg:  code.GetMsg(code.Success),
+	}, nil
 }

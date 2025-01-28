@@ -32,7 +32,8 @@ Page(loginGuard({
     totalCount: 0,
     remark: '',
     loading: false,
-    fromCart: false  // 添加来源标记
+    fromCart: false,  // 添加来源标记
+    shippingFee: 0,   // 添加运费字段
   },
 
   onLoad(options) {
@@ -178,9 +179,13 @@ Page(loginGuard({
         return
       }
       
-      // 计算总价和总数量
-      const totalPrice = selectedItems.reduce((total, item) => total + item.price * item.quantity, 0)
+      // 计算总数量和商品总价
       const totalCount = selectedItems.reduce((total, item) => total + item.quantity, 0)
+      const productTotal = selectedItems.reduce((total, item) => total + item.price * item.quantity, 0)
+      
+      // 计算运费
+      const shippingFee = totalCount >= 3 ? 0 : 7
+      const totalPrice = productTotal + shippingFee
       
       // 设置订单商品
       this.setData({
@@ -192,7 +197,8 @@ Page(loginGuard({
           cover_image: item.product_image  // 使用从购物车传递的完整图片路径
         })),
         totalPrice: totalPrice.toFixed(2),
-        totalCount
+        totalCount,
+        shippingFee: shippingFee.toFixed(2)
       })
       
       console.log('[订单确认] 设置订单商品成功:', this.data.orderItems)
@@ -252,69 +258,25 @@ Page(loginGuard({
         return null
       }
 
-      const processedItem = {
-        id: item.id,  // 原始ID
-        product_id: parseInt(item.product_id || item.id),  // 确保product_id是数字类型
-        name: item.name || '未知商品',
+      return {
+        ...item,
         price: price,
-        quantity: quantity,
-        cover_image: item.cover_image || '/assets/images/default.png'
+        quantity: quantity
       }
-      console.log(`[订单确认] 处理商品 ${processedItem.name}:`, {
-        原始数据: item,
-        处理后数据: processedItem,
-        product_id类型: typeof processedItem.product_id,
-        product_id值: processedItem.product_id,
-        价格类型: typeof processedItem.price,
-        价格值: processedItem.price
-      })
-      return processedItem
-    }).filter(item => item !== null)
+    }).filter(Boolean)
 
-    if (orderItems.length === 0) {
-      console.error('[订单确认] 没有有效的商品数据')
-      wx.showToast({
-        title: '商品数据无效',
-        icon: 'none'
-      })
-      return
-    }
-
-    // 计算总价和总数量
-    const totalPrice = orderItems.reduce((sum, item) => {
-      const itemTotal = item.price * item.quantity
-      console.log(`[订单确认] 计算商品 ${item.name} 小计: ${itemTotal} = ${item.price} × ${item.quantity}`)
-      return sum + itemTotal
-    }, 0)
+    // 计算总数量和商品总价
+    const totalCount = orderItems.reduce((total, item) => total + item.quantity, 0)
+    const productTotal = orderItems.reduce((total, item) => total + item.price * item.quantity, 0)
     
-    const totalCount = orderItems.reduce((sum, item) => {
-      console.log(`[订单确认] 计算商品 ${item.name} 数量: ${item.quantity}`)
-      return sum + item.quantity
-    }, 0)
-
-    // 计算运费：3件及以上免运费，否则7元运费
+    // 计算运费
     const shippingFee = totalCount >= 3 ? 0 : 7
-    console.log('[订单确认] 计算运费:', {
-      商品总数: totalCount,
-      是否免运费: totalCount >= 3,
-      运费金额: shippingFee
-    })
-
-    // 计算订单总价（商品总价 + 运费）
-    const finalTotalPrice = totalPrice + shippingFee
-
-    console.log('[订单确认] 订单数据汇总:', {
-      商品列表: orderItems,
-      商品总价: totalPrice,
-      运费: shippingFee,
-      订单总价: finalTotalPrice,
-      总数量: totalCount
-    })
+    const totalPrice = productTotal + shippingFee
 
     this.setData({
       orderItems,
-      totalPrice: finalTotalPrice.toFixed(2),
       totalCount,
+      totalPrice: totalPrice.toFixed(2),
       shippingFee: shippingFee.toFixed(2)
     })
   },

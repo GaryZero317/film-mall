@@ -212,7 +212,7 @@ Page({
       
       console.log('[注册] 注册响应:', res)
       
-      if (res.code === 0 && res.data) {
+      if (res.code === 200 && res.data) {
         wx.showToast({
           title: '注册成功',
           icon: 'success',

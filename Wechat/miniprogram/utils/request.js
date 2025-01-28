@@ -62,39 +62,93 @@ const request = (options) => {
       data,
       header: headers,
       success: (res) => {
-        console.log('请求成功:', res)
+        console.log('[请求工具] 收到响应:', {
+          状态码: res.statusCode,
+          响应数据: res.data,
+          响应类型: typeof res.data
+        })
         
         // 处理500错误中的业务错误信息
         if (res.statusCode === 500 && typeof res.data === 'string' && res.data.indexOf('code = Code') !== -1) {
           const errorMsg = res.data.split('desc = ')[1] || '请求失败'
-          console.error('业务错误:', errorMsg)
+          console.error('[请求工具] 500错误:', errorMsg)
           reject(new Error(errorMsg))
           return
         }
         
         if (res.statusCode === 200) {
           // 处理不同的返回格式
-          if (res.data && (res.data.code !== undefined)) {
-            // 标准格式：{ code: 0, msg: '', data: {} }
-            if (res.data.code === 0) {
-              resolve(res.data)
-            } else {
+          if (res.data && typeof res.data === 'object') {
+            console.log('[请求工具] 处理对象响应:', res.data)
+
+            // 标准格式：{ code: 0 或 200, msg: '', data: {} }
+            if ('code' in res.data) {
+              if (res.data.code === 0 || res.data.code === 200) {
+                // 直接返回原始响应
+                console.log('[请求工具] 成功响应:', res.data)
+                resolve(res.data)
+                return
+              }
+              
+              // 处理错误响应
               const errorMsg = res.data.msg || '请求失败'
-              console.error('业务错误:', errorMsg)
+              console.error('[请求工具] 业务错误:', errorMsg)
               reject(new Error(errorMsg))
+              return
             }
-          } else if (typeof res.data === 'string' && res.data.indexOf('field') !== -1) {
-            // 处理验证错误
-            console.error('验证错误:', res.data)
-            reject(new Error(res.data))
-          } else {
-            // 直接返回数据格式
-            resolve({
-              code: 0,
+
+            // 对象响应但没有code字段，包装为标准格式
+            const response = {
+              code: 200,
               msg: 'success',
               data: res.data
-            })
+            }
+            console.log('[请求工具] 包装对象响应:', response)
+            resolve(response)
+            return
           }
+
+          // 处理字符串响应
+          if (typeof res.data === 'string') {
+            // 处理验证错误
+            if (res.data.indexOf('field') !== -1) {
+              console.error('[请求工具] 验证错误:', res.data)
+              reject(new Error(res.data))
+              return
+            }
+
+            // 处理成功字符串
+            if (res.data === '成功') {
+              const response = {
+                code: 200,
+                msg: '成功',
+                data: null
+              }
+              console.log('[请求工具] 成功字符串响应:', response)
+              resolve(response)
+              return
+            }
+
+            // 其他字符串响应
+            const response = {
+              code: 200,
+              msg: res.data,
+              data: null
+            }
+            console.log('[请求工具] 其他字符串响应:', response)
+            resolve(response)
+            return
+          }
+
+          // 其他类型响应
+          const response = {
+            code: 200,
+            msg: 'success',
+            data: res.data
+          }
+          console.log('[请求工具] 其他类型响应:', response)
+          resolve(response)
+          return
         } else if (res.statusCode === 401 && !noAuth) {
           // 只有需要认证的请求才处理401错误
           wx.removeStorageSync('token')

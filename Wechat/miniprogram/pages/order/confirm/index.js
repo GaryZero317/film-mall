@@ -168,14 +168,31 @@ Page(loginGuard({
       
       console.log('[订单确认] 订单商品列表:', orderItems)
       
-      // 计算总价
+      // 计算总价和总数量
       const totalPrice = orderItems.reduce((total, item) => {
         return total + (item.price * item.quantity)
       }, 0)
+
+      const totalCount = orderItems.reduce((total, item) => {
+        return total + item.quantity
+      }, 0)
+
+      // 计算运费：3件及以上免运费，否则7元运费
+      const shippingFee = totalCount >= 3 ? 0 : 7
       
+      console.log('[订单确认] 计算结果:', {
+        商品列表: orderItems,
+        总价: totalPrice,
+        总数量: totalCount,
+        运费: shippingFee,
+        最终总价: totalPrice + shippingFee
+      })
+
       this.setData({
         orderItems,
-        totalPrice: totalPrice.toFixed(2)
+        totalPrice: (totalPrice + shippingFee).toFixed(2),
+        totalCount,
+        shippingFee: shippingFee.toFixed(2)
       })
     } catch (error) {
       console.error('[订单确认] 加载商品失败:', error)
@@ -250,7 +267,7 @@ Page(loginGuard({
         价格值: processedItem.price
       })
       return processedItem
-    }).filter(item => item !== null)  // 过滤掉无效的商品
+    }).filter(item => item !== null)
 
     if (orderItems.length === 0) {
       console.error('[订单确认] 没有有效的商品数据')
@@ -261,6 +278,7 @@ Page(loginGuard({
       return
     }
 
+    // 计算总价和总数量
     const totalPrice = orderItems.reduce((sum, item) => {
       const itemTotal = item.price * item.quantity
       console.log(`[订单确认] 计算商品 ${item.name} 小计: ${itemTotal} = ${item.price} × ${item.quantity}`)
@@ -315,7 +333,7 @@ Page(loginGuard({
 
   // 提交订单
   async submitOrder() {
-    const { address, orderItems, remark } = this.data
+    const { address, orderItems, remark, totalPrice, shippingFee } = this.data
     if (!address) {
       wx.showToast({
         title: '请选择收货地址',
@@ -341,69 +359,124 @@ Page(loginGuard({
         throw new Error('用户未登录')
       }
 
+      // 确保所有金额都是有效数字
+      const finalTotalPrice = parseFloat(totalPrice)
+      const finalShippingFee = parseFloat(shippingFee)
+
+      if (isNaN(finalTotalPrice) || finalTotalPrice <= 0) {
+        throw new Error('订单总金额无效')
+      }
+
+      if (isNaN(finalShippingFee)) {
+        throw new Error('运费金额无效')
+      }
+
       // 构造订单数据
       const orderData = {
         uid: userInfo.id,
         address_id: address.id,
-        pid: orderItems[0].product_id,  // 使用product_id作为pid
-        quantity: orderItems[0].quantity,
-        amount: Math.round(orderItems[0].price * 100),  // 转换为分为单位
-        remark,
-        total_price: Math.round(parseFloat(this.data.totalPrice) * 100),  // 转换为分为单位
-        shipping_fee: Math.round(parseFloat(this.data.shippingFee) * 100),  // 转换为分为单位
-        status: 1  // 1: 待支付
+        items: orderItems.map(item => ({
+          pid: item.product_id,
+          product_name: item.name,
+          product_image: item.cover_image,
+          price: Math.round(item.price * 100),  // 转换为分为单位
+          quantity: item.quantity,
+          amount: Math.round(item.price * item.quantity * 100)  // 商品总价（分）
+        })),
+        remark: remark || '',
+        total_price: Math.round(finalTotalPrice * 100),  // 转换为分为单位
+        shipping_fee: Math.round(finalShippingFee * 100),  // 转换为分为单位
+        status: 0  // 0: 待支付
       }
 
       console.log('[订单确认] 提交订单数据:', {
-        ...orderData,
-        pid_type: typeof orderItems[0].product_id,
-        original_id: orderItems[0].id,
-        amount_yuan: orderItems[0].price,
-        total_price_yuan: parseFloat(this.data.totalPrice),
-        shipping_fee_yuan: parseFloat(this.data.shippingFee),
-        status_desc: '待支付'
+        原始数据: orderData,
+        items_detail: orderItems.map(item => ({
+          pid: item.product_id,
+          name: item.name,
+          price_yuan: item.price,
+          quantity: item.quantity,
+          amount_yuan: item.price * item.quantity
+        })),
+        total_price_yuan: finalTotalPrice,
+        shipping_fee_yuan: finalShippingFee,
+        订单总价分: Math.round(finalTotalPrice * 100),
+        运费分: Math.round(finalShippingFee * 100)
       })
-
-      // 确保有pid和amount
-      if (!orderData.pid) {
-        throw new Error('商品ID无效')
-      }
-      if (!orderData.amount || orderData.amount <= 0) {
-        throw new Error('商品金额无效')
-      }
 
       const res = await createOrder(orderData)
-
-      if (!res || !res.data || !res.data.id) {
-        throw new Error('创建订单失败：返回数据无效')
-      }
-
-      // 下单成功后清除购物车中已购买的商品
-      const cartItems = wx.getStorageSync('cartItems') || []
-      const newCartItems = cartItems.filter(item => 
-        !orderItems.find(orderItem => orderItem.id === item.product_id)
-      )
-      wx.setStorageSync('cartItems', newCartItems)
-
-      // 确保订单ID是数字类型
-      const orderId = parseInt(res.data.id)
-      if (isNaN(orderId)) {
-        throw new Error('创建订单失败：无效的订单ID')
-      }
-
-      console.log('[订单确认] 创建订单成功:', {
-        订单ID: orderId,
-        原始数据: res.data
+      console.log('[订单确认] 创建订单响应:', {
+        响应数据: res,
+        响应类型: typeof res,
+        是否有code: res && typeof res.code !== 'undefined',
+        code值: res?.code,
+        msg值: res?.msg,
+        data值: res?.data,
+        原始响应: JSON.stringify(res)
       })
 
-      // 跳转到支付页面
-      wx.navigateTo({
-        url: `/pages/order/payment/index?orderId=${orderId}`
-      })
+      try {
+        // 判断是否成功
+        if (res && res.code === 0) {
+          console.log('[订单确认] 订单创建成功，开始清理购物车')
+          
+          // 下单成功后清除购物车中已购买的商品
+          const cartItems = wx.getStorageSync('cartItems') || []
+          const newCartItems = cartItems.filter(item => 
+            !orderItems.find(orderItem => orderItem.product_id === item.product_id)
+          )
+          console.log('[订单确认] 清理购物车:', {
+            原购物车商品: cartItems,
+            订单商品: orderItems,
+            清理后商品: newCartItems,
+            订单ID: res.data?.id
+          })
+          
+          wx.setStorageSync('cartItems', newCartItems)
+          wx.removeStorageSync('selectedCartItems')
+          console.log('[订单确认] 购物车数据已清理')
+
+          wx.showToast({
+            title: '下单成功',
+            icon: 'success',
+            duration: 2000
+          })
+
+          console.log('[订单确认] 准备跳转到订单列表')
+          // 延迟跳转，让用户看到成功提示
+          setTimeout(() => {
+            // 跳转到订单列表页面
+            wx.redirectTo({
+              url: '/pages/order/list/index'
+            })
+          }, 1500)
+        } else {
+          console.error('[订单确认] 创建订单失败:', {
+            响应数据: res,
+            错误原因: !res ? '响应为空' : res.code !== 0 ? `错误码: ${res.code}, 消息: ${res.msg}` : '未知错误'
+          })
+          throw new Error(res?.msg || '创建订单失败')
+        }
+      } catch (error) {
+        console.error('[订单确认] 处理订单响应时出错:', {
+          错误信息: error.message,
+          错误类型: error.name,
+          错误堆栈: error.stack,
+          原始响应: JSON.stringify(res)
+        })
+        wx.showToast({
+          title: error.message || '创建订单失败',
+          icon: 'none'
+        })
+      }
     } catch (error) {
-      console.error('创建订单失败:', error)
+      console.error('[订单确认] 创建订单出错:', {
+        错误信息: error.message,
+        错误类型: error.name,
+        错误堆栈: error.stack
+      })
       wx.showToast({
-        title: '创建订单失败',
+        title: error.message || '创建订单失败',
         icon: 'none'
       })
     } finally {
@@ -414,8 +487,7 @@ Page(loginGuard({
   async getProductDetail(cartItem) {
     console.log('[订单确认] 开始获取商品详情:', cartItem)
     try {
-      // 使用product_id而不是productId
-      const productId = cartItem.product_id || cartItem.productId
+      const productId = cartItem.product_id
       if (!productId) {
         console.error('[订单确认] 商品ID无效:', cartItem)
         throw new Error('无效的商品ID')
@@ -426,44 +498,62 @@ Page(loginGuard({
       
       // 如果商品存在且有数据，使用API返回的数据
       if (res && res.code === 0 && res.data) {
+        const product = res.data
+        // 处理图片URL
+        let coverImage = product.mainImage || product.coverImage || cartItem.cover_image || '/assets/images/default.png'
+        if (coverImage && !coverImage.startsWith('http')) {
+          coverImage = `http://localhost:8001${coverImage}`
+        }
+        
         return {
-          id: res.data.id,
+          id: product.id,
           product_id: productId,
-          name: res.data.name || res.data.productName || cartItem.name || cartItem.productName || '未知商品',
-          price: res.data.price || cartItem.price,
+          name: product.name || product.productName || cartItem.name || cartItem.productName || '未知商品',
+          price: product.price || cartItem.price,
           quantity: cartItem.quantity,
-          cover_image: res.data.mainImage || res.data.coverImage || cartItem.cover_image || '/assets/images/default.png'
+          cover_image: coverImage
         }
       }
       
       // 如果商品不存在，使用购物车数据
       if (res && res.notFound) {
         console.log('[订单确认] 商品不存在，使用购物车数据:', cartItem)
+        // 确保购物车中的图片URL也有正确的域名前缀
+        let coverImage = cartItem.cover_image || cartItem.mainImage || '/assets/images/default.png'
+        if (coverImage && !coverImage.startsWith('http')) {
+          coverImage = `http://localhost:8001${coverImage}`
+        }
+        
         return {
           id: cartItem.id || productId,
           product_id: productId,
           name: cartItem.name || cartItem.productName || '未知商品',
           price: cartItem.price,
           quantity: cartItem.quantity,
-          cover_image: cartItem.cover_image || cartItem.mainImage || '/assets/images/default.png'
+          cover_image: coverImage
         }
       }
 
-      // 其他错误情况
       throw new Error(res.msg || '获取商品详情失败')
     } catch (error) {
-      console.error(`[订单确认] 商品 ${cartItem.product_id || cartItem.productId} 详情获取出错:`, error)
+      console.error(`[订单确认] 商品 ${cartItem.product_id} 详情获取出错:`, error)
       
       // 如果是网络错误或其他错误，尝试使用购物车数据
       if (cartItem.price && cartItem.quantity) {
         console.log('[订单确认] 使用购物车数据作为回退:', cartItem)
+        // 确保购物车中的图片URL也有正确的域名前缀
+        let coverImage = cartItem.cover_image || cartItem.mainImage || '/assets/images/default.png'
+        if (coverImage && !coverImage.startsWith('http')) {
+          coverImage = `http://localhost:8001${coverImage}`
+        }
+        
         return {
           id: cartItem.id || productId,
-          product_id: cartItem.product_id || cartItem.productId,
+          product_id: cartItem.product_id,
           name: cartItem.name || cartItem.productName || '未知商品',
           price: cartItem.price,
           quantity: cartItem.quantity,
-          cover_image: cartItem.cover_image || cartItem.mainImage || '/assets/images/default.png'
+          cover_image: coverImage
         }
       }
 

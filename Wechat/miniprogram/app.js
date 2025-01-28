@@ -3,7 +3,10 @@ App({
     userInfo: null,
     baseUrl: {
       cart: 'http://localhost:8004',    // 购物车服务
-      address: 'http://localhost:8005'   // 地址服务
+      address: 'http://localhost:8005',   // 地址服务
+      order: 'http://localhost:8002',
+      pay: 'http://localhost:8003',
+      product: 'http://localhost:8001'
     },
     token: ''
   },

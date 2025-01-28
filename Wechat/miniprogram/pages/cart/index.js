@@ -218,9 +218,9 @@ Page(loginGuard({
       const price = parseFloat(item.price || 0)
       const quantity = parseInt(item.quantity || 1)
       const checkoutItem = {
-        product_id: item.id,
-        name: item.productName || item.name || '未知商品',  // 优先使用productName
-        productName: item.productName || item.name || '未知商品',  // 同时保存两个字段
+        product_id: item.productId,  // 使用正确的productId字段
+        name: item.productName || item.name || '未知商品',
+        productName: item.productName || item.name || '未知商品',
         price: price,
         quantity: quantity,
         cover_image: item.productImage || item.cover_image || '/assets/images/default.png'

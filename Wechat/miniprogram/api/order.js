@@ -13,8 +13,8 @@ export const createOrder = (data) => {
 export const getOrderList = (params = {}) => {
   return request({
     url: '/api/order/list',
-    method: 'POST',
-    data: {
+    method: 'GET',
+    params: {
       uid: params.uid,
       status: params.status || 0,
       page: params.page || 1,

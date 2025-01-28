@@ -1,7 +1,7 @@
 const app = getApp()
 
 const request = (options) => {
-  const { url, method = 'GET', data, noAuth = false } = options
+  const { url, method = 'GET', data, params, noAuth = false } = options
 
   console.log('app.globalData:', app.globalData)
   console.log('baseUrl配置:', app.globalData?.baseUrl)
@@ -34,15 +34,22 @@ const request = (options) => {
   const token = noAuth ? '' : wx.getStorageSync('token')
   
   return new Promise((resolve, reject) => {
-    const fullUrl = baseUrl ? `${baseUrl}${url}` : url
+    // 处理GET请求的查询参数
+    let fullUrl = baseUrl ? `${baseUrl}${url}` : url
+    if (method.toUpperCase() === 'GET' && params) {
+      const queryString = Object.keys(params)
+        .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
+        .join('&')
+      fullUrl = `${fullUrl}${fullUrl.includes('?') ? '&' : '?'}${queryString}`
+    }
+    
     console.log('完整请求URL:', fullUrl)
 
     console.log('发起请求:', {
       baseUrl,
-      url,
-      fullUrl,
+      url: fullUrl,
       method,
-      data,
+      data: method.toUpperCase() === 'GET' ? null : data,
       noAuth,
       headers: options.header
     })

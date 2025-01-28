@@ -77,7 +77,14 @@ Page({
     this.setData({ loading: true })
 
     try {
+      // 从全局获取用户信息
+      const userInfo = wx.getStorageSync('userInfo')
+      if (!userInfo || !userInfo.id) {
+        throw new Error('请先登录')
+      }
+
       const res = await getOrderList({
+        uid: userInfo.id,
         status: this.data.currentTab,
         page: this.data.page,
         pageSize: this.data.pageSize
@@ -86,9 +93,30 @@ Page({
       console.log('[订单列表] 获取订单列表响应:', res)
 
       if (res.code === 0) {
-        const orders = res.data || []
+        const orders = res.data?.list || []
+        // 处理订单数据
+        const formattedOrders = orders.map(order => ({
+          id: order.id,
+          oid: order.oid,
+          status: order.status,
+          status_text: this.getStatusText(order.status),
+          amount: (order.total_price / 100).toFixed(2),
+          items: order.items.map(item => ({
+            id: item.id,
+            product_name: item.product_name,
+            product_image: item.product_image ? 
+              (item.product_image.startsWith('http') ? 
+                item.product_image : 
+                `http://localhost:8001${item.product_image}`
+              ) : 
+              'http://localhost:8001/uploads/placeholder.png',
+            price: (item.price / 100).toFixed(2),
+            quantity: item.quantity
+          }))
+        }))
+        
         this.setData({
-          orders: this.data.page === 1 ? orders : [...this.data.orders, ...orders],
+          orders: this.data.page === 1 ? formattedOrders : [...this.data.orders, ...formattedOrders],
           hasMore: orders.length === this.data.pageSize
         })
       } else {
@@ -110,10 +138,27 @@ Page({
       }
     } catch (error) {
       console.error('[订单列表] 加载订单失败:', error)
-      wx.showToast({
-        title: error.message || '加载订单失败',
-        icon: 'none'
-      })
+      
+      // 如果是未登录错误，跳转到登录页面
+      if (error.message === '请先登录') {
+        wx.showToast({
+          title: '请先登录',
+          icon: 'none',
+          duration: 2000,
+          complete: () => {
+            setTimeout(() => {
+              wx.navigateTo({
+                url: '/pages/login/index'
+              })
+            }, 1000)
+          }
+        })
+      } else {
+        wx.showToast({
+          title: error.message || '加载订单失败',
+          icon: 'none'
+        })
+      }
     } finally {
       this.setData({ 
         loading: false,

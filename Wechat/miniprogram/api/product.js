@@ -35,12 +35,24 @@ export const getProductDetail = (id) => {
   }).then(res => {
     // 如果是正常的成功响应
     if ((res.code === 0 || res.code === 200) && res.data) {
-      return res
+      return {
+        code: 0,
+        data: res.data
+      }
+    } else if (res.code === 200 && !res.data) {
+      // 如果是直接返回的数据对象
+      return {
+        code: 0,
+        data: res
+      }
     }
     
     // 如果是商品不存在的响应
     if (res.notFound) {
-      return res
+      return {
+        code: 404,
+        msg: '商品不存在'
+      }
     }
     
     // 其他错误情况

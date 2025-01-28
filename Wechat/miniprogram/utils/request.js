@@ -73,6 +73,13 @@ const request = (options) => {
           if (res.data && typeof res.data === 'object') {
             console.log('[请求工具] 处理对象响应:', res.data)
 
+            // 如果是地址详情接口，直接返回数据
+            if (url.startsWith('/api/address/') && method === 'GET' && !url.endsWith('/list')) {
+              console.log('[请求工具] 地址详情响应:', res.data)
+              resolve(res.data)
+              return
+            }
+
             // 如果响应中已经包含了code字段，直接返回
             if ('code' in res.data) {
               // 如果是成功响应（code为0或200），直接返回
@@ -135,58 +142,60 @@ const request = (options) => {
               return
             }
 
-            // 对象响应但没有code字段，包装为标准格式
+            // 包装其他响应
+            console.log('[请求工具] 包装对象响应:', {
+              code: 200,
+              msg: 'success',
+              data: res.data
+            })
+            resolve({
+              code: 200,
+              msg: 'success',
+              data: res.data
+            })
+          } else {
+            // 处理字符串响应
+            if (typeof res.data === 'string') {
+              // 处理验证错误
+              if (res.data.indexOf('field') !== -1) {
+                console.error('[请求工具] 验证错误:', res.data)
+                reject(new Error(res.data))
+                return
+              }
+
+              // 处理成功字符串
+              if (res.data === 'success' || res.data === '成功') {
+                const response = {
+                  code: 200,
+                  msg: '成功',
+                  data: null
+                }
+                console.log('[请求工具] 成功字符串响应:', response)
+                resolve(response)
+                return
+              }
+
+              // 其他字符串响应
+              const response = {
+                code: 200,
+                msg: res.data,
+                data: null
+              }
+              console.log('[请求工具] 其他字符串响应:', response)
+              resolve(response)
+              return
+            }
+
+            // 其他类型响应
             const response = {
               code: 200,
               msg: 'success',
               data: res.data
             }
-            console.log('[请求工具] 包装对象响应:', response)
+            console.log('[请求工具] 其他类型响应:', response)
             resolve(response)
             return
           }
-
-          // 处理字符串响应
-          if (typeof res.data === 'string') {
-            // 处理验证错误
-            if (res.data.indexOf('field') !== -1) {
-              console.error('[请求工具] 验证错误:', res.data)
-              reject(new Error(res.data))
-              return
-            }
-
-            // 处理成功字符串
-            if (res.data === 'success' || res.data === '成功') {
-              const response = {
-                code: 200,
-                msg: '成功',
-                data: null
-              }
-              console.log('[请求工具] 成功字符串响应:', response)
-              resolve(response)
-              return
-            }
-
-            // 其他字符串响应
-            const response = {
-              code: 200,
-              msg: res.data,
-              data: null
-            }
-            console.log('[请求工具] 其他字符串响应:', response)
-            resolve(response)
-            return
-          }
-
-          // 其他类型响应
-          const response = {
-            code: 200,
-            msg: 'success',
-            data: res.data
-          }
-          console.log('[请求工具] 其他类型响应:', response)
-          resolve(response)
-          return
         } else if (res.statusCode === 401 && !noAuth) {
           // 处理401错误，未登录或登录过期
           wx.removeStorageSync('token')

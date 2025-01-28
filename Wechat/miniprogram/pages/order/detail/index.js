@@ -112,10 +112,22 @@ Page({
   async getAddressInfo(addressId) {
     try {
       const res = await getAddressDetail(addressId)
-      if (res && res.address) {
-        const address = formatAddress(res.address)
-        console.log('地址信息:', address)
-        this.setData({ address })
+      console.log('地址API响应:', res)
+      if (res?.data?.address) {
+        const address = formatAddress(res.data.address)
+        console.log('格式化后的地址信息:', address)
+        this.setData({ 
+          address: {
+            name: address.name,
+            phone: address.phone,
+            province: address.province,
+            city: address.city,
+            district: address.district,
+            address: address.address
+          }
+        })
+      } else {
+        console.error('地址数据格式不正确:', res)
       }
     } catch (error) {
       console.error('获取地址信息失败:', error)

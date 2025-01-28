@@ -22,6 +22,13 @@ Page({
     hasMore: true      // 是否还有更多数据
   },
 
+  // 格式化日期字符串，确保iOS兼容性
+  formatDateString(dateStr) {
+    if (!dateStr) return ''
+    // 将 "yyyy-MM-dd HH:mm:ss" 转换为 "yyyy/MM/dd HH:mm:ss"
+    return dateStr.replace(/-/g, '/')
+  },
+
   onLoad() {
     console.log('[订单列表] 页面加载')
     this.loadOrders()
@@ -101,6 +108,7 @@ Page({
           status: order.status,
           status_text: this.getStatusText(order.status),
           amount: (order.total_price / 100).toFixed(2),
+          create_time: this.formatDateString(order.create_time),
           items: order.items.map(item => ({
             id: item.id,
             product_name: item.product_name,
@@ -114,6 +122,11 @@ Page({
             quantity: item.quantity
           }))
         }))
+        
+        // 按创建时间排序，最新的在前面
+        formattedOrders.sort((a, b) => {
+          return new Date(b.create_time) - new Date(a.create_time)
+        })
         
         this.setData({
           orders: this.data.page === 1 ? formattedOrders : [...this.data.orders, ...formattedOrders],

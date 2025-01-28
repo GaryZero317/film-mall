@@ -113,8 +113,8 @@ Page({
     try {
       const res = await getAddressDetail(addressId)
       console.log('地址API响应:', res)
-      if (res?.data?.address) {
-        const address = formatAddress(res.data.address)
+      if (res && res.address) {
+        const address = formatAddress(res.address)
         console.log('格式化后的地址信息:', address)
         this.setData({ 
           address: {

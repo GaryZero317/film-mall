@@ -448,84 +448,30 @@ Page(loginGuard({
     }
   },
 
+  // 获取商品详情
   async getProductDetail(cartItem) {
-    console.log('[订单确认] 开始获取商品详情:', cartItem)
     try {
-      const productId = cartItem.product_id
-      if (!productId) {
-        console.error('[订单确认] 商品ID无效:', cartItem)
-        throw new Error('无效的商品ID')
-      }
-
-      const res = await getProductDetail(productId)
-      console.log('[订单确认] 商品详情获取结果:', res)
+      const res = await getProductDetail(cartItem.product_id)
+      console.log('[订单确认] 商品详情响应:', res)
       
-      // 如果商品存在且有数据，使用API返回的数据
-      if (res && (res.code === 0 || res.code === 200) && res.data) {
-        const product = res.data
-        // 处理图片URL
-        let coverImage = product.mainImage || product.coverImage || cartItem.cover_image || '/assets/images/default.png'
-        if (coverImage && !coverImage.startsWith('http')) {
-          coverImage = `http://localhost:8001${coverImage}`
-        }
-        
+      if (res && (res.code === 0 || res.code === 200)) {
+        const productData = res.data || res
         return {
-          id: product.id,
-          product_id: productId,
-          name: product.name || product.productName || cartItem.name || cartItem.productName || '未知商品',
-          price: product.price || cartItem.price,
-          quantity: cartItem.quantity,
-          cover_image: coverImage
+          ...cartItem,
+          stock: productData.stock,
+          amount: productData.amount,
+          image: productData.cover_image || cartItem.cover_image
         }
+      } else {
+        console.error('[订单确认] 商品详情获取失败:', res)
+        // 如果获取失败，返回购物车中的数据
+        return cartItem
       }
-      
-      // 如果商品不存在，使用购物车数据
-      if (res && res.notFound) {
-        console.log('[订单确认] 商品不存在，使用购物车数据:', cartItem)
-        // 确保购物车中的图片URL也有正确的域名前缀
-        let coverImage = cartItem.cover_image || cartItem.mainImage || '/assets/images/default.png'
-        if (coverImage && !coverImage.startsWith('http')) {
-          coverImage = `http://localhost:8001${coverImage}`
-        }
-        
-        return {
-          id: cartItem.id || cartItem.product_id,
-          product_id: cartItem.product_id,
-          name: cartItem.name || cartItem.productName || '未知商品',
-          price: cartItem.price,
-          quantity: cartItem.quantity,
-          cover_image: coverImage
-        }
-      }
-
-      throw new Error(res.msg || '获取商品详情失败')
     } catch (error) {
-      console.error(`[订单确认] 商品 ${cartItem.product_id} 详情获取出错:`, error)
-      
-      // 如果是网络错误或其他错误，尝试使用购物车数据
-      if (cartItem.price && cartItem.quantity) {
-        console.log('[订单确认] 使用购物车数据作为回退:', cartItem)
-        // 确保购物车中的图片URL也有正确的域名前缀
-        let coverImage = cartItem.cover_image || cartItem.mainImage || '/assets/images/default.png'
-        if (coverImage && !coverImage.startsWith('http')) {
-          coverImage = `http://localhost:8001${coverImage}`
-        }
-        
-        return {
-          id: cartItem.id || cartItem.product_id,
-          product_id: cartItem.product_id,
-          name: cartItem.name || cartItem.productName || '未知商品',
-          price: cartItem.price,
-          quantity: cartItem.quantity,
-          cover_image: coverImage
-        }
-      }
-
-      wx.showToast({
-        title: `商品信息获取失败`,
-        icon: 'none'
-      })
-      throw error
+      console.error('[订单确认] 商品', cartItem.product_id, '详情获取出错:', error)
+      // 如果出错，返回购物车中的数据
+      console.log('[订单确认] 使用购物车数据作为回退:', cartItem)
+      return cartItem
     }
   }
 }))

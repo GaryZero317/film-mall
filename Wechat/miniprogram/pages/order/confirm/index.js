@@ -333,8 +333,13 @@ Page(loginGuard({
 
   // 提交订单
   async submitOrder() {
-    const { address, orderItems, remark, totalPrice, shippingFee } = this.data
-    if (!address) {
+    console.log('[订单确认] 开始提交订单')
+    if (this.data.loading) {
+      console.log('[订单确认] 订单正在提交中，请勿重复点击')
+      return
+    }
+
+    if (!this.data.address) {
       wx.showToast({
         title: '请选择收货地址',
         icon: 'none'
@@ -342,139 +347,70 @@ Page(loginGuard({
       return
     }
 
-    if (orderItems.length === 0) {
+    if (!this.data.orderItems.length) {
       wx.showToast({
-        title: '订单商品不能为空',
+        title: '订单商品数据无效',
         icon: 'none'
       })
       return
     }
 
+    this.setData({ loading: true })
+    
     try {
-      this.setData({ loading: true })
-      
-      // 获取用户ID
-      const userInfo = wx.getStorageSync('userInfo')
-      if (!userInfo || !userInfo.id) {
-        throw new Error('用户未登录')
-      }
-
-      // 确保所有金额都是有效数字
-      const finalTotalPrice = parseFloat(totalPrice)
-      const finalShippingFee = parseFloat(shippingFee)
-
-      if (isNaN(finalTotalPrice) || finalTotalPrice <= 0) {
-        throw new Error('订单总金额无效')
-      }
-
-      if (isNaN(finalShippingFee)) {
-        throw new Error('运费金额无效')
-      }
-
-      // 构造订单数据
       const orderData = {
-        uid: userInfo.id,
-        address_id: address.id,
-        items: orderItems.map(item => ({
-          pid: item.product_id,
-          product_name: item.name,
-          product_image: item.cover_image,
-          price: Math.round(item.price * 100),  // 转换为分为单位
+        address_id: this.data.address.id,
+        total_price: parseFloat(this.data.totalPrice),
+        remark: this.data.remark,
+        items: this.data.orderItems.map(item => ({
+          product_id: item.product_id,
           quantity: item.quantity,
-          amount: Math.round(item.price * item.quantity * 100)  // 商品总价（分）
-        })),
-        remark: remark || '',
-        total_price: Math.round(finalTotalPrice * 100),  // 转换为分为单位
-        shipping_fee: Math.round(finalShippingFee * 100),  // 转换为分为单位
-        status: 0  // 0: 待支付
+          price: item.price
+        }))
       }
 
-      console.log('[订单确认] 提交订单数据:', {
-        原始数据: orderData,
-        items_detail: orderItems.map(item => ({
-          pid: item.product_id,
-          name: item.name,
-          price_yuan: item.price,
-          quantity: item.quantity,
-          amount_yuan: item.price * item.quantity
-        })),
-        total_price_yuan: finalTotalPrice,
-        shipping_fee_yuan: finalShippingFee,
-        订单总价分: Math.round(finalTotalPrice * 100),
-        运费分: Math.round(finalShippingFee * 100)
-      })
-
+      console.log('[订单确认] 提交订单数据:', orderData)
+      
       const res = await createOrder(orderData)
-      console.log('[订单确认] 创建订单响应:', {
-        响应数据: res,
-        响应类型: typeof res,
-        是否有code: res && typeof res.code !== 'undefined',
-        code值: res?.code,
-        msg值: res?.msg,
-        data值: res?.data,
-        原始响应: JSON.stringify(res)
-      })
+      console.log('[订单确认] 创建订单响应:', res)
 
-      try {
-        // 判断是否成功
-        if (res && res.code === 0) {
-          console.log('[订单确认] 订单创建成功，开始清理购物车')
-          
-          // 下单成功后清除购物车中已购买的商品
-          const cartItems = wx.getStorageSync('cartItems') || []
-          const newCartItems = cartItems.filter(item => 
-            !orderItems.find(orderItem => orderItem.product_id === item.product_id)
-          )
-          console.log('[订单确认] 清理购物车:', {
-            原购物车商品: cartItems,
-            订单商品: orderItems,
-            清理后商品: newCartItems,
-            订单ID: res.data?.id
-          })
-          
-          wx.setStorageSync('cartItems', newCartItems)
-          wx.removeStorageSync('selectedCartItems')
-          console.log('[订单确认] 购物车数据已清理')
-
-          wx.showToast({
-            title: '下单成功',
-            icon: 'success',
-            duration: 2000
-          })
-
-          console.log('[订单确认] 准备跳转到订单列表')
-          // 延迟跳转，让用户看到成功提示
-          setTimeout(() => {
-            // 跳转到订单列表页面
-            wx.redirectTo({
-              url: '/pages/order/list/index'
-            })
-          }, 1500)
-        } else {
-          console.error('[订单确认] 创建订单失败:', {
-            响应数据: res,
-            错误原因: !res ? '响应为空' : res.code !== 0 ? `错误码: ${res.code}, 消息: ${res.msg}` : '未知错误'
-          })
-          throw new Error(res?.msg || '创建订单失败')
-        }
-      } catch (error) {
-        console.error('[订单确认] 处理订单响应时出错:', {
-          错误信息: error.message,
-          错误类型: error.name,
-          错误堆栈: error.stack,
-          原始响应: JSON.stringify(res)
-        })
+      if (res.code === 0) {
+        // 创建订单成功
         wx.showToast({
-          title: error.message || '创建订单失败',
+          title: '订单创建成功',
+          icon: 'success',
+          duration: 1500
+        })
+        
+        // 清空购物车已选商品
+        wx.removeStorageSync('selectedCartItems')
+        
+        // 跳转到订单详情页
+        setTimeout(() => {
+          wx.redirectTo({
+            url: `/pages/order/detail/index?id=${res.data.id}`
+          })
+        }, 1500)
+      } else {
+        let errorMsg = '创建订单失败'
+        switch(res.code) {
+          case 10001:
+            errorMsg = '订单参数错误'
+            break
+          case 20002:
+            errorMsg = '订单创建失败'
+            break
+          case 20005:
+            errorMsg = '订单金额无效'
+            break
+        }
+        wx.showToast({
+          title: errorMsg,
           icon: 'none'
         })
       }
     } catch (error) {
-      console.error('[订单确认] 创建订单出错:', {
-        错误信息: error.message,
-        错误类型: error.name,
-        错误堆栈: error.stack
-      })
+      console.error('[订单确认] 提交订单失败:', error)
       wx.showToast({
         title: error.message || '创建订单失败',
         icon: 'none'

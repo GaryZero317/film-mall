@@ -35,10 +35,7 @@ func (l *GetLogic) Get(req *types.GetOrderReq) (resp *types.GetOrderResp, err er
 
 	if err != nil {
 		l.Logger.Errorf("RPC获取订单失败: %v", err)
-		return &types.GetOrderResp{
-			Code: code.OrderNotExist,
-			Msg:  code.GetMsg(code.OrderNotExist),
-		}, nil
+		return nil, code.NewCodeError(code.OrderNotExist)
 	}
 
 	// 转换订单商品列表

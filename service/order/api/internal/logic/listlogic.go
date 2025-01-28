@@ -46,17 +46,15 @@ func (l *ListLogic) List(req *types.ListOrderReq) (resp *types.ListOrderResp, er
 
 	if err != nil {
 		l.Logger.Errorf("RPC获取订单列表失败: %v", err)
-		return &types.ListOrderResp{
-			Code: code.Error,
-			Msg:  code.GetMsg(code.Error),
-		}, nil
+		return nil, code.NewCodeError(code.Error)
 	}
 
 	// 转换订单列表
 	var orders []types.Order
-	for _, order := range res.Data {
+	for _, o := range res.Data {
+		// 转换订单商品列表
 		var items []types.OrderItem
-		for _, item := range order.Items {
+		for _, item := range o.Items {
 			items = append(items, types.OrderItem{
 				Id:           item.Id,
 				OrderId:      item.OrderId,
@@ -70,18 +68,18 @@ func (l *ListLogic) List(req *types.ListOrderReq) (resp *types.ListOrderResp, er
 		}
 
 		orders = append(orders, types.Order{
-			Id:          order.Id,
-			Oid:         order.Oid,
-			Uid:         order.Uid,
-			AddressId:   order.AddressId,
-			TotalPrice:  order.TotalPrice,
-			ShippingFee: order.ShippingFee,
-			Status:      order.Status,
-			StatusDesc:  order.StatusDesc,
-			Remark:      order.Remark,
+			Id:          o.Id,
+			Oid:         o.Oid,
+			Uid:         o.Uid,
+			AddressId:   o.AddressId,
+			TotalPrice:  o.TotalPrice,
+			ShippingFee: o.ShippingFee,
+			Status:      o.Status,
+			StatusDesc:  o.StatusDesc,
+			Remark:      o.Remark,
 			Items:       items,
-			CreateTime:  order.CreateTime,
-			UpdateTime:  order.UpdateTime,
+			CreateTime:  o.CreateTime,
+			UpdateTime:  o.UpdateTime,
 		})
 	}
 

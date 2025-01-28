@@ -5,21 +5,18 @@ Page({
     banners: [
       {
         id: 1,
-        imageUrl: '/images/banner1.jpg',
-        type: 'product',
-        productId: 1
+        imageUrl: '/assets/images/banner1.jpg',
+        link: '/pages/product/detail/index?id=1'
       },
       {
         id: 2,
-        imageUrl: '/images/banner2.jpg',
-        type: 'product',
-        productId: 2
+        imageUrl: '/assets/images/banner2.jpg',
+        link: '/pages/product/detail/index?id=2'
       },
       {
         id: 3,
-        imageUrl: '/images/banner3.jpg',
-        type: 'product',
-        productId: 3
+        imageUrl: '/assets/images/banner3.jpg',
+        link: '/pages/product/detail/index?id=3'
       }
     ],
     categories: [

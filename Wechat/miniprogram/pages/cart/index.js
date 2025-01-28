@@ -26,12 +26,19 @@ Page(loginGuard({
       const res = await getCartList()
       console.log('购物车列表响应:', res)
       
-      if (res && res.code === 0) {
+      if (res && res.code === 200 && res.data && res.data.list) {
         // 处理图片URL
-        const cartItems = (res.data.list || []).map(item => ({
-          ...item,
+        const cartItems = res.data.list.map(item => ({
+          id: item.id,
+          productId: item.productId,
+          productName: item.productName,
+          price: parseFloat(item.price || 0),
+          quantity: parseInt(item.quantity || 1),
+          selected: item.selected || false,
+          stock: item.stock || 999,
           productImage: item.productImage ? `http://localhost:8001${item.productImage}` : '/assets/images/default.png'
         }))
+        
         console.log('处理后的购物车商品列表:', cartItems)
         
         this.setData({ 
@@ -50,7 +57,7 @@ Page(loginGuard({
     } catch (error) {
       console.error('加载购物车失败:', error)
       wx.showToast({
-        title: '加载购物车失败',
+        title: error.message || '加载购物车失败',
         icon: 'none'
       })
     } finally {
@@ -81,7 +88,7 @@ Page(loginGuard({
       })
       console.log('更新购物车数量响应:', res)
       
-      if (res.code === 0) {
+      if (res && res.code === 200) {
         const cartItems = this.data.cartItems.map(item => {
           if (item.id === id) {
             return { ...item, quantity: newQuantity }
@@ -110,14 +117,21 @@ Page(loginGuard({
   async onDelete(e) {
     const { id } = e.currentTarget.dataset
     try {
-      await removeFromCart(id)
-      const cartItems = this.data.cartItems.filter(item => item.id !== id)
-      this.setData({ cartItems })
-      this.calculateTotal()
-      wx.showToast({
-        title: '删除成功',
-        icon: 'success'
-      })
+      const res = await removeFromCart(id)
+      if (res && res.code === 200) {
+        const cartItems = this.data.cartItems.filter(item => item.id !== id)
+        this.setData({ cartItems })
+        this.calculateTotal()
+        wx.showToast({
+          title: '删除成功',
+          icon: 'success'
+        })
+      } else {
+        wx.showToast({
+          title: res.msg || '删除失败',
+          icon: 'none'
+        })
+      }
     } catch (error) {
       console.error('删除失败:', error)
       wx.showToast({
@@ -141,10 +155,17 @@ Page(loginGuard({
     this.calculateTotal()
     
     try {
-      await updateCartItemStatus({
+      const res = await updateCartItemStatus({
         id,
         selected: cartItems.find(item => item.id === id).selected
       })
+      
+      if (res && res.code !== 200) {
+        wx.showToast({
+          title: res.msg || '更新状态失败',
+          icon: 'none'
+        })
+      }
     } catch (error) {
       console.error('更新选中状态失败:', error)
       wx.showToast({
@@ -179,7 +200,7 @@ Page(loginGuard({
     
     const totalPrice = selectedItems.reduce((sum, item) => {
       const itemTotal = item.price * item.quantity
-      console.log(`[购物车] 计算总价 - 商品 ${item.name}: ${itemTotal} = ${item.price} × ${item.quantity}`)
+      console.log(`[购物车] 计算总价 - 商品 ${item.productName}: ${itemTotal} = ${item.price} × ${item.quantity}`)
       return sum + itemTotal
     }, 0)
     
@@ -214,23 +235,13 @@ Page(loginGuard({
     }
     
     // 保存选中的商品到本地存储，确保字段名称正确
-    const checkoutItems = selectedItems.map(item => {
-      const price = parseFloat(item.price || 0)
-      const quantity = parseInt(item.quantity || 1)
-      const checkoutItem = {
-        product_id: item.productId,  // 使用正确的productId字段
-        name: item.productName || item.name || '未知商品',
-        productName: item.productName || item.name || '未知商品',
-        price: price,
-        quantity: quantity,
-        cover_image: item.productImage || item.cover_image || '/assets/images/default.png'
-      }
-      console.log(`[购物车] 结算 - 处理商品 ${checkoutItem.name}:`, {
-        原始数据: item,
-        处理后数据: checkoutItem
-      })
-      return checkoutItem
-    })
+    const checkoutItems = selectedItems.map(item => ({
+      product_id: item.productId,
+      name: item.productName || '未知商品',
+      price: item.price,
+      quantity: item.quantity,
+      cover_image: item.productImage
+    }))
     
     console.log('[购物车] 结算 - 准备结算的商品:', checkoutItems)
     wx.setStorageSync('selectedCartItems', checkoutItems)

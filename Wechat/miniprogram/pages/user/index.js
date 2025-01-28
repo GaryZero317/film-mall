@@ -46,7 +46,7 @@ Page({
       this.setData({ loading: true })
       const res = await getUserInfo()
       console.log('获取用户信息结果:', res)
-      if (res.code === 0 && res.data) {
+      if (res.code === 200 && res.data) {
         this.setData({ 
           userInfo: res.data,
           isLogin: true

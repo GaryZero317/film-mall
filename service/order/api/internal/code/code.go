@@ -1,10 +1,12 @@
 package code
 
+import "mall/common/errorx"
+
 // 定义业务状态码
 const (
-	Success       = 200
-	Error         = 500
-	InvalidParams = 400
+	Success       = 0
+	Error         = 1001
+	InvalidParams = 1002
 
 	// 订单相关错误码 (2000-2999)
 	OrderNotExist           = 2001
@@ -54,4 +56,9 @@ func GetMsg(code int) string {
 		return msg
 	}
 	return codeMsg[Error]
+}
+
+// NewCodeError 创建错误码错误
+func NewCodeError(code int) error {
+	return errorx.NewCodeError(code, GetMsg(code))
 }

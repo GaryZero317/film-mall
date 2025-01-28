@@ -68,32 +68,80 @@ const request = (options) => {
           响应类型: typeof res.data
         })
         
-        // 处理500错误中的业务错误信息
-        if (res.statusCode === 500 && typeof res.data === 'string' && res.data.indexOf('code = Code') !== -1) {
-          const errorMsg = res.data.split('desc = ')[1] || '请求失败'
-          console.error('[请求工具] 500错误:', errorMsg)
-          reject(new Error(errorMsg))
-          return
-        }
-        
         if (res.statusCode === 200) {
           // 处理不同的返回格式
           if (res.data && typeof res.data === 'object') {
             console.log('[请求工具] 处理对象响应:', res.data)
 
-            // 标准格式：{ code: 0 或 200, msg: '', data: {} }
+            // 处理登录接口的特殊返回格式
+            if (url.includes('/api/user/login') || url.includes('/api/user/wx-login')) {
+              resolve({
+                code: 200,
+                msg: 'success',
+                data: res.data
+              })
+              return
+            }
+
+            // 新的错误码处理逻辑
             if ('code' in res.data) {
-              if (res.data.code === 0 || res.data.code === 200) {
-                // 直接返回原始响应
+              if (res.data.code === 0) {
+                // 成功响应
                 console.log('[请求工具] 成功响应:', res.data)
                 resolve(res.data)
                 return
               }
               
               // 处理错误响应
-              const errorMsg = res.data.msg || '请求失败'
-              console.error('[请求工具] 业务错误:', errorMsg)
-              reject(new Error(errorMsg))
+              switch(res.data.code) {
+                // 基础错误码
+                case 10001:
+                  reject(new Error('参数错误'))
+                  break
+                case 10002:
+                  reject(new Error('服务器内部错误'))
+                  break
+                  
+                // 用户相关错误码
+                case 30001:
+                  reject(new Error('用户不存在'))
+                  break
+                case 30002:
+                  reject(new Error('密码错误'))
+                  break
+                case 30003:
+                  reject(new Error('手机号已注册'))
+                  break
+                case 30004:
+                  reject(new Error('验证码错误'))
+                  break
+                case 30005:
+                  reject(new Error('登录已过期'))
+                  break
+                case 30006:
+                  reject(new Error('无效的登录凭证'))
+                  break
+                  
+                // 订单相关错误码
+                case 20001:
+                  reject(new Error('订单不存在'))
+                  break
+                case 20002:
+                  reject(new Error('订单创建失败'))
+                  break
+                case 20003:
+                  reject(new Error('订单状态无效'))
+                  break
+                case 20004:
+                  reject(new Error('订单更新失败'))
+                  break
+                case 20005:
+                  reject(new Error('订单金额无效'))
+                  break
+                  
+                default:
+                  reject(new Error(res.data.msg || '请求失败'))
+              }
               return
             }
 
@@ -150,10 +198,10 @@ const request = (options) => {
           resolve(response)
           return
         } else if (res.statusCode === 401 && !noAuth) {
-          // 只有需要认证的请求才处理401错误
+          // 处理401错误，未登录或登录过期
           wx.removeStorageSync('token')
           wx.showToast({
-            title: '请先登录',
+            title: '请重新登录',
             icon: 'none',
             duration: 2000,
             complete: () => {

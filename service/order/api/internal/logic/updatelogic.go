@@ -30,10 +30,7 @@ func (l *UpdateLogic) Update(req *types.UpdateOrderReq) (resp *types.UpdateOrder
 
 	// 参数校验
 	if req.Status < 0 || req.Status > 4 {
-		return &types.UpdateOrderResp{
-			Code: code.OrderStatusInvalid,
-			Msg:  code.GetMsg(code.OrderStatusInvalid),
-		}, nil
+		return nil, code.NewCodeError(code.OrderStatusInvalid)
 	}
 
 	// 调用 RPC 更新订单
@@ -44,10 +41,7 @@ func (l *UpdateLogic) Update(req *types.UpdateOrderReq) (resp *types.UpdateOrder
 
 	if err != nil {
 		l.Logger.Errorf("RPC更新订单失败: %v", err)
-		return &types.UpdateOrderResp{
-			Code: code.OrderUpdateFailed,
-			Msg:  code.GetMsg(code.OrderUpdateFailed),
-		}, nil
+		return nil, code.NewCodeError(code.OrderUpdateFailed)
 	}
 
 	l.Logger.Info("更新订单成功")

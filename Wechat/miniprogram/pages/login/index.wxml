@@ -1,6 +1,6 @@
 <view class="container">
   <view class="logo">
-    <image src="/images/logo.png" mode="aspectFit"></image>
+    <image src="/assets/images/logo.png" mode="aspectFit"></image>
   </view>
   <view class="title">欢迎使用胶卷商城</view>
   

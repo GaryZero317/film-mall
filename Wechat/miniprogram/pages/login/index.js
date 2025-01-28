@@ -105,12 +105,16 @@ Page({
         password
       })
       
-      console.log('登录响应数据:', res)
+      console.log('[登录] 登录响应:', res)
       
-      if (res && res.code === 0 && res.data) {
+      // 处理登录响应
+      if (res && res.data && res.data.accessToken) {
         // 保存token和过期时间
         wx.setStorageSync('token', res.data.accessToken)
         wx.setStorageSync('tokenExpire', res.data.accessExpire)
+        
+        // 更新全局数据
+        getApp().globalData.token = res.data.accessToken
         
         wx.showToast({
           title: '登录成功',
@@ -120,15 +124,45 @@ Page({
         
         // 延迟跳转，让用户看到成功提示
         setTimeout(() => {
-          wx.switchTab({
-            url: '/pages/index/index'
-          })
+          // 如果有重定向页面，则跳转到重定向页面
+          if (this.data.redirect) {
+            wx.redirectTo({
+              url: decodeURIComponent(this.data.redirect)
+            })
+          } else {
+            // 否则跳转到首页
+            wx.reLaunch({
+              url: '/pages/index/index'
+            })
+          }
         }, 1500)
       } else {
-        throw new Error(res?.msg || '登录失败，请检查账号密码')
+        let errorMsg = '登录失败'
+        if (res.code !== 200) {
+          switch(res.code) {
+            case 30001:
+              errorMsg = '用户不存在'
+              break
+            case 30002:
+              errorMsg = '密码错误'
+              break
+            case 30005:
+              errorMsg = '登录已过期'
+              break
+            case 30006:
+              errorMsg = '无效的登录凭证'
+              break
+            default:
+              errorMsg = res.msg || '登录失败，请重试'
+          }
+        }
+        wx.showToast({
+          title: errorMsg,
+          icon: 'none'
+        })
       }
     } catch (error) {
-      console.error('登录失败，详细错误:', error)
+      console.error('[登录] 登录失败:', error)
       wx.showToast({
         title: error.message || '登录失败',
         icon: 'none'
@@ -176,9 +210,9 @@ Page({
         password
       })
       
-      console.log('注册响应数据:', res)
+      console.log('[注册] 注册响应:', res)
       
-      if (res && res.id) {
+      if (res.code === 0 && res.data) {
         wx.showToast({
           title: '注册成功',
           icon: 'success',
@@ -197,10 +231,24 @@ Page({
           this.handleLogin()
         }, 1500)
       } else {
-        throw new Error(res?.msg || '注册失败，请重试')
+        let errorMsg = '注册失败'
+        switch(res.code) {
+          case 30003:
+            errorMsg = '手机号已注册'
+            break
+          case 10001:
+            errorMsg = '请填写正确的信息'
+            break
+          default:
+            errorMsg = res.msg || '注册失败，请重试'
+        }
+        wx.showToast({
+          title: errorMsg,
+          icon: 'none'
+        })
       }
     } catch (error) {
-      console.error('注册失败，详细错误:', error)
+      console.error('[注册] 注册失败:', error)
       wx.showToast({
         title: error.message || '注册失败',
         icon: 'none'
@@ -223,12 +271,13 @@ Page({
       // 调用后端登录接口
       const res = await wxLogin(code)
       
-      if (res.code === 0 && res.data) {
-        const { accessToken, accessExpire } = res.data
+      if (res && res.data && res.data.accessToken) {
         // 保存token和过期时间
-        wx.setStorageSync('token', accessToken)
-        wx.setStorageSync('tokenExpire', accessExpire)
-        getApp().globalData.token = accessToken
+        wx.setStorageSync('token', res.data.accessToken)
+        wx.setStorageSync('tokenExpire', res.data.accessExpire)
+        
+        // 更新全局数据
+        getApp().globalData.token = res.data.accessToken
         
         wx.showToast({
           title: '登录成功',
@@ -237,13 +286,23 @@ Page({
         })
         
         setTimeout(() => {
-          this.navigateBack()
+          // 如果有重定向页面，则跳转到重定向页面
+          if (this.data.redirect) {
+            wx.redirectTo({
+              url: decodeURIComponent(this.data.redirect)
+            })
+          } else {
+            // 否则跳转到首页
+            wx.reLaunch({
+              url: '/pages/index/index'
+            })
+          }
         }, 1500)
       } else {
         throw new Error(res.msg || '登录失败')
       }
     } catch (error) {
-      console.error('登录失败:', error)
+      console.error('[微信登录] 登录失败:', error)
       wx.showToast({
         title: error.message || '登录失败',
         icon: 'none'
@@ -258,17 +317,13 @@ Page({
     const { redirect } = this.data
     if (redirect) {
       wx.redirectTo({
-        url: `/${redirect}`
+        url: decodeURIComponent(redirect)
       })
     } else {
-      const pages = getCurrentPages()
-      if (pages.length > 1) {
-        wx.navigateBack()
-      } else {
-        wx.switchTab({
-          url: '/pages/index/index'
-        })
-      }
+      // 如果没有重定向页面，直接跳转到首页
+      wx.reLaunch({
+        url: '/pages/index/index'
+      })
     }
   }
 }) 

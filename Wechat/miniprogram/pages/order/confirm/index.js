@@ -358,15 +358,33 @@ Page(loginGuard({
     this.setData({ loading: true })
     
     try {
+      // 获取用户信息
+      const userInfo = wx.getStorageSync('userInfo')
+      if (!userInfo || !userInfo.id) {
+        throw new Error('用户信息无效，请重新登录')
+      }
+
+      // 计算总价（转换为分）
+      const totalPriceInCents = Math.round(parseFloat(this.data.totalPrice) * 100)
+      
       const orderData = {
+        uid: userInfo.id,
         address_id: this.data.address.id,
-        total_price: parseFloat(this.data.totalPrice),
-        remark: this.data.remark,
-        items: this.data.orderItems.map(item => ({
-          product_id: item.product_id,
-          quantity: item.quantity,
-          price: item.price
-        }))
+        total_price: totalPriceInCents,
+        shipping_fee: 700,
+        remark: this.data.remark || '',
+        status: 0, // 新订单状态为0
+        items: this.data.orderItems.map(item => {
+          const priceInCents = Math.round(item.price * 100)
+          return {
+            pid: item.product_id,
+            product_name: item.name,
+            product_image: item.cover_image,
+            price: priceInCents,
+            quantity: item.quantity,
+            amount: priceInCents * item.quantity // 商品总价 = 单价 * 数量
+          }
+        })
       }
 
       console.log('[订单确认] 提交订单数据:', orderData)
@@ -374,24 +392,13 @@ Page(loginGuard({
       const res = await createOrder(orderData)
       console.log('[订单确认] 创建订单响应:', res)
 
-      if (res.code === 0) {
-        // 创建订单成功
-        wx.showToast({
-          title: '订单创建成功',
-          icon: 'success',
-          duration: 1500
-        })
-        
-        // 清空购物车已选商品
-        wx.removeStorageSync('selectedCartItems')
-        
-        // 跳转到订单详情页
-        setTimeout(() => {
-          wx.redirectTo({
-            url: `/pages/order/detail/index?id=${res.data.id}`
-          })
-        }, 1500)
-      } else {
+      // 检查响应状态
+      if (!res || typeof res !== 'object') {
+        throw new Error('创建订单失败，响应数据无效')
+      }
+
+      // 检查响应码
+      if (res.code !== 0) {
         let errorMsg = '创建订单失败'
         switch(res.code) {
           case 10001:
@@ -403,12 +410,33 @@ Page(loginGuard({
           case 20005:
             errorMsg = '订单金额无效'
             break
+          default:
+            errorMsg = res.msg || '创建订单失败'
         }
-        wx.showToast({
-          title: errorMsg,
-          icon: 'none'
-        })
+        throw new Error(errorMsg)
       }
+
+      // 检查响应数据
+      if (!res.data || !res.data.id) {
+        throw new Error('创建订单失败，订单数据无效')
+      }
+
+      // 创建订单成功
+      wx.showToast({
+        title: '订单创建成功',
+        icon: 'success',
+        duration: 1500
+      })
+      
+      // 清空购物车已选商品
+      wx.removeStorageSync('selectedCartItems')
+      
+      // 跳转到订单详情页
+      setTimeout(() => {
+        wx.redirectTo({
+          url: `/pages/order/detail/index?id=${res.data.id}`
+        })
+      }, 1500)
     } catch (error) {
       console.error('[订单确认] 提交订单失败:', error)
       wx.showToast({
@@ -433,7 +461,7 @@ Page(loginGuard({
       console.log('[订单确认] 商品详情获取结果:', res)
       
       // 如果商品存在且有数据，使用API返回的数据
-      if (res && res.code === 0 && res.data) {
+      if (res && (res.code === 0 || res.code === 200) && res.data) {
         const product = res.data
         // 处理图片URL
         let coverImage = product.mainImage || product.coverImage || cartItem.cover_image || '/assets/images/default.png'
@@ -461,8 +489,8 @@ Page(loginGuard({
         }
         
         return {
-          id: cartItem.id || productId,
-          product_id: productId,
+          id: cartItem.id || cartItem.product_id,
+          product_id: cartItem.product_id,
           name: cartItem.name || cartItem.productName || '未知商品',
           price: cartItem.price,
           quantity: cartItem.quantity,
@@ -484,7 +512,7 @@ Page(loginGuard({
         }
         
         return {
-          id: cartItem.id || productId,
+          id: cartItem.id || cartItem.product_id,
           product_id: cartItem.product_id,
           name: cartItem.name || cartItem.productName || '未知商品',
           price: cartItem.price,

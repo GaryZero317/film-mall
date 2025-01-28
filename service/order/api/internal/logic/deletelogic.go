@@ -33,5 +33,8 @@ func (l *DeleteLogic) Delete(req *types.DeleteOrderReq) (resp *types.DeleteOrder
 		return nil, err
 	}
 
-	return &types.DeleteOrderResp{}, nil
+	return &types.DeleteOrderResp{
+		Code: 0,
+		Msg:  "success",
+	}, nil
 }

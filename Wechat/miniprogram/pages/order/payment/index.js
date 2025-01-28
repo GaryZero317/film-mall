@@ -33,7 +33,7 @@ Page({
       const res = await getOrderDetail(orderId)
       console.log('[订单支付] 获取订单详情成功:', res)
       
-      if (!res || !res.data) {
+      if (!res || res.code !== 0 || !res.data) {
         throw new Error('订单数据无效')
       }
 

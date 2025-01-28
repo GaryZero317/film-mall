@@ -51,5 +51,13 @@ module.exports = {
         id
       }
     })
+  },
+
+  // 获取地址详情
+  getAddressDetail(id) {
+    return request({
+      url: `/api/address/${id}`,
+      method: 'GET'
+    })
   }
 } 

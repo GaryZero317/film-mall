@@ -85,8 +85,8 @@ func (l *ListLogic) List(req *types.ListOrderReq) (resp *types.ListOrderResp, er
 
 	l.Logger.Info("获取订单列表成功")
 	return &types.ListOrderResp{
-		Code: code.Success,
-		Msg:  code.GetMsg(code.Success),
+		Code: 0,
+		Msg:  "success",
 		Data: types.ListOrderData{
 			Total: res.Total,
 			List:  orders,

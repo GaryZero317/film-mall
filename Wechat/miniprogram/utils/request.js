@@ -73,75 +73,65 @@ const request = (options) => {
           if (res.data && typeof res.data === 'object') {
             console.log('[请求工具] 处理对象响应:', res.data)
 
-            // 处理登录接口的特殊返回格式
-            if (url.includes('/api/user/login') || url.includes('/api/user/wx-login')) {
-              resolve({
-                code: 200,
-                msg: 'success',
-                data: res.data
-              })
-              return
-            }
-
-            // 新的错误码处理逻辑
+            // 如果响应中已经包含了code字段，直接返回
             if ('code' in res.data) {
-              if (res.data.code === 0) {
-                // 成功响应
+              // 如果是成功响应（code为0或200），直接返回
+              if (res.data.code === 200 || res.data.code === 0) {
                 console.log('[请求工具] 成功响应:', res.data)
                 resolve(res.data)
                 return
               }
               
               // 处理错误响应
+              let errorMsg = res.data.msg || '请求失败'
               switch(res.data.code) {
                 // 基础错误码
                 case 10001:
-                  reject(new Error('参数错误'))
+                  errorMsg = '参数错误'
                   break
                 case 10002:
-                  reject(new Error('服务器内部错误'))
+                  errorMsg = '服务器内部错误'
                   break
-                  
+                
                 // 用户相关错误码
                 case 30001:
-                  reject(new Error('用户不存在'))
+                  errorMsg = '用户不存在'
                   break
                 case 30002:
-                  reject(new Error('密码错误'))
+                  errorMsg = '密码错误'
                   break
                 case 30003:
-                  reject(new Error('手机号已注册'))
+                  errorMsg = '手机号已注册'
                   break
                 case 30004:
-                  reject(new Error('验证码错误'))
+                  errorMsg = '验证码错误'
                   break
                 case 30005:
-                  reject(new Error('登录已过期'))
+                  errorMsg = '登录已过期'
                   break
                 case 30006:
-                  reject(new Error('无效的登录凭证'))
+                  errorMsg = '无效的登录凭证'
                   break
-                  
+                
                 // 订单相关错误码
                 case 20001:
-                  reject(new Error('订单不存在'))
+                  errorMsg = '订单不存在'
                   break
                 case 20002:
-                  reject(new Error('订单创建失败'))
+                  errorMsg = '订单创建失败'
                   break
                 case 20003:
-                  reject(new Error('订单状态无效'))
+                  errorMsg = '订单状态无效'
                   break
                 case 20004:
-                  reject(new Error('订单更新失败'))
+                  errorMsg = '订单更新失败'
                   break
                 case 20005:
-                  reject(new Error('订单金额无效'))
+                  errorMsg = '订单金额无效'
                   break
-                  
-                default:
-                  reject(new Error(res.data.msg || '请求失败'))
               }
+              console.error('[请求工具] 业务错误:', errorMsg)
+              reject(new Error(errorMsg))
               return
             }
 
@@ -166,7 +156,7 @@ const request = (options) => {
             }
 
             // 处理成功字符串
-            if (res.data === '成功') {
+            if (res.data === 'success' || res.data === '成功') {
               const response = {
                 code: 200,
                 msg: '成功',

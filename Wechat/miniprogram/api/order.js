@@ -26,9 +26,16 @@ export const getOrderList = (params = {}) => {
 // 获取订单详情
 export const getOrderDetail = (id) => {
   return request({
-    url: '/api/order/detail',
-    method: 'POST',
-    data: { id }
+    url: `/api/order/${id}`,
+    method: 'GET'
+  })
+}
+
+// 获取地址详情
+export const getAddressDetail = (id) => {
+  return request({
+    url: `/api/address/${id}`,
+    method: 'GET'
   })
 }
 

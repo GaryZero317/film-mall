@@ -68,6 +68,14 @@ type (
 		Code    int64  `json:"code"`
 		Message string `json:"message"`
 	}
+
+	GetAddressReq {
+		Id int64 `path:"id"`
+	}
+
+	GetAddressResp {
+		Address Address `json:"address"`
+	}
 )
 
 @server(
@@ -89,4 +97,7 @@ service address-api {
 	
 	@handler SetDefaultAddress
 	post /api/address/setDefault (SetDefaultAddressReq) returns (SetDefaultAddressResp)
+	
+	@handler GetAddress
+	get /api/address/:id (GetAddressReq) returns (GetAddressResp)
 }

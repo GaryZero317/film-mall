@@ -55,8 +55,8 @@ func (l *GetLogic) Get(req *types.GetOrderReq) (resp *types.GetOrderResp, err er
 
 	l.Logger.Info("获取订单成功")
 	return &types.GetOrderResp{
-		Code: code.Success,
-		Msg:  code.GetMsg(code.Success),
+		Code: 0,
+		Msg:  "success",
 		Data: types.Order{
 			Id:          res.Id,
 			Oid:         res.Oid,

@@ -1,56 +1,68 @@
-<view class="container">
-  <view class="order-info">
-    <view class="order-status">
-      <text class="status-text">订单状态</text>
+<view class="order-detail">
+  <!-- 订单状态 -->
+  <view class="status-section">
+    <view class="status-text">{{orderStatus === 0 ? '待付款' : 
+                              orderStatus === 1 ? '待发货' :
+                              orderStatus === 2 ? '待收货' :
+                              orderStatus === 3 ? '已完成' : '已取消'}}</view>
+  </view>
+
+  <!-- 收货信息 -->
+  <view class="address-section">
+    <view class="section-title">收货信息</view>
+    <view class="address-content" wx:if="{{address}}">
+      <view class="name-phone">
+        <text class="name">{{address.name}}</text>
+        <text class="phone">{{address.phone}}</text>
+      </view>
+      <view class="address-detail">{{address.province}}{{address.city}}{{address.district}}{{address.address}}</view>
     </view>
-    
-    <view class="order-number">
+    <view class="no-address" wx:else>暂无收货信息</view>
+  </view>
+
+  <!-- 订单信息 -->
+  <view class="order-info">
+    <view class="section-title">订单信息</view>
+    <view class="info-item">
       <text class="label">订单编号：</text>
       <text class="value">{{orderNo}}</text>
     </view>
-    
-    <view class="order-time">
+    <view class="info-item">
       <text class="label">下单时间：</text>
       <text class="value">{{createTime}}</text>
     </view>
   </view>
 
-  <view class="goods-info">
+  <!-- 商品列表 -->
+  <view class="goods-section">
+    <view class="section-title">商品信息</view>
     <view class="goods-list">
-      <block wx:for="{{goods}}" wx:key="id">
-        <view class="goods-item">
-          <image class="goods-image" src="{{item.image}}" mode="aspectFill"></image>
-          <view class="goods-detail">
-            <text class="goods-name">{{item.name}}</text>
-            <text class="goods-price">¥{{item.price}}</text>
-            <text class="goods-num">x{{item.num}}</text>
+      <view class="goods-item" wx:for="{{goods}}" wx:key="id">
+        <image class="goods-image" src="{{item.product_image}}" mode="aspectFill"></image>
+        <view class="goods-info">
+          <view class="goods-name">{{item.product_name}}</view>
+          <view class="goods-price-count">
+            <text class="price">¥{{item.price}}</text>
+            <text class="count">x{{item.quantity}}</text>
           </view>
         </view>
-      </block>
+      </view>
     </view>
   </view>
 
-  <view class="price-info">
+  <!-- 价格信息 -->
+  <view class="price-section">
     <view class="price-item">
-      <text class="label">商品总价</text>
-      <text class="value">¥{{totalPrice}}</text>
+      <text>商品总价</text>
+      <text>¥{{totalPrice}}</text>
     </view>
     <view class="price-item">
-      <text class="label">运费</text>
-      <text class="value">¥{{freight}}</text>
+      <text>运费</text>
+      <text>¥{{freight}}</text>
     </view>
     <view class="price-item total">
-      <text class="label">实付款</text>
-      <text class="value">¥{{actualPrice}}</text>
-    </view>
-  </view>
-
-  <view class="address-info">
-    <view class="title">收货信息</view>
-    <view class="content">
-      <text class="name">{{address.name}}</text>
-      <text class="phone">{{address.phone}}</text>
-      <text class="address">{{address.province}}{{address.city}}{{address.district}}{{address.detail}}</text>
+      <text>实付款</text>
+      <text class="total-price">¥{{actualPrice}}</text>
     </view>
   </view>
 </view> 

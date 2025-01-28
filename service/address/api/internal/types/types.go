@@ -61,3 +61,11 @@ type SetDefaultAddressResp struct {
 	Code    int64  `json:"code"`
 	Message string `json:"message"`
 }
+
+type GetAddressReq struct {
+	Id int64 `path:"id"`
+}
+
+type GetAddressResp struct {
+	Address Address `json:"address"`
+}

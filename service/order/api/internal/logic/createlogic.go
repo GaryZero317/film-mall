@@ -74,8 +74,8 @@ func (l *CreateLogic) Create(req *types.CreateOrderReq) (resp *types.CreateOrder
 
 	l.Logger.Infof("创建订单成功: %+v", res)
 	return &types.CreateOrderResp{
-		Code: code.Success,
-		Msg:  code.GetMsg(code.Success),
+		Code: 0,
+		Msg:  "success",
 		Data: types.CreateOrderData{
 			Id:  res.Id,
 			Oid: res.Oid,

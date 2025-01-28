@@ -46,7 +46,7 @@ func (l *UpdateLogic) Update(req *types.UpdateOrderReq) (resp *types.UpdateOrder
 
 	l.Logger.Info("更新订单成功")
 	return &types.UpdateOrderResp{
-		Code: code.Success,
-		Msg:  code.GetMsg(code.Success),
+		Code: 0,
+		Msg:  "success",
 	}, nil
 }

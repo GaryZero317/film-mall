@@ -263,6 +263,38 @@ func (m *GormOrderModel) FindByUid(ctx context.Context, uid, status, page, pageS
 	return orders, total, nil
 }
 
+// FindAll 查询所有订单
+func (m *GormOrderModel) FindAll(ctx context.Context, status, page, pageSize int64) ([]*Order, int64, error) {
+	var gormOrders []GormOrder
+	var total int64
+
+	query := m.db.WithContext(ctx).Model(&GormOrder{})
+
+	// 如果指定了状态，则按状态筛选
+	if status > 0 {
+		query = query.Where("status = ?", status)
+	}
+
+	// 获取总数
+	err := query.Count(&total).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// 获取分页数据
+	err = query.Order("create_time DESC").Offset(int((page - 1) * pageSize)).Limit(int(pageSize)).Find(&gormOrders).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	orders := make([]*Order, len(gormOrders))
+	for i := range gormOrders {
+		orders[i] = convertToOrder(&gormOrders[i])
+	}
+
+	return orders, total, nil
+}
+
 // convertToOrder converts a GormOrder to an Order
 func convertToOrder(gormOrder *GormOrder) *Order {
 	return &Order{

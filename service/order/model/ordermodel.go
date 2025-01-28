@@ -25,6 +25,7 @@ type (
 		FindByUid(ctx context.Context, uid, status, page, pageSize int64) ([]*Order, int64, error)
 		FindAllByUid(ctx context.Context, uid int64) ([]*Order, error)
 		FindPageListByPage(ctx context.Context, page, pageSize int64) ([]*Order, int64, error)
+		FindAll(ctx context.Context, status, page, pageSize int64) ([]*Order, int64, error)
 	}
 
 	Session interface {
@@ -62,4 +63,9 @@ func (m *customOrderModel) FindAllByUid(ctx context.Context, uid int64) ([]*Orde
 // FindPageListByPage returns a page of orders
 func (m *customOrderModel) FindPageListByPage(ctx context.Context, page, pageSize int64) ([]*Order, int64, error) {
 	return m.GormOrderModel.FindPageListByPage(ctx, page, pageSize)
+}
+
+// FindAll returns all orders with pagination and status filter
+func (m *customOrderModel) FindAll(ctx context.Context, status, page, pageSize int64) ([]*Order, int64, error) {
+	return m.GormOrderModel.FindAll(ctx, status, page, pageSize)
 }

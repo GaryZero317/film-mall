@@ -88,6 +88,7 @@ import * as echarts from 'echarts'
 import { getAdminProductList } from '@/api/product'
 import { getAdminOrderList } from '@/api/order'
 import { getAdminPaymentList } from '@/api/payment'
+import { ElMessage } from 'element-plus'
 
 // 统计数据
 const statistics = reactive({
@@ -144,33 +145,29 @@ const fetchStatistics = async () => {
       pageSize: 1
     })
     statistics.products = productsRes?.data?.total?.toLocaleString() || '0'
-
-    // 获取订单总数
+      
+    // 获取订单总数和总金额
     const ordersRes = await getAdminOrderList({
       page: 1,
-      pageSize: 1
-    })
-    statistics.orders = ordersRes?.data?.total?.toLocaleString() || '0'
-
-    // 获取支付列表计算总额
-    const paymentsRes = await getAdminPaymentList({
-      page: 1,
-      pageSize: 999999 // 获取所有支付记录
+      pageSize: 999999, // 获取所有订单
+      status: 1 // 已支付的订单
     })
     
-    let totalPayments = 0
-    if (paymentsRes?.data?.list) {
-      totalPayments = paymentsRes.data.list.reduce((sum, payment) => {
-        return sum + (payment.status === 1 ? payment.amount : 0) // 只计算支付成功的订单
+    // 计算订单总数
+    statistics.orders = ordersRes?.data?.total?.toLocaleString() || '0'
+
+    // 计算总金额
+    let totalAmount = 0
+    if (ordersRes?.data?.list) {
+      totalAmount = ordersRes.data.list.reduce((sum, order) => {
+        return sum + (order.total_price || 0) + (order.shipping_fee || 0)
       }, 0)
     }
-    statistics.payments = `¥${(totalPayments / 100).toLocaleString()}`
+    statistics.payments = `¥${(totalAmount / 100).toFixed(2)}`
+
   } catch (error) {
     console.error('获取统计数据失败:', error)
-    // 设置默认值
-    statistics.products = '0'
-    statistics.orders = '0'
-    statistics.payments = '¥0'
+    ElMessage.error('获取统计数据失败')
   }
 }
 

@@ -3,6 +3,7 @@ package logic
 import (
 	"context"
 
+	"mall/service/order/model"
 	"mall/service/order/rpc/internal/svc"
 	"mall/service/order/rpc/types"
 
@@ -25,7 +26,18 @@ func NewListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *ListLogic {
 
 func (l *ListLogic) List(in *types.ListRequest) (*types.ListResponse, error) {
 	// 获取订单列表
-	orders, total, err := l.svcCtx.OrderModel.FindByUid(l.ctx, in.Uid, in.Status, in.Page, in.PageSize)
+	var orders []*model.Order
+	var total int64
+	var err error
+
+	if in.Uid == 0 {
+		// 管理员查询所有订单
+		orders, total, err = l.svcCtx.OrderModel.FindAll(l.ctx, in.Status, in.Page, in.PageSize)
+	} else {
+		// 普通用户查询自己的订单
+		orders, total, err = l.svcCtx.OrderModel.FindByUid(l.ctx, in.Uid, in.Status, in.Page, in.PageSize)
+	}
+
 	if err != nil {
 		return nil, err
 	}

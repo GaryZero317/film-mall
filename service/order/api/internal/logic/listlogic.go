@@ -38,7 +38,7 @@ func (l *ListLogic) List(req *types.ListOrderReq) (resp *types.ListOrderResp, er
 
 	// 调用 RPC 获取订单列表
 	res, err := l.svcCtx.OrderRpc.List(l.ctx, &order.ListRequest{
-		Uid:      req.Uid,
+		Uid:      req.Uid, // 如果uid为0，则查询所有订单
 		Status:   req.Status,
 		Page:     req.Page,
 		PageSize: req.PageSize,

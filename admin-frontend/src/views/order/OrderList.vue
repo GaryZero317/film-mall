@@ -1,17 +1,50 @@
 <template>
   <div class="order-list-container">
     <el-card class="table-card" shadow="never">
+      <!-- 搜索栏 -->
+      <div class="search-bar">
+        <el-select v-model="status" placeholder="订单状态" clearable @change="handleStatusChange">
+          <el-option label="全部" :value="-1" />
+          <el-option label="待支付" :value="0" />
+          <el-option label="已支付" :value="1" />
+          <el-option label="已取消" :value="2" />
+          <el-option label="已完成" :value="3" />
+        </el-select>
+      </div>
+
       <!-- 订单列表 -->
       <el-table 
         :data="orderList" 
         style="width: 100%" 
         v-loading="loading">
         <el-table-column prop="id" label="订单ID" width="80" align="center" />
+        <el-table-column prop="oid" label="订单号" width="160" align="center" />
         <el-table-column prop="uid" label="用户ID" width="80" align="center" />
-        <el-table-column prop="pid" label="商品ID" width="80" align="center" />
-        <el-table-column prop="amount" label="金额" width="100" align="center">
+        <el-table-column label="商品信息" min-width="200" align="left">
           <template #default="scope">
-            ¥{{ (scope.row.amount / 100).toFixed(2) }}
+            <div v-for="item in scope.row.items" :key="item.id" class="order-item">
+              <el-image 
+                :src="item.product_image" 
+                :preview-src-list="[item.product_image]"
+                style="width: 50px; height: 50px; object-fit: cover;"
+              />
+              <div class="item-info">
+                <div class="product-name">{{ item.product_name }}</div>
+                <div class="item-price">
+                  <span>¥{{ (item.price / 100).toFixed(2) }}</span>
+                  <span class="quantity">x{{ item.quantity }}</span>
+                </div>
+              </div>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="订单金额" width="120" align="center">
+          <template #default="scope">
+            <div>
+              <div>商品：¥{{ (scope.row.total_price / 100).toFixed(2) }}</div>
+              <div>运费：¥{{ (scope.row.shipping_fee / 100).toFixed(2) }}</div>
+              <div class="total-amount">总计：¥{{ ((scope.row.total_price + scope.row.shipping_fee) / 100).toFixed(2) }}</div>
+            </div>
           </template>
         </el-table-column>
         <el-table-column prop="status" label="状态" width="100" align="center">
@@ -21,17 +54,12 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="createTime" label="创建时间" min-width="160" align="center">
+        <el-table-column prop="create_time" label="创建时间" min-width="160" align="center">
           <template #default="scope">
-            {{ formatTime(scope.row.createTime) }}
+            {{ formatTime(scope.row.create_time) }}
           </template>
         </el-table-column>
-        <el-table-column prop="updateTime" label="更新时间" min-width="160" align="center">
-          <template #default="scope">
-            {{ formatTime(scope.row.updateTime) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="100" align="center">
+        <el-table-column label="操作" width="120" align="center">
           <template #default="scope">
             <el-button type="primary" size="small" @click="handleDetail(scope.row)">
               详情
@@ -61,35 +89,53 @@
     <el-dialog
       v-model="dialogVisible"
       title="订单详情"
-      width="500px"
+      width="600px"
       :close-on-click-modal="false"
       :close-on-press-escape="false"
       destroy-on-close
     >
       <div v-loading="detailLoading">
         <el-descriptions :column="1" border>
-          <el-descriptions-item label="订单ID" label-class-name="label-cell" content-class-name="content-cell">
-            {{ orderDetail.id || '--' }}
+          <el-descriptions-item label="订单号" label-class-name="label-cell" content-class-name="content-cell">
+            {{ orderDetail.oid || '--' }}
           </el-descriptions-item>
           <el-descriptions-item label="用户ID" label-class-name="label-cell" content-class-name="content-cell">
             {{ orderDetail.uid || '--' }}
           </el-descriptions-item>
-          <el-descriptions-item label="商品ID" label-class-name="label-cell" content-class-name="content-cell">
-            {{ orderDetail.pid || '--' }}
+          <el-descriptions-item label="商品信息" label-class-name="label-cell" content-class-name="content-cell">
+            <div v-for="item in orderDetail.items" :key="item.id" class="order-item">
+              <el-image 
+                :src="item.product_image" 
+                :preview-src-list="[item.product_image]"
+                style="width: 50px; height: 50px; object-fit: cover;"
+              />
+              <div class="item-info">
+                <div class="product-name">{{ item.product_name }}</div>
+                <div class="item-price">
+                  <span>¥{{ (item.price / 100).toFixed(2) }}</span>
+                  <span class="quantity">x{{ item.quantity }}</span>
+                </div>
+              </div>
+            </div>
           </el-descriptions-item>
           <el-descriptions-item label="订单金额" label-class-name="label-cell" content-class-name="content-cell">
-            {{ orderDetail.amount ? `¥${(orderDetail.amount / 100).toFixed(2)}` : '--' }}
+            <div>商品总额：¥{{ (orderDetail.total_price / 100).toFixed(2) }}</div>
+            <div>运费：¥{{ (orderDetail.shipping_fee / 100).toFixed(2) }}</div>
+            <div class="total-amount">订单总额：¥{{ ((orderDetail.total_price + orderDetail.shipping_fee) / 100).toFixed(2) }}</div>
           </el-descriptions-item>
           <el-descriptions-item label="订单状态" label-class-name="label-cell" content-class-name="content-cell">
             <el-tag :type="getOrderStatusType(orderDetail.status)" size="small">
               {{ getOrderStatusText(orderDetail.status) }}
             </el-tag>
           </el-descriptions-item>
+          <el-descriptions-item label="备注" label-class-name="label-cell" content-class-name="content-cell">
+            {{ orderDetail.remark || '--' }}
+          </el-descriptions-item>
           <el-descriptions-item label="创建时间" label-class-name="label-cell" content-class-name="content-cell">
-            {{ formatTime(orderDetail.createTime) }}
+            {{ formatTime(orderDetail.create_time) }}
           </el-descriptions-item>
           <el-descriptions-item label="更新时间" label-class-name="label-cell" content-class-name="content-cell">
-            {{ formatTime(orderDetail.updateTime) }}
+            {{ formatTime(orderDetail.update_time) }}
           </el-descriptions-item>
         </el-descriptions>
       </div>
@@ -112,6 +158,7 @@ const orderList = ref([])
 const total = ref(0)
 const page = ref(1)
 const pageSize = ref(10)
+const status = ref(-1)  // 添加状态筛选
 
 // 详情弹窗相关
 const dialogVisible = ref(false)
@@ -145,13 +192,18 @@ const fetchOrderList = async () => {
   try {
     const res = await getAdminOrderList({
       page: page.value,
-      pageSize: pageSize.value
+      pageSize: pageSize.value,
+      status: status.value
     })
-    orderList.value = res.list || []
-    total.value = res.total || 0
+    if (res && res.code === 0) {
+      orderList.value = res.data?.list || []
+      total.value = res.data?.total || 0
+    } else {
+      throw new Error(res?.msg || '获取订单列表失败')
+    }
   } catch (error) {
     console.error('获取订单列表失败:', error)
-    ElMessage.error('获取订单列表失败')
+    ElMessage.error(error.message || '获取订单列表失败')
   } finally {
     loading.value = false
   }
@@ -162,46 +214,20 @@ const handleDetail = async (row) => {
   dialogVisible.value = true
   detailLoading.value = true
   try {
-    const res = await getOrderDetail({ id: row.id })
-    console.log('API响应数据:', res) // 添加调试日志
+    const res = await getOrderDetail(row.id)
+    console.log('API响应数据:', res)
     
-    // 使用API返回的数据
     if (res && res.code === 0) {
-      orderDetail.value = {
-        id: res.id || row.id || '--',
-        uid: res.uid || row.uid || '--',
-        pid: res.pid || row.pid || '--',
-        amount: res.amount || row.amount || 0,
-        status: res.status ?? row.status,
-        createTime: res.createTime || row.createTime || '',
-        updateTime: res.updateTime || row.updateTime || ''
-      }
+      orderDetail.value = res.data || {}
     } else {
-      // 如果API返回错误，使用表格行数据
-      orderDetail.value = {
-        id: row.id || '--',
-        uid: row.uid || '--',
-        pid: row.pid || '--',
-        amount: row.amount || 0,
-        status: row.status,
-        createTime: row.createTime || '',
-        updateTime: row.updateTime || ''
-      }
+      throw new Error(res?.msg || '获取订单详情失败')
     }
     console.log('处理后的订单详情数据:', orderDetail.value)
   } catch (error) {
     console.error('获取订单详情失败:', error)
-    ElMessage.error('获取订单详情失败')
+    ElMessage.error(error.message || '获取订单详情失败')
     // 发生错误时使用表格行数据
-    orderDetail.value = {
-      id: row.id || '--',
-      uid: row.uid || '--',
-      pid: row.pid || '--',
-      amount: row.amount || 0,
-      status: row.status,
-      createTime: row.createTime || '',
-      updateTime: row.updateTime || ''
-    }
+    orderDetail.value = row
   } finally {
     detailLoading.value = false
   }
@@ -239,6 +265,12 @@ const handleSizeChange = (val) => {
 
 const handleCurrentChange = (val) => {
   page.value = val
+  fetchOrderList()
+}
+
+// 状态变化处理
+const handleStatusChange = () => {
+  page.value = 1
   fetchOrderList()
 }
 
@@ -341,5 +373,51 @@ onMounted(() => {
 
 .content-cell {
   color: #303133;
+}
+
+.order-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.order-item:last-child {
+  border-bottom: none;
+}
+
+.item-info {
+  margin-left: 12px;
+  flex: 1;
+}
+
+.product-name {
+  font-size: 14px;
+  color: #303133;
+  margin-bottom: 4px;
+}
+
+.item-price {
+  font-size: 13px;
+  color: #606266;
+}
+
+.quantity {
+  margin-left: 8px;
+  color: #909399;
+}
+
+.total-amount {
+  font-weight: bold;
+  color: #f56c6c;
+  margin-top: 4px;
+}
+
+.search-bar {
+  padding: 16px 20px;
+  border-bottom: 1px solid #ebeef5;
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 </style> 

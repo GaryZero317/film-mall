@@ -3,6 +3,26 @@ import { createOrder } from '../../../api/order'
 import { getAddressList } from '../../../api/address'
 import { getProductDetail } from '../../../api/product'
 import { loginGuard } from '../../../utils/auth'
+import { clearCartItems as clearCartItemsAPI } from '../../../api/cart'
+
+// 添加Array.includes的polyfill
+if (!Array.prototype.includes) {
+  Array.prototype.includes = function(searchElement, fromIndex) {
+    if (this == null) {
+      throw new TypeError('"this" is null or undefined')
+    }
+    const o = Object(this)
+    const len = o.length >>> 0
+    if (len === 0) return false
+    const n = fromIndex | 0
+    let k = Math.max(n >= 0 ? n : len + n, 0)
+    while (k < len) {
+      if (o[k] === searchElement) return true
+      k++
+    }
+    return false
+  }
+}
 
 Page(loginGuard({
   data: {
@@ -11,7 +31,8 @@ Page(loginGuard({
     totalPrice: 0,
     totalCount: 0,
     remark: '',
-    loading: false
+    loading: false,
+    fromCart: false  // 添加来源标记
   },
 
   onLoad(options) {
@@ -21,6 +42,7 @@ Page(loginGuard({
     const { from } = options
     if (from === 'cart') {
       console.log('[订单确认] 从购物车进入')
+      this.setData({ fromCart: true })
       this.loadCartProductsAndSetOrderItems()
     } 
     // 从商品详情页直接购买进入
@@ -38,11 +60,11 @@ Page(loginGuard({
 
   // 加载商品详情并设置订单商品
   async loadProductAndSetOrderItems(productId, quantity) {
-    console.log('[订单确认] 开始加载商品详情:', { productId, quantity })
+      console.log('[订单确认] 开始加载商品详情:', { productId, quantity })
     try {
       const res = await getProductDetail(productId)
       console.log('[订单确认] 商品详情响应:', res)
-      
+
       if (res && res.code === 0 && res.data) {
         const product = res.data
         console.log('[订单确认] 商品详情数据:', {
@@ -96,7 +118,7 @@ Page(loginGuard({
         }
 
         console.log('[订单确认] 最终确定的价格:', price)
-
+        
         // 处理图片路径
         let coverImage = '/assets/images/default.png'
         const possibleImageFields = ['coverImage', 'mainImage', 'image', 'cover_image', 'main_image', 'img', 'imgUrl', 'imageUrl', 'cover']
@@ -111,7 +133,7 @@ Page(loginGuard({
             break
           }
         }
-
+        
         const orderItem = {
           id: product.id,
           product_id: parseInt(productId),
@@ -144,58 +166,38 @@ Page(loginGuard({
     }
   },
 
-  // 加载购物车商品详情并设置订单商品
-  async loadCartProductsAndSetOrderItems() {
-    console.log('[订单确认] 开始加载购物车商品')
+  // 从购物车加载商品
+  loadCartProductsAndSetOrderItems() {
     try {
-      const cartProducts = wx.getStorageSync('selectedCartItems') || []
-      console.log('[订单确认] 购物车商品列表:', cartProducts)
+      // 获取已选中的购物车商品
+      const selectedItems = wx.getStorageSync('selectedCartItems') || []
+      console.log('[订单确认] 已选中的购物车商品:', selectedItems)
       
-      if (!cartProducts.length) {
-        wx.showToast({
-          title: '请先选择商品',
-          icon: 'none'
-        })
-        setTimeout(() => {
-          wx.navigateBack()
-        }, 1500)
+      if (!selectedItems.length) {
+        console.error('[订单确认] 没有选中的购物车商品')
         return
       }
-
-      // 获取每个商品的详细信息
-      const orderItemsPromises = cartProducts.map(item => this.getProductDetail(item))
-      const orderItems = await Promise.all(orderItemsPromises)
-      
-      console.log('[订单确认] 订单商品列表:', orderItems)
       
       // 计算总价和总数量
-      const totalPrice = orderItems.reduce((total, item) => {
-        return total + (item.price * item.quantity)
-      }, 0)
-
-      const totalCount = orderItems.reduce((total, item) => {
-        return total + item.quantity
-      }, 0)
-
-      // 计算运费：3件及以上免运费，否则7元运费
-      const shippingFee = totalCount >= 3 ? 0 : 7
+      const totalPrice = selectedItems.reduce((total, item) => total + item.price * item.quantity, 0)
+      const totalCount = selectedItems.reduce((total, item) => total + item.quantity, 0)
       
-      console.log('[订单确认] 计算结果:', {
-        商品列表: orderItems,
-        总价: totalPrice,
-        总数量: totalCount,
-        运费: shippingFee,
-        最终总价: totalPrice + shippingFee
-      })
-
+      // 设置订单商品
       this.setData({
-        orderItems,
-        totalPrice: (totalPrice + shippingFee).toFixed(2),
-        totalCount,
-        shippingFee: shippingFee.toFixed(2)
+        orderItems: selectedItems.map(item => ({
+          product_id: item.product_id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          cover_image: item.product_image  // 使用从购物车传递的完整图片路径
+        })),
+        totalPrice: totalPrice.toFixed(2),
+        totalCount
       })
+      
+      console.log('[订单确认] 设置订单商品成功:', this.data.orderItems)
     } catch (error) {
-      console.error('[订单确认] 加载商品失败:', error)
+      console.error('[订单确认] 加载购物车商品失败:', error)
       wx.showToast({
         title: '加载商品失败',
         icon: 'none'
@@ -331,6 +333,66 @@ Page(loginGuard({
     })
   },
 
+  // 清除已购买的购物车商品
+  async clearCartItems() {
+    try {
+      console.log('[订单确认] 开始清除购物车商品')
+      
+      // 获取已选中的购物车商品ID
+      const selectedItems = wx.getStorageSync('selectedCartItems') || []
+      const selectedIds = selectedItems.map(item => item.product_id)
+      console.log('[订单确认] 需要清除的商品ID:', selectedIds)
+      
+      if (selectedIds.length === 0) {
+        console.log('[订单确认] 没有需要清除的商品')
+        return
+      }
+
+      // 调用后端API清除数据库中的购物车数据
+      const res = await clearCartItemsAPI(selectedIds)
+      console.log('[订单确认] 清除数据库购物车响应:', res)
+      
+      // 检查响应状态
+      if (!res || typeof res !== 'object') {
+        throw new Error('清除购物车失败，响应数据无效')
+      }
+
+      // 检查响应码
+      if (res.code !== 0 && res.code !== 200) {
+        throw new Error(res.msg || '清除购物车失败')
+      }
+
+      // 清除成功，更新本地数据
+      // 获取当前购物车数据
+      const cartList = wx.getStorageSync('cartList') || []
+      console.log('[订单确认] 当前购物车数据:', cartList)
+      
+      // 过滤掉已购买的商品
+      const newCartList = cartList.filter(item => !selectedIds.includes(item.product_id))
+      console.log('[订单确认] 更新后的购物车数据:', newCartList)
+      
+      // 更新购物车数据
+      wx.setStorageSync('cartList', newCartList)
+      
+      // 清除已选商品缓存
+      wx.removeStorageSync('selectedCartItems')
+      
+      // 尝试更新购物车页面
+      const pages = getCurrentPages()
+      const cartPage = pages.find(p => p.route === 'pages/cart/index')
+      if (cartPage && typeof cartPage.loadCartList === 'function') {
+        console.log('[订单确认] 刷新购物车页面')
+        cartPage.loadCartList()
+      }
+      
+      console.log('[订单确认] 清除购物车商品完成')
+    } catch (error) {
+      console.error('[订单确认] 清除购物车商品失败:', error)
+      // 不显示错误提示，因为这不应该影响用户体验
+      console.warn('[订单确认] 清除购物车失败，但不影响订单提交:', error.message)
+    }
+  },
+
   // 提交订单
   async submitOrder() {
     console.log('[订单确认] 开始提交订单')
@@ -377,11 +439,11 @@ Page(loginGuard({
         items: this.data.orderItems.map(item => {
           const priceInCents = Math.round(item.price * 100)
           return {
-            pid: item.product_id,
-            product_name: item.name,
+          pid: item.product_id,
+          product_name: item.name,
             product_image: item.cover_image,
             price: priceInCents,
-            quantity: item.quantity,
+          quantity: item.quantity,
             amount: priceInCents * item.quantity // 商品总价 = 单价 * 数量
           }
         })
@@ -428,8 +490,10 @@ Page(loginGuard({
         duration: 1500
       })
       
-      // 清空购物车已选商品
-      wx.removeStorageSync('selectedCartItems')
+      // 清除购物车中已购买的商品
+      if (this.data.fromCart) {
+        await this.clearCartItems()  // 等待清除购物车完成
+      }
       
       // 跳转到订单详情页
       setTimeout(() => {

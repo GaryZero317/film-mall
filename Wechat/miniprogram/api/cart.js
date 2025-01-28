@@ -49,4 +49,15 @@ export const updateCartItemStatus = (data) => {
     method: 'PUT',
     data
   })
+}
+
+// 清除购物车商品
+export function clearCartItems(productIds) {
+  return request({
+    url: '/api/cart/clear',
+    method: 'DELETE',
+    data: {
+      product_ids: productIds
+    }
+  })
 } 

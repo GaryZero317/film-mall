@@ -28,7 +28,7 @@ Page({
       const res = await getProductDetail(id)
       console.log('商品详情响应:', res)
       
-      if (res && res.code === 0 && res.data) {
+      if (res && (res.code === 0 || res.code === 200) && res.data) {
         // 格式化金额
         const formattedAmount = res.data.amount ? (res.data.amount / 100).toFixed(2) : '0.00'
         

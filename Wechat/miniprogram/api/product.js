@@ -34,7 +34,7 @@ export const getProductDetail = (id) => {
     noAuth: true
   }).then(res => {
     // 如果是正常的成功响应
-    if (res.code === 0 && res.data) {
+    if ((res.code === 0 || res.code === 200) && res.data) {
       return res
     }
     

@@ -7,10 +7,18 @@
         style="width: 100%" 
         v-loading="loading">
         <el-table-column prop="id" label="支付ID" width="80" align="center" />
+        <el-table-column prop="uid" label="用户ID" width="80" align="center" />
         <el-table-column prop="oid" label="订单ID" width="80" align="center" />
-        <el-table-column prop="amount" label="金额" width="100" align="center">
+        <el-table-column prop="amount" label="金额" width="120" align="center">
           <template #default="scope">
             ¥{{ (scope.row.amount / 100).toFixed(2) }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="source" label="支付来源" width="120" align="center">
+          <template #default="scope">
+            <el-tag :type="getPaymentSourceType(scope.row.source)" size="small">
+              {{ getPaymentSourceText(scope.row.source) }}
+            </el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="status" label="状态" width="100" align="center">
@@ -30,7 +38,7 @@
             {{ formatTime(scope.row.updateTime) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="100" align="center">
+        <el-table-column label="操作" width="100" align="center" fixed="right">
           <template #default="scope">
             <el-button type="primary" size="small" @click="handleDetail(scope.row)">
               详情
@@ -70,11 +78,19 @@
           <el-descriptions-item label="支付ID" label-class-name="label-cell" content-class-name="content-cell">
             {{ paymentDetail.id || '--' }}
           </el-descriptions-item>
+          <el-descriptions-item label="用户ID" label-class-name="label-cell" content-class-name="content-cell">
+            {{ paymentDetail.uid || '--' }}
+          </el-descriptions-item>
           <el-descriptions-item label="订单ID" label-class-name="label-cell" content-class-name="content-cell">
             {{ paymentDetail.orderId || '--' }}
           </el-descriptions-item>
           <el-descriptions-item label="支付金额" label-class-name="label-cell" content-class-name="content-cell">
             {{ paymentDetail.amount ? `¥${(paymentDetail.amount / 100).toFixed(2)}` : '--' }}
+          </el-descriptions-item>
+          <el-descriptions-item label="支付来源" label-class-name="label-cell" content-class-name="content-cell">
+            <el-tag :type="getPaymentSourceType(paymentDetail.source)" size="small">
+              {{ getPaymentSourceText(paymentDetail.source) }}
+            </el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="支付状态" label-class-name="label-cell" content-class-name="content-cell">
             <el-tag :type="getPaymentStatusType(paymentDetail.status)" size="small">
@@ -157,10 +173,11 @@ const fetchPaymentList = async () => {
 const getPaymentStatusText = (status) => {
   if (status === null || status === undefined) return '未知状态'
   const statusMap = {
-    0: '待支付',
-    1: '支付成功',
-    2: '支付失败',
-    3: '已退款'
+    0: '未支付',
+    1: '已支付',
+    2: '已取消',
+    3: '已退款',
+    4: '支付失败'
   }
   return statusMap[status] || '未知状态'
 }
@@ -168,12 +185,34 @@ const getPaymentStatusText = (status) => {
 const getPaymentStatusType = (status) => {
   if (status === null || status === undefined) return 'info'
   const typeMap = {
-    0: 'warning',
-    1: 'success',
-    2: 'danger',
-    3: 'info'
+    0: 'warning',   // 未支付
+    1: 'success',   // 已支付
+    2: 'info',      // 已取消
+    3: 'danger',    // 已退款
+    4: 'danger'     // 支付失败
   }
   return typeMap[status] || 'info'
+}
+
+// 支付来源
+const getPaymentSourceText = (source) => {
+  if (source === null || source === undefined) return '未知来源'
+  const sourceMap = {
+    0: '微信支付',
+    1: '支付宝',
+    2: '银行卡'
+  }
+  return sourceMap[source] || '未知来源'
+}
+
+const getPaymentSourceType = (source) => {
+  if (source === null || source === undefined) return 'info'
+  const typeMap = {
+    0: 'success',
+    1: 'primary',
+    2: 'warning'
+  }
+  return typeMap[source] || 'info'
 }
 
 // 查看支付详情
@@ -182,38 +221,28 @@ const handleDetail = async (row) => {
   detailLoading.value = true
   try {
     const res = await getPaymentDetail({ id: row.id })
-    console.log('API响应数据:', res) // 添加调试日志
     
-    // 使用API返回的数据，将oid映射为orderId
-    if (res && res.code === 0) {
-      paymentDetail.value = {
-        id: res.id || row.id || '--',
-        orderId: res.oid || row.oid || '--',
-        amount: res.amount || row.amount || 0,
-        status: res.status ?? row.status,
-        createTime: res.createTime || row.createTime || '',
-        updateTime: res.updateTime || row.updateTime || ''
-      }
-    } else {
-      // 如果API返回错误，使用表格行数据
-      paymentDetail.value = {
-        id: row.id || '--',
-        orderId: row.oid || '--',
-        amount: row.amount || 0,
-        status: row.status,
-        createTime: row.createTime || '',
-        updateTime: row.updateTime || ''
-      }
+    // 使用API返回的数据，如果没有则使用表格行数据
+    paymentDetail.value = {
+      id: res?.id || row.id || '--',
+      uid: res?.uid || row.uid || '--',
+      orderId: res?.oid || row.oid || '--',
+      amount: res?.amount || row.amount || 0,
+      source: res?.source ?? row.source,
+      status: res?.status ?? row.status,
+      createTime: res?.createTime || row.createTime || '',
+      updateTime: res?.updateTime || row.updateTime || ''
     }
-    console.log('处理后的支付详情数据:', paymentDetail.value)
   } catch (error) {
     console.error('获取支付详情失败:', error)
     ElMessage.error('获取支付详情失败')
     // 发生错误时使用表格行数据
     paymentDetail.value = {
       id: row.id || '--',
+      uid: row.uid || '--',
       orderId: row.oid || '--',
       amount: row.amount || 0,
+      source: row.source,
       status: row.status,
       createTime: row.createTime || '',
       updateTime: row.updateTime || ''

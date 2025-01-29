@@ -56,7 +56,7 @@ type CreateAdminResponse struct {
 
 type UpdateAdminRequest struct {
 	Id       int64  `json:"id"`
-	Password string `json:"password"`
+	Password string `json:"password,optional"`
 	Level    int32  `json:"level"`
 }
 

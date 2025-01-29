@@ -84,7 +84,7 @@
           <el-input
             v-model="form.password"
             type="password"
-            placeholder="请输入密码"
+            :placeholder="dialogType === 'add' ? '请输入密码' : '不修改请留空'"
             show-password />
         </el-form-item>
         <el-form-item label="权限级别" prop="level">
@@ -107,7 +107,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import { getAdminList, createAdmin, updateAdmin, removeAdmin } from '../../api/admin'
@@ -129,6 +129,30 @@ const form = ref({
   level: 1
 })
 
+const baseRules = {
+  username: [
+    { required: true, message: '请输入用户名', trigger: 'blur' },
+    { min: 3, max: 20, message: '长度在 3 到 20 个字符', trigger: 'blur' }
+  ],
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    { min: 6, max: 20, message: '长度在 6 到 20 个字符', trigger: 'blur' }
+  ],
+  level: [
+    { required: true, message: '请选择权限级别', trigger: 'change' }
+  ]
+}
+
+// 计算表单验证规则
+const rules = computed(() => {
+  if (dialogType.value === 'edit') {
+    const editRules = { ...baseRules }
+    delete editRules.password // 编辑模式下不验证密码
+    return editRules
+  }
+  return baseRules
+})
+
 // 时间格式化函数
 const formatTime = (time) => {
   if (!time) return '--'
@@ -148,17 +172,6 @@ const formatTime = (time) => {
     console.error('时间格式化错误:', error)
     return '--'
   }
-}
-
-const rules = {
-  username: [
-    { required: true, message: '请输入用户名', trigger: 'blur' },
-    { min: 3, max: 20, message: '长度在 3 到 20 个字符', trigger: 'blur' }
-  ],
-  password: [
-    { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, max: 20, message: '长度在 6 到 20 个字符', trigger: 'blur' }
-  ]
 }
 
 // 获取管理员列表
@@ -228,11 +241,22 @@ const handleSubmit = async () => {
     await formRef.value.validate()
     submitting.value = true
     
+    const submitData = {
+      id: form.value.id,
+      username: form.value.username,
+      level: form.value.level
+    }
+    
+    // 只在添加模式下或编辑模式且有输入密码时才包含密码字段
+    if (dialogType.value === 'add' || (dialogType.value === 'edit' && form.value.password)) {
+      submitData.password = form.value.password
+    }
+    
     if (dialogType.value === 'add') {
-      await createAdmin(form.value)
+      await createAdmin(submitData)
       ElMessage.success('添加成功')
     } else {
-      await updateAdmin(form.value)
+      await updateAdmin(submitData)
       ElMessage.success('更新成功')
     }
     
@@ -240,7 +264,14 @@ const handleSubmit = async () => {
     fetchAdminList()
   } catch (error) {
     console.error('提交失败:', error)
-    ElMessage.error('提交失败')
+    if (error.response?.data) {
+      const errorMessage = typeof error.response.data === 'string' 
+        ? error.response.data 
+        : Object.values(error.response.data)[0]?.[0]?.message || '提交失败'
+      ElMessage.error(errorMessage)
+    } else {
+      ElMessage.error('提交失败')
+    }
   } finally {
     submitting.value = false
   }

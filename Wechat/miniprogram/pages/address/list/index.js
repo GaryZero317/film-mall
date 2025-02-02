@@ -76,7 +76,9 @@ Page({
       const res = await setDefaultAddress(id)
       console.log('[地址列表] 设置默认地址响应:', res)
 
-      if (res && res.data && res.data.code === 0) {
+      // 判断是否成功：支持code为0或200的情况
+      if (res.code === 0 || res.code === 200) {
+        console.log('[地址列表] 设置默认地址成功:', res)
         wx.showToast({
           title: '设置成功',
           icon: 'success'
@@ -85,7 +87,7 @@ Page({
       } else {
         console.error('[地址列表] 设置默认地址失败:', res)
         wx.showToast({
-          title: '设置失败',
+          title: res?.message || res?.msg || '设置失败',
           icon: 'none'
         })
       }
@@ -125,8 +127,9 @@ Page({
         const result = await deleteAddress(id)
         console.log('[地址列表] 删除地址响应:', result)
 
-        // 删除地址接口没有返回值，只要状态码是200就表示成功
-        if (result && result.statusCode === 200) {
+        // 判断删除是否成功：支持code为0或200的情况
+        if (result && (result.code === 0 || result.code === 200)) {
+          console.log('[地址列表] 删除地址成功:', result)
           wx.showToast({
             title: '删除成功',
             icon: 'success'
@@ -135,7 +138,7 @@ Page({
         } else {
           console.error('[地址列表] 删除地址失败:', result)
           wx.showToast({
-            title: '删除失败',
+            title: result?.msg || '删除失败',
             icon: 'none'
           })
         }

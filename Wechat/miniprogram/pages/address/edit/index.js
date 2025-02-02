@@ -320,8 +320,9 @@ Page({
         console.log('[地址编辑] 更新地址')
         res = await updateAddress(addressId, data)
         console.log('[地址编辑] 更新地址响应:', res)
-        // 更新地址返回 code
-        if (res && res.data && (res.data.code === 0 || res.data.code === '0')) {
+        
+        // 直接判断响应的code值
+        if (res.code === 0 || res.code === 200) {
           wx.showToast({
             title: '保存成功',
             icon: 'success'
@@ -330,9 +331,8 @@ Page({
             wx.navigateBack()
           }, 1500)
         } else {
-          console.error('[地址编辑] 更新地址失败:', res)
           wx.showToast({
-            title: res.data?.message || '保存失败',
+            title: res?.message || res?.msg || '保存失败',
             icon: 'none'
           })
         }
@@ -340,8 +340,10 @@ Page({
         console.log('[地址编辑] 新增地址')
         res = await createAddress(data)
         console.log('[地址编辑] 新增地址响应:', res)
-        // 新增地址返回 id
-        if (res && res.data && res.data.id) {
+        
+        // 判断新增是否成功：支持code为200的情况
+        if (res.code === 200 || (res.data && res.data.id)) {
+          console.log('[地址编辑] 新增地址成功:', res)
           wx.showToast({
             title: '保存成功',
             icon: 'success'
@@ -350,9 +352,8 @@ Page({
             wx.navigateBack()
           }, 1500)
         } else {
-          console.error('[地址编辑] 新增地址失败:', res)
           wx.showToast({
-            title: '保存失败',
+            title: res?.msg || '保存失败',
             icon: 'none'
           })
         }

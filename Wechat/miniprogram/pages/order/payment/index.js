@@ -204,7 +204,7 @@ Page({
       
       // 调用支付回调，更新支付状态
       const callbackData = {
-        id: payId,  // 使用保存的支付记录ID
+        id: parseInt(payId),  // 确保ID是数字类型
         uid: wx.getStorageSync('userInfo').id,
         oid: order.id,
         amount: Math.round(parseFloat(order.amount) * 100),

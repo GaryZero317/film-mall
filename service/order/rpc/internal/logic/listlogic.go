@@ -65,6 +65,7 @@ func (l *ListLogic) List(in *types.ListRequest) (*types.ListResponse, error) {
 			})
 		}
 
+		// 使用model层已经设置好的StatusDesc
 		orderList = append(orderList, &types.DetailResponse{
 			Id:          order.Id,
 			Oid:         order.Oid,
@@ -73,7 +74,7 @@ func (l *ListLogic) List(in *types.ListRequest) (*types.ListResponse, error) {
 			TotalPrice:  order.TotalPrice,
 			ShippingFee: order.ShippingFee,
 			Status:      order.Status,
-			StatusDesc:  order.StatusDesc,
+			StatusDesc:  order.StatusDesc, // 直接使用model层设置的状态描述
 			Remark:      order.Remark,
 			Items:       orderItems,
 			CreateTime:  order.CreateTime.Format("2006-01-02 15:04:05"),

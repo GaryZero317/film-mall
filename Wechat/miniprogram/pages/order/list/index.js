@@ -10,11 +10,11 @@ Page({
     loading: false,
     currentTab: 0,
     tabs: [
-      { id: 0, name: '全部' },
-      { id: 1, name: '待付款' },
-      { id: 2, name: '待发货' },
-      { id: 3, name: '待收货' },
-      { id: 4, name: '已完成' }
+      { id: 0, name: '全部', status: null },  // 全部订单不需要状态值
+      { id: 1, name: '待付款', status: 0 },   // 0 表示待付款
+      { id: 2, name: '待发货', status: 1 },   // 1 表示待发货
+      { id: 3, name: '待收货', status: 2 },   // 2 表示待收货
+      { id: 4, name: '已完成', status: 3 }    // 3 表示已完成
     ],
     isFirstLoad: true,  // 添加标记，用于区分首次加载和后续显示
     page: 1,           // 当前页码
@@ -90,12 +90,18 @@ Page({
         throw new Error('请先登录')
       }
 
-      const res = await getOrderList({
+      // 获取当前标签对应的状态
+      const currentStatus = this.data.tabs[this.data.currentTab].status
+
+      // 构造请求参数
+      const params = {
         uid: userInfo.id,
-        status: this.data.currentTab,
+        status: currentStatus === null ? -1 : currentStatus,  // 全部订单时传递-1
         page: this.data.page,
         pageSize: this.data.pageSize
-      })
+      }
+
+      const res = await getOrderList(params)
 
       console.log('[订单列表] 获取订单列表响应:', res)
 

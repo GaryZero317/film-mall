@@ -139,12 +139,10 @@ export const getOrderPayStatus = (orderId) => {
 // 更新订单状态为已支付
 export function updateOrderStatus(orderId) {
   return request({
-    url: '/api/order/update',
-    method: 'POST',
+    url: `/api/order/${orderId}`,
+    method: 'PUT',
     data: {
-      id: orderId,
-      status: 1,  // 1表示已支付，待发货
-      status_desc: '待发货'
+      status: 1  // 1表示已支付，待发货
     }
   })
 } 

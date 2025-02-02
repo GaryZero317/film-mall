@@ -240,27 +240,51 @@ func (m *GormOrderModel) FindByUid(ctx context.Context, uid, status, page, pageS
 	var total int64
 	query := m.db.WithContext(ctx).Model(&GormOrder{}).Where("uid = ?", uid)
 
-	if status != 0 {
+	// 修改状态查询逻辑
+	// status = -1 表示查询所有状态，不添加状态过滤
+	// status >= 0 表示查询特定状态
+	if status >= 0 {
 		query = query.Where("status = ?", status)
 	}
 
+	// 获取总数
 	err := query.Count(&total).Error
 	if err != nil {
 		return nil, 0, err
 	}
 
+	// 获取分页数据
 	var gormOrders []GormOrder
-	err = query.Offset(int((page - 1) * pageSize)).Limit(int(pageSize)).Find(&gormOrders).Error
+	err = query.Order("create_time DESC").Offset(int((page - 1) * pageSize)).Limit(int(pageSize)).Find(&gormOrders).Error
 	if err != nil {
 		return nil, 0, err
 	}
 
+	// 转换数据
 	orders := make([]*Order, len(gormOrders))
 	for i := range gormOrders {
 		orders[i] = convertToOrder(&gormOrders[i])
+		// 设置状态描述
+		orders[i].StatusDesc = getStatusDesc(orders[i].Status)
 	}
 
 	return orders, total, nil
+}
+
+// getStatusDesc 获取订单状态描述
+func getStatusDesc(status int64) string {
+	switch status {
+	case 0:
+		return "待付款"
+	case 1:
+		return "待发货"
+	case 2:
+		return "待收货"
+	case 3:
+		return "已完成"
+	default:
+		return "未知状态"
+	}
 }
 
 // FindAll 查询所有订单
@@ -270,8 +294,10 @@ func (m *GormOrderModel) FindAll(ctx context.Context, status, page, pageSize int
 
 	query := m.db.WithContext(ctx).Model(&GormOrder{})
 
-	// 如果指定了状态，则按状态筛选
-	if status > 0 {
+	// 修改状态查询逻辑
+	// status = -1 表示查询所有状态，不添加状态过滤
+	// status >= 0 表示查询特定状态
+	if status >= 0 {
 		query = query.Where("status = ?", status)
 	}
 
@@ -287,9 +313,12 @@ func (m *GormOrderModel) FindAll(ctx context.Context, status, page, pageSize int
 		return nil, 0, err
 	}
 
+	// 转换数据
 	orders := make([]*Order, len(gormOrders))
 	for i := range gormOrders {
 		orders[i] = convertToOrder(&gormOrders[i])
+		// 设置状态描述
+		orders[i].StatusDesc = getStatusDesc(orders[i].Status)
 	}
 
 	return orders, total, nil

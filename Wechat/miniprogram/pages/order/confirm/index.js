@@ -1,5 +1,5 @@
 // pages/order/confirm/index.js
-import { createOrder } from '../../../api/order'
+import { createOrder, payOrder } from '../../../api/order'
 import { getAddressList } from '../../../api/address'
 import { getProductDetail } from '../../../api/product'
 import { loginGuard } from '../../../utils/auth'
@@ -397,16 +397,16 @@ Page(loginGuard({
         total_price: totalPriceInCents,
         shipping_fee: 700,
         remark: this.data.remark || '',
-        status: 0, // 新订单状态为0
+        status: 0, // 新订单状态为待支付
         items: this.data.orderItems.map(item => {
           const priceInCents = Math.round(item.price * 100)
           return {
-          pid: item.product_id,
-          product_name: item.name,
+            pid: item.product_id,
+            product_name: item.name,
             product_image: item.cover_image,
             price: priceInCents,
-          quantity: item.quantity,
-            amount: priceInCents * item.quantity // 商品总价 = 单价 * 数量
+            quantity: item.quantity,
+            amount: priceInCents * item.quantity
           }
         })
       }
@@ -416,53 +416,38 @@ Page(loginGuard({
       const res = await createOrder(orderData)
       console.log('[订单确认] 创建订单响应:', res)
 
-      // 检查响应状态
-      if (!res || typeof res !== 'object') {
-        throw new Error('创建订单失败，响应数据无效')
+      if (!res || res.code !== 0 || !res.data || !res.data.id) {
+        throw new Error(res?.msg || '创建订单失败')
       }
 
-      // 检查响应码
-      if (res.code !== 0) {
-        let errorMsg = '创建订单失败'
-        switch(res.code) {
-          case 10001:
-            errorMsg = '订单参数错误'
-            break
-          case 20002:
-            errorMsg = '订单创建失败'
-            break
-          case 20005:
-            errorMsg = '订单金额无效'
-            break
-          default:
-            errorMsg = res.msg || '创建订单失败'
-        }
-        throw new Error(errorMsg)
+      // 创建支付记录（状态为未支付）
+      const payData = {
+        oid: res.data.id,
+        uid: userInfo.id,
+        amount: totalPriceInCents
+      }
+      console.log('[订单确认] 创建支付记录:', payData)
+      const payRes = await payOrder(payData)
+      console.log('[订单确认] 创建支付响应:', payRes)
+
+      if (!payRes || (payRes.code !== 0 && payRes.code !== 200 && payRes.msg !== 'success')) {
+        throw new Error(payRes?.msg || '创建支付记录失败')
       }
 
-      // 检查响应数据
-      if (!res.data || !res.data.id) {
-        throw new Error('创建订单失败，订单数据无效')
-      }
+      // 保存支付记录ID到本地存储
+      const payId = payRes.data.id
+      wx.setStorageSync('currentPayId', payId)
 
-      // 创建订单成功
-      wx.showToast({
-        title: '订单创建成功',
-        icon: 'success',
-        duration: 1500
-      })
-      
       // 清除购物车中已购买的商品
       if (this.data.fromCart) {
-        await this.clearCartItems()  // 等待清除购物车完成
+        await this.clearCartItems()
       }
-      
-      // 跳转到订单详情页
-      setTimeout(() => {
-        wx.redirectTo({
-          url: `/pages/order/detail/index?id=${res.data.id}`
-        })
-      }, 1500)
+
+      // 直接跳转到支付页面
+      wx.redirectTo({
+        url: `/pages/order/payment/index?orderId=${res.data.id}&payId=${payId}`
+      })
+
     } catch (error) {
       console.error('[订单确认] 提交订单失败:', error)
       wx.showToast({

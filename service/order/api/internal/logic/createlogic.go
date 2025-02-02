@@ -62,7 +62,7 @@ func (l *CreateLogic) Create(req *types.CreateOrderReq) (resp *types.CreateOrder
 		AddressId:   req.AddressId,
 		TotalPrice:  req.TotalPrice,
 		ShippingFee: req.ShippingFee,
-		Status:      1, // 待支付
+		Status:      req.Status,
 		Remark:      req.Remark,
 		Items:       items,
 	})

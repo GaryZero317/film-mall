@@ -106,6 +106,7 @@ export const getPayParams = (payId) => {
 // 支付订单
 export const payOrder = (data) => {
   return request({
+    baseUrl: 'pay',
     url: '/api/pay/create',
     method: 'POST',
     data: {
@@ -113,6 +114,16 @@ export const payOrder = (data) => {
       uid: data.uid,
       amount: data.amount
     }
+  })
+}
+
+// 支付回调
+export const payCallback = (data) => {
+  return request({
+    baseUrl: 'pay',
+    url: '/api/pay/callback',
+    method: 'POST',
+    data
   })
 }
 

@@ -3,6 +3,7 @@ package logic
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"mall/service/cart/api/internal/svc"
 	"mall/service/cart/api/internal/types"
 	"mall/service/cart/model"
@@ -78,6 +79,10 @@ func (l *RemoveCartLogic) RemoveCart(req *types.RemoveCartReq) (resp *types.Base
 			Message: "购物车商品不存在",
 		}, nil
 	}
+
+	// 删除缓存，让下次获取购物车列表时重新加载
+	cacheKey := fmt.Sprintf("cart:%d", userId)
+	_, _ = l.svcCtx.Cache.Del(cacheKey)
 
 	return &types.BaseResp{
 		Code:    0,

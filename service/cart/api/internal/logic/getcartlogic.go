@@ -3,6 +3,7 @@ package logic
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"mall/service/cart/api/internal/svc"
 	"mall/service/cart/api/internal/types"
 	"mall/service/cart/model"
@@ -26,21 +27,15 @@ func NewGetCartLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetCartLo
 }
 
 func (l *GetCartLogic) GetCart() (resp *types.CartListResp, err error) {
-	// 打印完整的context信息
-	l.Logger.Infof("DEBUG GetCart - Context values: %+v", l.ctx)
-
-	// 从context中获取uid，JWT中的数字类型为json.Number
+	// 从context中获取uid
 	uidValue := l.ctx.Value("uid")
-	l.Logger.Infof("DEBUG GetCart - Raw uid value type: %T", uidValue)
-
 	if uidValue == nil {
-		l.Logger.Errorf("DEBUG GetCart - uid not found in context")
 		return &types.CartListResp{
 			List: make([]types.CartItem, 0),
 		}, nil
 	}
 
-	// 尝试将uid转换为int64
+	// 转换uid为int64
 	var userId int64
 	switch v := uidValue.(type) {
 	case float64:
@@ -48,71 +43,88 @@ func (l *GetCartLogic) GetCart() (resp *types.CartListResp, err error) {
 	case json.Number:
 		userId, err = v.Int64()
 		if err != nil {
-			l.Logger.Errorf("DEBUG GetCart - Failed to convert uid to int64: %v", err)
 			return &types.CartListResp{
 				List: make([]types.CartItem, 0),
 			}, nil
 		}
 	default:
-		l.Logger.Errorf("DEBUG GetCart - Unexpected uid type: %T", v)
 		return &types.CartListResp{
 			List: make([]types.CartItem, 0),
 		}, nil
 	}
 
-	l.Logger.Infof("DEBUG GetCart - Converted userId to int64: %d", userId)
+	// 尝试从缓存获取购物车数据
+	cacheKey := fmt.Sprintf("cart:%d", userId)
+	l.Logger.Infof("正在从缓存获取购物车数据, key: %s", cacheKey)
 
+	var cartItems []types.CartItem
+	val, err := l.svcCtx.Cache.Get(cacheKey)
+	if err != nil {
+		l.Logger.Infof("缓存未命中或发生错误: %v", err)
+	} else {
+		l.Logger.Infof("获取到缓存数据: %s", val)
+	}
+
+	if err == nil && val != "" {
+		err = json.Unmarshal([]byte(val), &cartItems)
+		if err == nil {
+			l.Logger.Info("成功解析缓存数据，返回购物车列表")
+			return &types.CartListResp{
+				List: cartItems,
+			}, nil
+		}
+		l.Logger.Errorf("解析缓存数据失败: %v", err)
+	}
+
+	// 缓存未命中，从数据库获取
+	l.Logger.Info("从数据库获取购物车数据")
 	var carts []model.Cart
 	if err := l.svcCtx.DB.Where("user_id = ?", userId).Find(&carts).Error; err != nil {
-		l.Logger.Errorf("DEBUG GetCart - Failed to get cart items: %v", err)
+		l.Logger.Errorf("数据库查询失败: %v", err)
 		return &types.CartListResp{
 			List: make([]types.CartItem, 0),
 		}, nil
 	}
+	l.Logger.Infof("数据库查询到 %d 条购物车记录", len(carts))
 
-	var result []types.CartItem
+	// 获取商品详情并组装数据
+	cartItems = make([]types.CartItem, 0)
 	for _, cart := range carts {
-		// 获取商品信息
+		l.Logger.Infof("获取商品详情, 商品ID: %d", cart.ProductId)
 		product, err := l.svcCtx.ProductClient.Detail(l.ctx, &product.DetailRequest{
 			Id: cart.ProductId,
 		})
 		if err != nil {
-			l.Logger.Errorf("DEBUG GetCart - Failed to get product details for id %d: %v", cart.ProductId, err)
+			l.Logger.Errorf("获取商品详情失败: %v", err)
 			continue
 		}
+		l.Logger.Infof("商品详情: %+v", product)
 
-		l.Logger.Infof("DEBUG GetCart - Product details for id %d: %+v", cart.ProductId, product)
-		l.Logger.Infof("DEBUG GetCart - Product image URLs: %v", product.ImageUrls)
-
-		// 使用商品主图
-		productImage := ""
-		if len(product.ImageUrls) > 0 {
-			for _, url := range product.ImageUrls {
-				if url != "" {
-					productImage = url
-					l.Logger.Infof("DEBUG GetCart - Using product image URL: %s", url)
-					break
-				}
-			}
-		}
-		if productImage == "" {
-			l.Logger.Infof("DEBUG GetCart - No valid image URL found for product %d", cart.ProductId)
-		}
-
-		result = append(result, types.CartItem{
+		cartItems = append(cartItems, types.CartItem{
 			Id:           cart.Id,
 			ProductId:    cart.ProductId,
 			Quantity:     cart.Quantity,
 			Selected:     cart.Selected,
 			ProductName:  product.Name,
-			ProductImage: productImage,
+			ProductImage: product.ImageUrls[0],
 			Price:        float64(product.Amount) / 100,
 			Stock:        int(product.Stock),
 		})
 	}
 
-	l.Logger.Infof("DEBUG GetCart - Found %d cart items", len(result))
+	// 将数据写入缓存
+	if len(cartItems) > 0 {
+		jsonData, _ := json.Marshal(cartItems)
+		l.Logger.Infof("写入缓存, key: %s, data: %s", cacheKey, string(jsonData))
+		err = l.svcCtx.Cache.Set(cacheKey, string(jsonData))
+		if err != nil {
+			l.Logger.Errorf("写入缓存失败: %v", err)
+		}
+	} else {
+		l.Logger.Info("购物车为空，不写入缓存")
+	}
+
 	return &types.CartListResp{
-		List: result,
+		List: cartItems,
 	}, nil
 }

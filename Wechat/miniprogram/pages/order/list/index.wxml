@@ -48,10 +48,13 @@
           </block>
         </view>
         
-        <!-- 订单金额 -->
-        <view class="order-amount">
-          <text>实付款：</text>
-          <text class="amount">¥{{item.amount}}</text>
+        <!-- 订单金额和时间 -->
+        <view class="order-footer">
+          <text class="order-time">下单时间：{{item.create_time}}</text>
+          <view class="order-amount">
+            <text>实付款：</text>
+            <text class="amount">¥{{item.amount}}</text>
+          </view>
         </view>
         
         <!-- 订单操作按钮 -->

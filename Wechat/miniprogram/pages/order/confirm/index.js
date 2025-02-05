@@ -3,7 +3,7 @@ import { createOrder, payOrder } from '../../../api/order'
 import { getAddressList } from '../../../api/address'
 import { getProductDetail } from '../../../api/product'
 import { loginGuard } from '../../../utils/auth'
-import { clearCartItems as clearCartItemsAPI } from '../../../api/cart'
+import { removeFromCart } from '../../../api/cart'
 
 // 添加Array.includes的polyfill
 if (!Array.prototype.includes) {
@@ -302,35 +302,41 @@ Page(loginGuard({
       
       // 获取已选中的购物车商品ID
       const selectedItems = wx.getStorageSync('selectedCartItems') || []
-      const selectedIds = selectedItems.map(item => item.product_id)
-      console.log('[订单确认] 需要清除的商品ID:', selectedIds)
+      console.log('[订单确认] 需要清除的商品:', selectedItems)
       
-      if (selectedIds.length === 0) {
+      if (selectedItems.length === 0) {
         console.log('[订单确认] 没有需要清除的商品')
         return
       }
 
-      // 调用后端API清除数据库中的购物车数据
-      const res = await clearCartItemsAPI(selectedIds)
-      console.log('[订单确认] 清除数据库购物车响应:', res)
-      
-      // 检查响应状态
-      if (!res || typeof res !== 'object') {
-        throw new Error('清除购物车失败，响应数据无效')
-      }
-
-      // 检查响应码
-      if (res.code !== 0 && res.code !== 200) {
-        throw new Error(res.msg || '清除购物车失败')
-      }
-
-      // 清除成功，更新本地数据
-      // 获取当前购物车数据
+      // 获取当前购物车数据，用于获取购物车商品的ID
       const cartList = wx.getStorageSync('cartList') || []
       console.log('[订单确认] 当前购物车数据:', cartList)
-      
-      // 过滤掉已购买的商品
-      const newCartList = cartList.filter(item => !selectedIds.includes(item.product_id))
+
+      // 找到需要删除的购物车商品ID
+      const cartItemsToDelete = cartList.filter(cartItem => 
+        selectedItems.some(selected => selected.product_id === cartItem.productId)
+      )
+      console.log('[订单确认] 需要删除的购物车商品:', cartItemsToDelete)
+
+      // 逐个删除选中的购物车商品
+      for (const item of cartItemsToDelete) {
+        try {
+          const res = await removeFromCart(item.id)
+          console.log(`[订单确认] 删除购物车商品 ${item.id} 响应:`, res)
+          
+          if (!res || (res.code !== 0 && res.code !== 200)) {
+            console.error(`[订单确认] 删除购物车商品 ${item.id} 失败:`, res)
+          }
+        } catch (err) {
+          console.error(`[订单确认] 删除购物车商品 ${item.id} 出错:`, err)
+        }
+      }
+
+      // 更新本地购物车数据
+      const newCartList = cartList.filter(item => 
+        !selectedItems.some(selected => selected.product_id === item.productId)
+      )
       console.log('[订单确认] 更新后的购物车数据:', newCartList)
       
       // 更新购物车数据

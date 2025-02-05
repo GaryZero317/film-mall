@@ -24,6 +24,10 @@ func NewCreateLogic(ctx context.Context, svcCtx *svc.ServiceContext) *CreateLogi
 }
 
 func (l *CreateLogic) Create(req *types.CreateRequest) (resp *types.CreateResponse, err error) {
+	l.Logger.Infof("接收到创建商品请求: %+v", req)
+	l.Logger.Infof("图片URLs: %v", req.ImageUrls)
+
+	// 调用 RPC 创建商品
 	res, err := l.svcCtx.ProductRpc.Create(l.ctx, &product.CreateRequest{
 		Name:       req.Name,
 		Desc:       req.Desc,
@@ -33,10 +37,13 @@ func (l *CreateLogic) Create(req *types.CreateRequest) (resp *types.CreateRespon
 		ImageUrls:  req.ImageUrls,
 		CategoryId: req.CategoryId,
 	})
+
 	if err != nil {
+		l.Logger.Errorf("创建商品失败: %v", err)
 		return nil, err
 	}
 
+	l.Logger.Infof("商品创建成功，ID: %d", res.Id)
 	return &types.CreateResponse{
 		Code: 0,
 		Msg:  "success",

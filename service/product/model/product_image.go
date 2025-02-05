@@ -8,17 +8,19 @@ import (
 	"gorm.io/gorm"
 )
 
+// ProductImage 商品图片模型
 type ProductImage struct {
-	Id         int64     `gorm:"primarykey"`
-	ProductId  int64     `gorm:"column:product_id;not null"`
-	ImageUrl   string    `gorm:"column:image_url;not null"`
-	IsMain     bool      `gorm:"column:is_main;not null;default:0"`
-	SortOrder  int       `gorm:"column:sort_order;not null;default:0"`
-	CreateTime time.Time `gorm:"column:create_time;autoCreateTime"`
-	UpdateTime time.Time `gorm:"column:update_time;autoUpdateTime"`
+	Id         int64     `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
+	ProductId  int64     `gorm:"column:product_id;not null;index" json:"productId"`     // 商品ID
+	ImageUrl   string    `gorm:"column:image_url;not null" json:"imageUrl"`             // 图片URL
+	IsMain     bool      `gorm:"column:is_main;not null;default:false" json:"isMain"`   // 是否主图
+	SortOrder  int       `gorm:"column:sort_order;not null;default:0" json:"sortOrder"` // 排序顺序
+	CreateTime time.Time `gorm:"column:create_time;autoCreateTime" json:"createTime"`   // 创建时间
+	UpdateTime time.Time `gorm:"column:update_time;autoUpdateTime" json:"updateTime"`   // 更新时间
 }
 
-func (m *ProductImage) TableName() string {
+// TableName 指定表名
+func (ProductImage) TableName() string {
 	return "product_image"
 }
 
@@ -85,7 +87,7 @@ func (m *ProductImage) FindMainImage(ctx context.Context, db *gorm.DB, productId
 	return &image, err
 }
 
-// 删除商品所���图片
+// 删除商品所有图片
 func (m *ProductImage) DeleteByProductId(ctx context.Context, db *gorm.DB, productId int64) error {
 	return db.WithContext(ctx).Where("product_id = ?", productId).Delete(&ProductImage{}).Error
 }

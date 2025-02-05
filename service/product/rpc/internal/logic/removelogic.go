@@ -3,7 +3,6 @@ package logic
 import (
 	"context"
 
-	"mall/service/product/model"
 	"mall/service/product/rpc/internal/svc"
 	"mall/service/product/rpc/pb/product"
 
@@ -26,19 +25,15 @@ func NewRemoveLogic(ctx context.Context, svcCtx *svc.ServiceContext) *RemoveLogi
 }
 
 func (l *RemoveLogic) Remove(in *product.RemoveRequest) (*product.RemoveResponse, error) {
-	// 查询产品是否存在
-	res, err := l.svcCtx.ProductModel.FindOne(l.ctx, in.Id)
+	l.Logger.Infof("接收到删除商品请求，ID: %d", in.Id)
+
+	// 直接调用删除方法
+	err := l.svcCtx.ProductModel.Delete(l.ctx, in.Id)
 	if err != nil {
-		if err == model.ErrNotFound {
-			return nil, status.Error(100, "产品不存在")
-		}
+		l.Logger.Errorf("删除商品失败: %v", err)
 		return nil, status.Error(500, err.Error())
 	}
 
-	err = l.svcCtx.ProductModel.Delete(l.ctx, res.Id)
-	if err != nil {
-		return nil, status.Error(500, err.Error())
-	}
-
+	l.Logger.Infof("商品删除成功，ID: %d", in.Id)
 	return &product.RemoveResponse{}, nil
 }

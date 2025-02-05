@@ -47,37 +47,59 @@ func (m *defaultGormProductModel) Insert(ctx context.Context, data *Product) (sq
 	data.CreateTime = now
 	data.UpdateTime = now
 
+	fmt.Printf("开始创建商品，商品数据: %+v\n", data)
+	fmt.Printf("图片列表: %v\n", data.Images)
+	fmt.Printf("主图: %s\n", data.MainImage)
+
 	// 开启事务
+	var productId int64
 	err := m.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		// 创建商品
+		fmt.Printf("正在创建商品基本信息...\n")
 		if err := tx.Create(data).Error; err != nil {
+			fmt.Printf("创建商品基本信息失败: %v\n", err)
 			return err
 		}
+		productId = data.Id
+		fmt.Printf("商品基本信息创建成功，ID: %d\n", productId)
 
 		// 如果有图片，保存图片信息
 		if len(data.Images) > 0 {
-			var images []*ProductImage
+			fmt.Printf("检测到 %d 张图片，开始保存图片信息...\n", len(data.Images))
+			var images []ProductImage
 			for i, url := range data.Images {
-				images = append(images, &ProductImage{
-					ProductId: data.Id,
-					ImageUrl:  url,
-					IsMain:    i == 0 || url == data.MainImage, // 第一张图片或指定的主图为主图
-					SortOrder: i,
+				isMain := i == 0 || url == data.MainImage
+				fmt.Printf("处理第 %d 张图片: URL=%s, isMain=%v\n", i+1, url, isMain)
+				images = append(images, ProductImage{
+					ProductId:  productId,
+					ImageUrl:   url,
+					IsMain:     isMain,
+					SortOrder:  i,
+					CreateTime: now,
+					UpdateTime: now,
 				})
 			}
-			if err := tx.Create(&images).Error; err != nil {
+
+			fmt.Printf("开始批量创建商品图片记录...\n")
+			if err := tx.Table("product_image").Create(&images).Error; err != nil {
+				fmt.Printf("创建商品图片记录失败: %v\n", err)
 				return err
 			}
+			fmt.Printf("商品图片记录创建成功\n")
+		} else {
+			fmt.Printf("未检测到图片信息\n")
 		}
 
 		return nil
 	})
 
 	if err != nil {
+		fmt.Printf("商品创建事务失败: %v\n", err)
 		return nil, err
 	}
 
-	return &lastInsertIDResult{id: data.Id}, nil
+	fmt.Printf("商品创建成功，返回结果\n")
+	return &lastInsertIDResult{id: productId}, nil
 }
 
 func (m *defaultGormProductModel) FindOne(ctx context.Context, id int64) (*Product, error) {
@@ -194,21 +216,36 @@ func (m *defaultGormProductModel) Delete(ctx context.Context, id int64) error {
 	productIdKey := fmt.Sprintf("%s%v", cacheKeyPrefix, id)
 	fmt.Printf("正在删除商品，ID: %d\n", id)
 
-	// 删除商品图片
-	if err := m.db.WithContext(ctx).Table("product_image").Where("product_id = ?", id).Delete(&ProductImage{}).Error; err != nil {
-		fmt.Printf("删除商品图片失败，错误: %v\n", err)
-		return err
-	}
+	// 开启事务
+	err := m.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		// 删除商品图片
+		if err := tx.Table("product_image").Where("product_id = ?", id).Delete(&ProductImage{}).Error; err != nil {
+			fmt.Printf("删除商品图片失败，错误: %v\n", err)
+			return err
+		}
+		fmt.Printf("商品图片删除成功\n")
 
-	// 删除商品
-	if err := m.db.WithContext(ctx).Table("product").Where("id = ?", id).Delete(&Product{}).Error; err != nil {
-		fmt.Printf("删除商品失败，错误: %v\n", err)
+		// 删除商品
+		result := tx.Table("product").Where("id = ?", id).Delete(&Product{})
+		if result.Error != nil {
+			fmt.Printf("删除商品失败，错误: %v\n", result.Error)
+			return result.Error
+		}
+		if result.RowsAffected == 0 {
+			fmt.Printf("未找到ID为%d的商品\n", id)
+			return fmt.Errorf("商品不存在，ID: %d", id)
+		}
+		fmt.Printf("商品删除成功\n")
+
+		return nil
+	})
+
+	if err != nil {
 		return err
 	}
-	fmt.Printf("数据库记录删除成功\n")
 
 	// 删除缓存
-	err := m.cache.DelCtx(ctx, productIdKey)
+	err = m.cache.DelCtx(ctx, productIdKey)
 	if err != nil {
 		fmt.Printf("删除缓存失败，错误: %v\n", err)
 	} else {

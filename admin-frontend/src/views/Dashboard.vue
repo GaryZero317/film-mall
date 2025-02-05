@@ -1,5 +1,26 @@
 <template>
   <div class="dashboard-container">
+    <!-- 时间维度选择 -->
+    <el-row class="mb-4">
+      <el-col :span="24">
+        <el-card shadow="hover">
+          <div class="filter-container">
+            <el-select v-model="timeRange" @change="handleTimeRangeChange" class="mr-3">
+              <el-option label="最近7天" value="7days" />
+              <el-option label="最近30天" value="30days" />
+              <el-option label="本月" value="month" />
+              <el-option label="本季度" value="quarter" />
+              <el-option label="本年" value="year" />
+            </el-select>
+            <el-button type="primary" @click="exportData">
+              <el-icon><Download /></el-icon>
+              导出统计数据
+            </el-button>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
+
     <!-- 数据统计卡片 -->
     <el-row :gutter="20" class="data-overview">
       <el-col :span="8">
@@ -78,17 +99,62 @@
         </el-card>
       </el-col>
     </el-row>
+
+    <!-- 热门商品分析 -->
+    <el-row :gutter="20" class="chart-row">
+      <el-col :span="12">
+        <el-card shadow="hover">
+          <div class="chart-container">
+            <div class="chart-title">热门商品TOP10</div>
+            <div ref="hotProductsChartRef" style="height: 400px"></div>
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :span="12">
+        <el-card shadow="hover">
+          <div class="chart-container">
+            <div class="chart-title">商品类别销售分布</div>
+            <div ref="categoryChartRef" style="height: 400px"></div>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <!-- 用户行为分析 -->
+    <el-row :gutter="20" class="chart-row">
+      <el-col :span="12">
+        <el-card shadow="hover">
+          <div class="chart-container">
+            <div class="chart-title">用户购买行为分析</div>
+            <div ref="userBehaviorChartRef" style="height: 400px"></div>
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :span="12">
+        <el-card shadow="hover">
+          <div class="chart-container">
+            <div class="chart-title">用户活跃度分析</div>
+            <div ref="userActivityChartRef" style="height: 400px"></div>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted, reactive } from 'vue'
-import { ShoppingBag, List, Money } from '@element-plus/icons-vue'
+import { ShoppingBag, List, Money, Download } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
 import { getAdminProductList } from '@/api/product'
 import { getAdminOrderList } from '@/api/order'
 import { getAdminPaymentList } from '@/api/payment'
 import { ElMessage } from 'element-plus'
+import { getHotProducts } from '@/api/statistics'
+import { getCategoryStats } from '@/api/statistics'
+import { getUserBehavior } from '@/api/statistics'
+import { getUserActivity } from '@/api/statistics'
+import { exportStatistics } from '@/api/statistics'
 
 // 统计数据
 const statistics = reactive({
@@ -99,6 +165,21 @@ const statistics = reactive({
 
 // 订单数据
 const orderData = ref([])
+
+// 时间范围选择
+const timeRange = ref('7days')
+
+// 新增图表引用
+const hotProductsChartRef = ref(null)
+const categoryChartRef = ref(null)
+const userBehaviorChartRef = ref(null)
+const userActivityChartRef = ref(null)
+
+// 新增图表实例
+let hotProductsChart = null
+let categoryChart = null
+let userBehaviorChart = null
+let userActivityChart = null
 
 // 生成模拟数据
 const generateMockData = () => {
@@ -567,21 +648,285 @@ const initBarChart = async () => {
   }
 }
 
+// 处理时间范围变化
+const handleTimeRangeChange = async () => {
+  await Promise.all([
+    fetchStatistics(),
+    fetchOrderData(),
+    initHotProductsChart(),
+    initCategoryChart(),
+    initUserBehaviorChart(),
+    initUserActivityChart()
+  ])
+}
+
+// 初始化热门商品图表
+const initHotProductsChart = async () => {
+  if (!hotProductsChartRef.value) return
+  
+  try {
+    const res = await getHotProducts({ timeRange: timeRange.value })
+    const { products, sales } = res.data
+
+    hotProductsChart = echarts.init(hotProductsChartRef.value)
+    const option = {
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: {
+          type: 'shadow'
+        }
+      },
+      grid: {
+        left: '3%',
+        right: '4%',
+        bottom: '3%',
+        containLabel: true
+      },
+      xAxis: {
+        type: 'value'
+      },
+      yAxis: {
+        type: 'category',
+        data: products
+      },
+      series: [
+        {
+          name: '销售量',
+          type: 'bar',
+          data: sales,
+          itemStyle: {
+            color: '#2196f3'
+          }
+        }
+      ]
+    }
+    hotProductsChart.setOption(option)
+  } catch (error) {
+    console.error('获取热门商品数据失败:', error)
+  }
+}
+
+// 初始化商品类别图表
+const initCategoryChart = async () => {
+  if (!categoryChartRef.value) return
+  
+  try {
+    const res = await getCategoryStats({ timeRange: timeRange.value })
+    const { categories, sales } = res.data
+
+    categoryChart = echarts.init(categoryChartRef.value)
+    const option = {
+      tooltip: {
+        trigger: 'item',
+        formatter: '{b}: {c} ({d}%)'
+      },
+      legend: {
+        orient: 'vertical',
+        right: 10,
+        top: 'center'
+      },
+      series: [
+        {
+          name: '类别销售',
+          type: 'pie',
+          radius: ['50%', '70%'],
+          avoidLabelOverlap: false,
+          itemStyle: {
+            borderRadius: 10,
+            borderColor: '#fff',
+            borderWidth: 2
+          },
+          label: {
+            show: false,
+            position: 'center'
+          },
+          emphasis: {
+            label: {
+              show: true,
+              fontSize: '20',
+              fontWeight: 'bold'
+            }
+          },
+          labelLine: {
+            show: false
+          },
+          data: categories.map((category, index) => ({
+            name: category,
+            value: sales[index]
+          }))
+        }
+      ]
+    }
+    categoryChart.setOption(option)
+  } catch (error) {
+    console.error('获取类别统计数据失败:', error)
+  }
+}
+
+// 初始化用户行为图表
+const initUserBehaviorChart = async () => {
+  if (!userBehaviorChartRef.value) return
+  
+  try {
+    const res = await getUserBehavior({ timeRange: timeRange.value })
+    const { dates, views, carts, orders } = res.data
+
+    userBehaviorChart = echarts.init(userBehaviorChartRef.value)
+    const option = {
+      tooltip: {
+        trigger: 'axis'
+      },
+      legend: {
+        data: ['浏览量', '加购量', '下单量']
+      },
+      grid: {
+        left: '3%',
+        right: '4%',
+        bottom: '3%',
+        containLabel: true
+      },
+      xAxis: {
+        type: 'category',
+        boundaryGap: false,
+        data: dates
+      },
+      yAxis: {
+        type: 'value'
+      },
+      series: [
+        {
+          name: '浏览量',
+          type: 'line',
+          data: views,
+          smooth: true,
+          itemStyle: { color: '#2196f3' }
+        },
+        {
+          name: '加购量',
+          type: 'line',
+          data: carts,
+          smooth: true,
+          itemStyle: { color: '#ff9800' }
+        },
+        {
+          name: '下单量',
+          type: 'line',
+          data: orders,
+          smooth: true,
+          itemStyle: { color: '#4caf50' }
+        }
+      ]
+    }
+    userBehaviorChart.setOption(option)
+  } catch (error) {
+    console.error('获取用户行为数据失败:', error)
+  }
+}
+
+// 初始化用户活跃度图表
+const initUserActivityChart = async () => {
+  if (!userActivityChartRef.value) return
+  
+  try {
+    const res = await getUserActivity({ timeRange: timeRange.value })
+    const { hours, activity } = res.data
+
+    userActivityChart = echarts.init(userActivityChartRef.value)
+    const option = {
+      tooltip: {
+        position: 'top'
+      },
+      grid: {
+        left: '3%',
+        right: '4%',
+        bottom: '3%',
+        containLabel: true
+      },
+      xAxis: {
+        type: 'category',
+        data: hours,
+        splitArea: {
+          show: true
+        }
+      },
+      yAxis: {
+        type: 'category',
+        data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+        splitArea: {
+          show: true
+        }
+      },
+      visualMap: {
+        min: 0,
+        max: 10,
+        calculable: true,
+        orient: 'horizontal',
+        left: 'center',
+        bottom: '0%'
+      },
+      series: [{
+        name: '活跃度',
+        type: 'heatmap',
+        data: activity,
+        label: {
+          show: true
+        },
+        emphasis: {
+          itemStyle: {
+            shadowBlur: 10,
+            shadowColor: 'rgba(0, 0, 0, 0.5)'
+          }
+        }
+      }]
+    }
+    userActivityChart.setOption(option)
+  } catch (error) {
+    console.error('获取用户活跃度数据失败:', error)
+  }
+}
+
+// 导出统计数据
+const exportData = async () => {
+  try {
+    const res = await exportStatistics({ timeRange: timeRange.value })
+    const blob = new Blob([res.data], { type: 'application/vnd.ms-excel' })
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', `统计数据_${timeRange.value}.xlsx`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+  } catch (error) {
+    console.error('导出数据失败:', error)
+    ElMessage.error('导出数据失败')
+  }
+}
+
 // 监听窗口大小变化
 const handleResize = () => {
   lineChart?.resize()
   radarChart?.resize()
   pieChart?.resize()
   barChart?.resize()
+  hotProductsChart?.resize()
+  categoryChart?.resize()
+  userBehaviorChart?.resize()
+  userActivityChart?.resize()
 }
 
 onMounted(async () => {
-  await fetchStatistics() // 获取统计数据
+  await fetchStatistics()
   initLineChart()
   await fetchOrderData()
   initRadarChart()
   initPieChart()
   initBarChart()
+  initHotProductsChart()
+  initCategoryChart()
+  initUserBehaviorChart()
+  initUserActivityChart()
   window.addEventListener('resize', handleResize)
 })
 
@@ -592,6 +937,10 @@ onUnmounted(() => {
   radarChart?.dispose()
   pieChart?.dispose()
   barChart?.dispose()
+  hotProductsChart?.dispose()
+  categoryChart?.dispose()
+  userBehaviorChart?.dispose()
+  userActivityChart?.dispose()
 })
 </script>
 
@@ -673,5 +1022,62 @@ onUnmounted(() => {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+.filter-container {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+}
+
+.mr-3 {
+  margin-right: 12px;
+}
+
+.mb-4 {
+  margin-bottom: 16px;
+}
+
+.chart-title {
+  font-size: 16px;
+  color: #303133;
+  margin-bottom: 20px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.el-card {
+  margin-bottom: 20px;
+}
+
+.el-card:last-child {
+  margin-bottom: 0;
+}
+
+.chart-container {
+  position: relative;
+  padding: 20px;
+  height: 100%;
+}
+
+/* 响应式布局 */
+@media (max-width: 1200px) {
+  .el-col {
+    width: 100% !important;
+  }
+}
+
+/* 图表加载状态 */
+.chart-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
 }
 </style> 

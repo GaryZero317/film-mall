@@ -1,0 +1,107 @@
+syntax = "v1"
+
+info (
+	title: "统计服务API"
+	desc: "提供数据统计相关的API接口"
+	version: "v1"
+)
+
+type (
+	HotProductsData {
+		Products []string `json:"products"` // 商品名称列表
+		Sales    []int    `json:"sales"`    // 销售量列表
+	}
+
+	HotProductsReq {
+		TimeRange string `json:"timeRange"` // 时间范围：7days, 30days, month, quarter, year
+	}
+
+	HotProductsResp {
+		Code int             `json:"code"`
+		Msg  string          `json:"msg"`
+		Data HotProductsData `json:"data"`
+	}
+
+	CategoryStatsData {
+		Categories []string `json:"categories"` // 类别名称列表
+		Sales      []int    `json:"sales"`      // 销售量列表
+	}
+
+	CategoryStatsReq {
+		TimeRange string `json:"timeRange"`
+	}
+
+	CategoryStatsResp {
+		Code int               `json:"code"`
+		Msg  string            `json:"msg"`
+		Data CategoryStatsData `json:"data"`
+	}
+
+	UserBehaviorData {
+		Dates  []string `json:"dates"`  // 日期列表
+		Views  []int    `json:"views"`  // 浏览量列表
+		Carts  []int    `json:"carts"`  // 加购量列表
+		Orders []int    `json:"orders"` // 下单量列表
+	}
+
+	UserBehaviorReq {
+		TimeRange string `json:"timeRange"`
+	}
+
+	UserBehaviorResp {
+		Code int              `json:"code"`
+		Msg  string           `json:"msg"`
+		Data UserBehaviorData `json:"data"`
+	}
+
+	UserActivityData {
+		Hours    []string `json:"hours"`    // 小时列表 (0-23)
+		Activity [][]int  `json:"activity"` // 活跃度数据 [hour, weekday, value]
+	}
+
+	UserActivityReq {
+		TimeRange string `json:"timeRange"`
+	}
+
+	UserActivityResp {
+		Code int              `json:"code"`
+		Msg  string           `json:"msg"`
+		Data UserActivityData `json:"data"`
+	}
+
+	ExportStatisticsReq {
+		TimeRange string `json:"timeRange"`
+	}
+
+	ExportStatisticsResp {
+		Code int    `json:"code"`
+		Msg  string `json:"msg"`
+		Data []byte `json:"data"` // Excel文件二进制数据
+	}
+)
+
+@server(
+	prefix: /api/statistics
+	auth: AdminAuth
+)
+service statistics {
+	@doc "获取热门商品统计"
+	@handler getHotProducts
+	post /hot-products (HotProductsReq) returns (HotProductsResp)
+	
+	@doc "获取商品类别统计"
+	@handler getCategoryStats
+	post /category-stats (CategoryStatsReq) returns (CategoryStatsResp)
+	
+	@doc "获取用户行为统计"
+	@handler getUserBehavior
+	post /user-behavior (UserBehaviorReq) returns (UserBehaviorResp)
+	
+	@doc "获取用户活跃度统计"
+	@handler getUserActivity
+	post /user-activity (UserActivityReq) returns (UserActivityResp)
+	
+	@doc "导出统计数据"
+	@handler exportStatistics
+	post /export (ExportStatisticsReq) returns (ExportStatisticsResp)
+}

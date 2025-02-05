@@ -96,6 +96,8 @@
   font-size: 26rpx;
   border-radius: 44rpx;
   padding: 0;
+  background: #1296db !important;
+  color: #fff;
 }
 
 .submit-btn {
@@ -105,6 +107,8 @@
   font-size: 32rpx;
   border-radius: 44rpx;
   margin-top: 40rpx;
+  background: #1296db !important;
+  color: #fff;
 }
 
 .action-links {

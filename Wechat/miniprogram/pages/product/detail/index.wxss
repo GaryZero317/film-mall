@@ -138,12 +138,12 @@
 
 .add-cart {
   background: #fff;
-  color: #333;
-  border: 1rpx solid #333;
+  color: #1296db;
+  border: 1rpx solid #1296db;
 }
 
 .buy-now {
-  background: #333;
+  background: #1296db;
   color: #fff;
 }
 

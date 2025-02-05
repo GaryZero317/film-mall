@@ -118,21 +118,71 @@ const generateMockData = () => {
 // 获取订单数据
 const fetchOrderData = async () => {
   try {
-    // 模拟数据
-    const mockData = [
-      { date: '12-01', count: 120 },
-      { date: '12-02', count: 132 },
-      { date: '12-03', count: 101 },
-      { date: '12-04', count: 134 },
-      { date: '12-05', count: 90 },
-      { date: '12-06', count: 230 },
-      { date: '12-07', count: 210 }
-    ]
+    // 获取最近7天的订单数据
+    const endDate = new Date()
+    const startDate = new Date()
+    startDate.setDate(startDate.getDate() - 6)
     
-    orderData.value = mockData
+    const res = await getAdminOrderList({
+      startDate: startDate.toISOString().split('T')[0],
+      endDate: endDate.toISOString().split('T')[0],
+      page: 1,
+      pageSize: 999999
+    })
+
+    if (res?.data?.list) {
+      // 按日期分组统计订单数量
+      const orderStats = {}
+      res.data.list.forEach(order => {
+        // 检查订单创建时间是否存在
+        const createTime = order.create_time || order.createTime || order.created_at
+        if (createTime) {
+          const date = createTime.split(' ')[0]
+          orderStats[date] = (orderStats[date] || 0) + 1
+        }
+      })
+
+      // 构造最近7天的数据数组
+      const data = []
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date()
+        date.setDate(date.getDate() - i)
+        const dateStr = date.toISOString().split('T')[0]
+        const count = orderStats[dateStr] || 0
+        data.push({
+          date: dateStr.slice(5).replace('-', '/'), // 格式化为 MM/DD
+          count: count
+        })
+      }
+      orderData.value = data
+    } else {
+      // 如果没有数据，使用空数组
+      const data = []
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date()
+        date.setDate(date.getDate() - i)
+        data.push({
+          date: date.toISOString().split('T')[0].slice(5).replace('-', '/'),
+          count: 0
+        })
+      }
+      orderData.value = data
+    }
     updateLineChart()
   } catch (error) {
     console.error('获取订单数据失败:', error)
+    // 发生错误时显示空数据
+    const data = []
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date()
+      date.setDate(date.getDate() - i)
+      data.push({
+        date: date.toISOString().split('T')[0].slice(5).replace('-', '/'),
+        count: 0
+      })
+    }
+    orderData.value = data
+    updateLineChart()
   }
 }
 
@@ -156,11 +206,15 @@ const fetchStatistics = async () => {
     // 计算订单总数
     statistics.orders = ordersRes?.data?.total?.toLocaleString() || '0'
 
-    // 计算总金额
+    // 计算总金额 - 只统计已支付的订单
     let totalAmount = 0
     if (ordersRes?.data?.list) {
       totalAmount = ordersRes.data.list.reduce((sum, order) => {
-        return sum + (order.total_price || 0) + (order.shipping_fee || 0)
+        // 只统计已支付的订单
+        if (order.status === 1) {
+          return sum + (order.total_price || 0) + (order.shipping_fee || 0)
+        }
+        return sum
       }, 0)
     }
     statistics.payments = `¥${(totalAmount / 100).toFixed(2)}`
@@ -244,36 +298,34 @@ const updateLineChart = () => {
 const initRadarChart = () => {
   radarChart = echarts.init(radarChartRef.value)
   const option = {
+    title: {
+      text: '系统模块完成度',
+      left: 'center',
+      top: 20,
+      textStyle: {
+        fontSize: 14
+      }
+    },
     radar: {
       indicator: [
-        { name: '管理', max: 100 },
-        { name: '市场', max: 100 },
-        { name: '开发', max: 100 },
-        { name: '支持', max: 100 },
-        { name: '技术', max: 100 }
+        { name: '商品管理', max: 100 },
+        { name: '订单系统', max: 100 },
+        { name: '用户中心', max: 100 },
+        { name: '支付系统', max: 100 },
+        { name: '数据统计', max: 100 }
       ]
     },
     series: [{
       type: 'radar',
       data: [
         {
-          value: [80, 70, 90, 85, 75],
-          name: '预算分配',
+          value: [95, 90, 85, 90, 70],
+          name: '功能完成度',
           itemStyle: {
             color: '#4caf50'
           },
           areaStyle: {
             color: 'rgba(76, 175, 80, 0.2)'
-          }
-        },
-        {
-          value: [70, 75, 85, 80, 80],
-          name: '实际开销',
-          itemStyle: {
-            color: '#2196f3'
-          },
-          areaStyle: {
-            color: 'rgba(33, 150, 243, 0.2)'
           }
         }
       ]
@@ -287,27 +339,51 @@ const initPieChart = () => {
   pieChart = echarts.init(pieChartRef.value)
   const option = {
     tooltip: {
-      trigger: 'item'
+      trigger: 'item',
+      formatter: '{b}: {d}%'
     },
     legend: {
-      orient: 'vertical',
-      right: 10,
-      top: 'center'
+      orient: 'horizontal',
+      bottom: 0,
+      left: 'center',
+      itemWidth: 25,
+      itemHeight: 14,
+      itemGap: 30,
+      textStyle: {
+        fontSize: 12,
+        padding: [3, 0, 0, 0]
+      }
     },
     series: [
       {
+        name: '语言占比',
         type: 'pie',
+        center: ['50%', '40%'],
         radius: ['50%', '70%'],
-        avoidLabelOverlap: false,
+        avoidLabelOverlap: true,
         label: {
-          show: false
+          show: true,
+          position: 'outside',
+          formatter: '{b}: {d}%',
+          distanceToLabelLine: 5
+        },
+        labelLine: {
+          length: 15,
+          length2: 10,
+          smooth: true
+        },
+        emphasis: {
+          label: {
+            show: true,
+            fontSize: '16',
+            fontWeight: 'bold'
+          }
         },
         data: [
-          { value: 35, name: '工业', itemStyle: { color: '#4caf50' } },
-          { value: 25, name: '技术', itemStyle: { color: '#9c27b0' } },
-          { value: 20, name: '金融', itemStyle: { color: '#2196f3' } },
-          { value: 15, name: '预测', itemStyle: { color: '#ff9800' } },
-          { value: 5, name: '其他', itemStyle: { color: '#f44336' } }
+          { value: 50, name: 'Go', itemStyle: { color: '#00ADD8' } },        // Go的标准色
+          { value: 30, name: 'JavaScript', itemStyle: { color: '#F7DF1E' } }, // JS的标准色
+          { value: 17, name: 'Vue', itemStyle: { color: '#4FC08D' } },       // Vue的标准色
+          { value: 3, name: 'Other', itemStyle: { color: '#E34F26' } }   // Other
         ]
       }
     ]
@@ -316,59 +392,179 @@ const initPieChart = () => {
 }
 
 // 初始化柱状图
-const initBarChart = () => {
-  barChart = echarts.init(barChartRef.value)
-  const option = {
-    tooltip: {
-      trigger: 'axis',
-      axisPointer: {
-        type: 'shadow'
-      }
-    },
-    grid: {
-      left: '3%',
-      right: '4%',
-      bottom: '3%',
-      containLabel: true
-    },
-    xAxis: {
-      type: 'category',
-      data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
-    },
-    yAxis: {
-      type: 'value'
-    },
-    series: [
-      {
-        name: '访问量',
-        type: 'bar',
-        stack: 'total',
-        data: [320, 302, 301, 334, 390, 330, 320],
-        itemStyle: {
-          color: '#4caf50'
+const initBarChart = async () => {
+  try {
+    // 获取最近7天的订单数据，按商品类型统计
+    const endDate = new Date()
+    const startDate = new Date()
+    startDate.setDate(startDate.getDate() - 6)
+    
+    const res = await getAdminOrderList({
+      startDate: startDate.toISOString().split('T')[0],
+      endDate: endDate.toISOString().split('T')[0],
+      page: 1,
+      pageSize: 999999
+    })
+
+    // 统计每天不同状态的订单数量
+    const dailyStats = {
+      pending: Array(7).fill(0),    // 待支付
+      paid: Array(7).fill(0),       // 已支付
+      completed: Array(7).fill(0)   // 已完成
+    }
+
+    if (res?.data?.list) {
+      res.data.list.forEach(order => {
+        const createTime = order.create_time || order.createTime || order.created_at
+        if (createTime) {
+          const orderDate = new Date(createTime)
+          const dayIndex = 6 - Math.floor((endDate - orderDate) / (1000 * 60 * 60 * 24))
+          if (dayIndex >= 0 && dayIndex < 7) {
+            if (order.status === 0) dailyStats.pending[dayIndex]++
+            else if (order.status === 1) dailyStats.paid[dayIndex]++
+            else if (order.status === 2) dailyStats.completed[dayIndex]++
+          }
+        }
+      })
+    }
+
+    // 生成日期标签
+    const dateLabels = Array(7).fill().map((_, i) => {
+      const date = new Date(startDate)
+      date.setDate(date.getDate() + i)
+      return `${date.getMonth() + 1}/${date.getDate()}`
+    })
+
+    barChart = echarts.init(barChartRef.value)
+    const option = {
+      title: {
+        text: '订单状态统计',
+        left: 'center',
+        top: 20,
+        textStyle: {
+          fontSize: 14
         }
       },
-      {
-        name: '下载量',
-        type: 'bar',
-        stack: 'total',
-        data: [120, 132, 101, 134, 90, 230, 210],
-        itemStyle: {
-          color: '#2196f3'
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: {
+          type: 'shadow'
         }
       },
-      {
-        name: '购买量',
-        type: 'bar',
-        stack: 'total',
-        data: [220, 182, 191, 234, 290, 330, 310],
-        itemStyle: {
-          color: '#ff9800'
+      legend: {
+        bottom: 0,
+        data: ['待支付', '已支付', '已完成']
+      },
+      grid: {
+        left: '3%',
+        right: '4%',
+        bottom: '15%',
+        top: '15%',
+        containLabel: true
+      },
+      xAxis: {
+        type: 'category',
+        data: dateLabels
+      },
+      yAxis: {
+        type: 'value'
+      },
+      series: [
+        {
+          name: '待支付',
+          type: 'bar',
+          stack: 'total',
+          data: dailyStats.pending,
+          itemStyle: {
+            color: '#ff9800'
+          }
+        },
+        {
+          name: '已支付',
+          type: 'bar',
+          stack: 'total',
+          data: dailyStats.paid,
+          itemStyle: {
+            color: '#4caf50'
+          }
+        },
+        {
+          name: '已完成',
+          type: 'bar',
+          stack: 'total',
+          data: dailyStats.completed,
+          itemStyle: {
+            color: '#2196f3'
+          }
         }
-      }
-    ]
+      ]
+    }
+    barChart.setOption(option)
+  } catch (error) {
+    console.error('获取订单统计数据失败:', error)
+    // 发生错误时显示空数据
+    const dateLabels = Array(7).fill().map((_, i) => {
+      const date = new Date()
+      date.setDate(date.getDate() - 6 + i)
+      return `${date.getMonth() + 1}/${date.getDate()}`
+    })
+    
+    barChart = echarts.init(barChartRef.value)
+    barChart.setOption({
+      title: {
+        text: '订单状态统计',
+        left: 'center',
+        top: 20,
+        textStyle: {
+          fontSize: 14
+        }
+      },
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: {
+          type: 'shadow'
+        }
+      },
+      legend: {
+        bottom: 0,
+        data: ['待支付', '已支付', '已完成']
+      },
+      grid: {
+        left: '3%',
+        right: '4%',
+        bottom: '15%',
+        top: '15%',
+        containLabel: true
+      },
+      xAxis: {
+        type: 'category',
+        data: dateLabels
+      },
+      series: [
+        {
+          name: '待支付',
+          type: 'bar',
+          stack: 'total',
+          data: Array(7).fill(0),
+          itemStyle: { color: '#ff9800' }
+        },
+        {
+          name: '已支付',
+          type: 'bar',
+          stack: 'total',
+          data: Array(7).fill(0),
+          itemStyle: { color: '#4caf50' }
+        },
+        {
+          name: '已完成',
+          type: 'bar',
+          stack: 'total',
+          data: Array(7).fill(0),
+          itemStyle: { color: '#2196f3' }
+        }
+      ]
+    })
   }
-  barChart.setOption(option)
 }
 
 // 监听窗口大小变化

@@ -43,7 +43,7 @@
   line-height: 72rpx;
   padding: 0 30rpx;
   font-size: 28rpx;
-  background: #333;
+  background: #1296db;
   color: #fff;
   border-radius: 36rpx;
 }
@@ -89,7 +89,7 @@
 }
 
 .category-item.active {
-  background: #333;
+  background: #1296db;
   color: #fff;
 }
 

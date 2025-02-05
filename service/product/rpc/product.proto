@@ -12,6 +12,7 @@ message CreateRequest {
   int64 Amount = 4;
   int64 Status = 5;
   repeated string ImageUrls = 6;  // 商品图片URL列表
+  int64 CategoryId = 7;  // 商品分类ID
 }
 message CreateResponse {
   int64 id = 1;
@@ -27,6 +28,7 @@ message UpdateRequest {
   int64 Amount = 5;
   int64 Status = 6;
   repeated string ImageUrls = 7;  // 商品图片URL列表
+  int64 CategoryId = 8;  // 商品分类ID
 }
 message UpdateResponse {
 }

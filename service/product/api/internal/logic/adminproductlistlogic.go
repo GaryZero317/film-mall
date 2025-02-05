@@ -72,14 +72,15 @@ func (l *AdminProductListLogic) AdminProductList(req *types.AdminProductListRequ
 
 		// 添加到列表
 		list = append(list, types.Product{
-			Id:        p.Id,
-			Name:      p.Name,
-			Desc:      p.Desc,
-			Stock:     p.Stock,
-			Amount:    p.Amount,
-			Status:    p.Status,
-			Images:    imageUrls,
-			MainImage: mainImage,
+			Id:         p.Id,
+			Name:       p.Name,
+			Desc:       p.Desc,
+			Stock:      p.Stock,
+			Amount:     p.Amount,
+			Status:     p.Status,
+			CategoryId: p.CategoryId,
+			Images:     imageUrls,
+			MainImage:  mainImage,
 		})
 	}
 

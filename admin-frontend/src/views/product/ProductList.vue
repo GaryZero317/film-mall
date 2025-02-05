@@ -10,6 +10,11 @@
     <el-table :data="productList" style="width: 100%" v-loading="loading">
       <el-table-column prop="id" label="ID" width="80" />
       <el-table-column prop="name" label="商品名称" width="200" />
+      <el-table-column prop="category_name" label="商品分类" width="150">
+        <template #default="scope">
+          {{ getCategoryName(scope.row.category_id) }}
+        </template>
+      </el-table-column>
       <el-table-column label="商品图片" width="120">
         <template #default="scope">
           <el-image
@@ -67,6 +72,20 @@
         label-width="100px">
         <el-form-item label="商品名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入商品名称" />
+        </el-form-item>
+        <el-form-item label="商品分类" prop="category_id">
+          <el-cascader
+            v-model="form.category_id"
+            :options="categoryOptions"
+            :props="{
+              value: 'id',
+              label: 'name',
+              children: 'children',
+              checkStrictly: false,
+              emitPath: false
+            }"
+            placeholder="请选择商品分类"
+          />
         </el-form-item>
         <el-form-item label="商品描述" prop="desc">
           <el-input
@@ -191,7 +210,8 @@ const form = ref({
   amount: 0,
   status: 1,
   images: [],
-  mainImage: ''
+  mainImage: '',
+  category_id: null
 })
 
 const rules = {
@@ -210,7 +230,62 @@ const rules = {
   ],
   status: [
     { required: true, message: '请选择商品状态', trigger: 'change' }
+  ],
+  category_id: [
+    { required: true, message: '请选择商品分类', trigger: 'change' }
   ]
+}
+
+// 分类选项
+const categoryOptions = [
+  {
+    id: 1,
+    name: '135胶卷',
+    children: [
+      { id: 4, name: '彩色负片' },
+      { id: 5, name: '彩色反转片' },
+      { id: 6, name: '黑白负片' }
+    ]
+  },
+  {
+    id: 2,
+    name: '120胶卷',
+    children: [
+      { id: 7, name: '彩色负片' },
+      { id: 8, name: '彩色反转片' }
+    ]
+  },
+  {
+    id: 3,
+    name: '拍立得相纸',
+    children: [
+      { id: 9, name: '宝丽来相纸' },
+      { id: 10, name: '富士相纸' }
+    ]
+  },
+  {
+    id: 11,
+    name: '电影卷',
+    children: [
+      { id: 13, name: '彩色负片' },
+      { id: 14, name: '彩色反转片' },
+      { id: 15, name: '黑白负片' }
+    ]
+  }
+]
+
+// 获取分类名称
+const getCategoryName = (categoryId) => {
+  if (!categoryId) return '未分类'
+  
+  for (const mainCategory of categoryOptions) {
+    for (const subCategory of mainCategory.children || []) {
+      if (subCategory.id === categoryId) {
+        return `${mainCategory.name} > ${subCategory.name}`
+      }
+    }
+  }
+  return '未分类'
 }
 
 // 获取商品列表
@@ -221,10 +296,16 @@ const fetchProductList = async () => {
       page: 1,
       pageSize: 100
     })
-    console.log('商品列表响应:', res)
+    console.log('商品列表完整响应:', res)
+    console.log('商品列表data字段:', res.data)
     if (res.code === 0 && res.data) {
+      console.log('商品列表总数:', res.data.total)
+      console.log('商品列表详细数据:', JSON.stringify(res.data.list, null, 2))
       productList.value = res.data.list || []
-      console.log('商品列表数据:', productList.value)
+      // 打印第一个商品的数据结构
+      if (productList.value.length > 0) {
+        console.log('第一个商品数据示例:', productList.value[0])
+      }
     } else {
       ElMessage.error(res.msg || '获取商品列表失败')
     }
@@ -246,7 +327,8 @@ const handleAdd = () => {
     amount: 0,
     status: 1,
     images: [],
-    mainImage: ''
+    mainImage: '',
+    category_id: null
   }
   dialogVisible.value = true
 }
@@ -263,7 +345,8 @@ const handleEdit = (row) => {
     amount: row.amount / 100,
     status: row.status,
     images: row.images || [],
-    mainImage: row.mainImage || ''
+    mainImage: row.mainImage || '',
+    category_id: row.category_id || null
   }
   dialogVisible.value = true
 }
@@ -302,7 +385,8 @@ const handleSubmit = async () => {
       ...form.value,
       amount: Math.round(form.value.amount * 100), // 转换为分
       imageUrls: form.value.images || [],
-      mainImage: form.value.mainImage || ''
+      mainImage: form.value.mainImage || '',
+      category_id: parseInt(form.value.category_id) || 0  // 确保category_id是整数
     }
     console.log('提交的数据:', submitData)
     

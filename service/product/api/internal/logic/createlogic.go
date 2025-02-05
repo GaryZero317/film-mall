@@ -25,12 +25,13 @@ func NewCreateLogic(ctx context.Context, svcCtx *svc.ServiceContext) *CreateLogi
 
 func (l *CreateLogic) Create(req *types.CreateRequest) (resp *types.CreateResponse, err error) {
 	res, err := l.svcCtx.ProductRpc.Create(l.ctx, &product.CreateRequest{
-		Name:      req.Name,
-		Desc:      req.Desc,
-		Stock:     req.Stock,
-		Amount:    req.Amount,
-		Status:    req.Status,
-		ImageUrls: req.ImageUrls,
+		Name:       req.Name,
+		Desc:       req.Desc,
+		Stock:      req.Stock,
+		Amount:     req.Amount,
+		Status:     req.Status,
+		ImageUrls:  req.ImageUrls,
+		CategoryId: req.CategoryId,
 	})
 	if err != nil {
 		return nil, err

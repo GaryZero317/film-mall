@@ -30,12 +30,13 @@ func (l *UpdateLogic) Update(req *types.UpdateRequest) (resp *types.UpdateRespon
 	err = l.svcCtx.DB.Transaction(func(tx *gorm.DB) error {
 		// 更新商品基本信息
 		_, err = l.svcCtx.ProductRpc.Update(l.ctx, &product.UpdateRequest{
-			Id:     req.Id,
-			Name:   req.Name,
-			Desc:   req.Desc,
-			Stock:  req.Stock,
-			Amount: req.Amount,
-			Status: req.Status,
+			Id:         req.Id,
+			Name:       req.Name,
+			Desc:       req.Desc,
+			Stock:      req.Stock,
+			Amount:     req.Amount,
+			Status:     req.Status,
+			CategoryId: req.CategoryId,
 		})
 		if err != nil {
 			return err

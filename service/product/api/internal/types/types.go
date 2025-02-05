@@ -2,12 +2,13 @@
 package types
 
 type CreateRequest struct {
-	Name      string   `json:"name"`
-	Desc      string   `json:"desc"`
-	Stock     int64    `json:"stock"`
-	Amount    int64    `json:"amount"`
-	Status    int64    `json:"status"`
-	ImageUrls []string `json:"imageUrls"` // 商品图片URL列表
+	Name       string   `json:"name"`
+	Desc       string   `json:"desc"`
+	Stock      int64    `json:"stock"`
+	Amount     int64    `json:"amount"`
+	Status     int64    `json:"status"`
+	CategoryId int64    `json:"category_id"` // 商品分类ID
+	ImageUrls  []string `json:"imageUrls"`   // 商品图片URL列表
 }
 
 type CreateData struct {
@@ -21,14 +22,15 @@ type CreateResponse struct {
 }
 
 type UpdateRequest struct {
-	Id        int64    `json:"id"`
-	Name      string   `json:"name,optional"`
-	Desc      string   `json:"desc,optional"`
-	Stock     int64    `json:"stock"`
-	Amount    int64    `json:"amount,optional"`
-	Status    int64    `json:"status,optional"`
-	ImageUrls []string `json:"imageUrls,optional"` // 商品图片URL列表
-	MainImage string   `json:"mainImage,optional"` // 商品主图
+	Id         int64    `json:"id"`
+	Name       string   `json:"name,optional"`
+	Desc       string   `json:"desc,optional"`
+	Stock      int64    `json:"stock"`
+	Amount     int64    `json:"amount,optional"`
+	Status     int64    `json:"status,optional"`
+	CategoryId int64    `json:"category_id,optional"` // 商品分类ID
+	ImageUrls  []string `json:"imageUrls,optional"`   // 商品图片URL列表
+	MainImage  string   `json:"mainImage,optional"`   // 商品主图
 }
 
 type UpdateResponse struct {
@@ -48,25 +50,27 @@ type DetailRequest struct {
 }
 
 type DetailResponse struct {
-	Id        int64    `json:"id"`
-	Name      string   `json:"name"`
-	Desc      string   `json:"desc"`
-	Stock     int64    `json:"stock"`
-	Amount    int64    `json:"amount"`
-	Status    int64    `json:"status"`
-	ImageUrls []string `json:"imageUrls"` // 商品图片URL列表
-	MainImage string   `json:"mainImage"` // 商品主图
+	Id         int64    `json:"id"`
+	Name       string   `json:"name"`
+	Desc       string   `json:"desc"`
+	Stock      int64    `json:"stock"`
+	Amount     int64    `json:"amount"`
+	Status     int64    `json:"status"`
+	CategoryId int64    `json:"category_id"` // 商品分类ID
+	ImageUrls  []string `json:"imageUrls"`   // 商品图片URL列表
+	MainImage  string   `json:"mainImage"`   // 商品主图
 }
 
 type Product struct {
-	Id        int64    `json:"id"`
-	Name      string   `json:"name"`
-	Desc      string   `json:"desc"`
-	Stock     int64    `json:"stock"`
-	Amount    int64    `json:"amount"`
-	Status    int64    `json:"status"`
-	Images    []string `json:"images"`    // 商品图片URL列表
-	MainImage string   `json:"mainImage"` // 商品主图
+	Id         int64    `json:"id"`
+	Name       string   `json:"name"`
+	Desc       string   `json:"desc"`
+	Stock      int64    `json:"stock"`
+	Amount     int64    `json:"amount"`
+	Status     int64    `json:"status"`
+	CategoryId int64    `json:"category_id"` // 商品分类ID
+	Images     []string `json:"images"`      // 商品图片URL列表
+	MainImage  string   `json:"mainImage"`   // 商品主图
 }
 
 type AdminProductListRequest struct {

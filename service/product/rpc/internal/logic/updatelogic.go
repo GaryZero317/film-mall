@@ -52,6 +52,11 @@ func (l *UpdateLogic) Update(in *product.UpdateRequest) (*product.UpdateResponse
 	// 状态可以是 0（下架）或 1（上架）
 	res.Status = in.Status
 
+	// 更新分类ID
+	if in.CategoryId != 0 {
+		res.CategoryId = in.CategoryId
+	}
+
 	err = l.svcCtx.ProductModel.Update(l.ctx, res)
 	if err != nil {
 		return nil, status.Error(500, err.Error())

@@ -39,11 +39,6 @@
       </swiper-item>
     </swiper>
 
-    <!-- 图片计数器 -->
-    <view class="image-counter" wx:if="{{imageList && imageList.length > 0}}">
-      {{currentImageIndex + 1}}/{{imageList.length}}
-    </view>
-
     <!-- 商品信息 -->
     <view class="product-info">
       <view class="name">{{product.name || '暂无名称'}}</view>
@@ -64,6 +59,20 @@
       <view class="description">
         <text class="title">商品描述</text>
         <text class="content">{{product.desc || '暂无描述'}}</text>
+      </view>
+
+      <!-- 商品详情图片 -->
+      <view class="detail-images">
+        <text class="title">商品详情</text>
+        <block wx:for="{{imageList}}" wx:key="*this">
+          <image 
+            src="{{item}}" 
+            mode="widthFix" 
+            class="detail-image"
+            bindtap="previewImage"
+            data-current="{{item}}"
+          />
+        </block>
       </view>
     </view>
 

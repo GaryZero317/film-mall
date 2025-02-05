@@ -21,19 +21,6 @@
   height: 100%;
 }
 
-/* 图片计数器 */
-.image-counter {
-  position: absolute;
-  right: 30rpx;
-  bottom: 30rpx;
-  background: rgba(0, 0, 0, 0.5);
-  color: #fff;
-  font-size: 24rpx;
-  padding: 6rpx 16rpx;
-  border-radius: 20rpx;
-  z-index: 1;
-}
-
 .product-info {
   padding: 30rpx;
 }
@@ -239,4 +226,31 @@
   font-size: 26rpx;
   color: #666;
   line-height: 1.8;
+}
+
+/* 商品详情图片 */
+.detail-images {
+  margin-top: 30rpx;
+  padding: 30rpx;
+  background: #fff;
+  border-top: 20rpx solid #f5f5f5;
+}
+
+.detail-images .title {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: bold;
+  margin-bottom: 20rpx;
+  display: block;
+}
+
+.detail-image {
+  width: 100%;
+  margin-bottom: 20rpx;
+  border-radius: 8rpx;
+  display: block;
+}
+
+.detail-image:last-child {
+  margin-bottom: 0;
 } 

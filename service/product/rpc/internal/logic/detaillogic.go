@@ -51,12 +51,13 @@ func (l *DetailLogic) Detail(in *product.DetailRequest) (*product.DetailResponse
 	l.Logger.Infof("商品 %d 的图片URLs: %v", in.Id, imageUrls)
 
 	return &product.DetailResponse{
-		Id:        res.Id,
-		Name:      res.Name,
-		Desc:      res.Desc,
-		Stock:     res.Stock,
-		Amount:    res.Amount,
-		Status:    res.Status,
-		ImageUrls: imageUrls,
+		Id:         res.Id,
+		Name:       res.Name,
+		Desc:       res.Desc,
+		Stock:      res.Stock,
+		Amount:     res.Amount,
+		Status:     res.Status,
+		ImageUrls:  imageUrls,
+		CategoryId: res.CategoryId,
 	}, nil
 }

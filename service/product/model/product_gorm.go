@@ -107,21 +107,17 @@ func (m *defaultGormProductModel) FindOne(ctx context.Context, id int64) (*Produ
 	productIdKey := fmt.Sprintf("%s%v", cacheKeyPrefix, id)
 	fmt.Printf("正在尝试从缓存获取数据，key: %s\n", productIdKey)
 
+	var product Product
 	var productMap map[string]interface{}
 	err := m.cache.GetCtx(ctx, productIdKey, &productMap)
-	if err != nil {
-		fmt.Printf("从缓存获取数据失败，错误: %v\n", err)
-	} else {
-		fmt.Printf("从缓存获取的数据: %+v\n", productMap)
-	}
 
-	var product Product
 	if err == nil && productMap != nil {
-		// 将map转换回结构体
-		if id, ok := productMap["id"].(float64); ok && id > 0 {
-			fmt.Printf("缓存命中，正在转换数据\n")
+		fmt.Printf("从缓存获取的数据: %+v\n", productMap)
+		// 检查缓存数据的完整性
+		if idFloat, ok := productMap["id"].(float64); ok && int64(idFloat) == id {
+			fmt.Printf("缓存命中且数据有效，正在转换数据\n")
 			product = Product{
-				Id:         int64(id),
+				Id:         id, // 使用传入的id
 				Name:       productMap["name"].(string),
 				Desc:       productMap["desc"].(string),
 				Stock:      int64(productMap["stock"].(float64)),
@@ -129,38 +125,17 @@ func (m *defaultGormProductModel) FindOne(ctx context.Context, id int64) (*Produ
 				Status:     int64(productMap["status"].(float64)),
 				CategoryId: int64(productMap["category_id"].(float64)),
 			}
+			fmt.Printf("缓存数据转换完成: %+v\n", product)
+		} else {
+			fmt.Printf("缓存数据无效或ID不匹配，从数据库查询\n")
+			if err := m.queryFromDB(ctx, id, &product); err != nil {
+				return nil, err
+			}
 		}
 	} else {
 		fmt.Printf("缓存未命中或无效，从数据库查询\n")
-		// 缓存未命中或无效，从数据库查询
-		err = m.db.WithContext(ctx).First(&product, id).Error
-		if err != nil {
-			fmt.Printf("数据库查询失败，错误: %v\n", err)
-			if err == gorm.ErrRecordNotFound {
-				return nil, sqlx.ErrNotFound
-			}
+		if err := m.queryFromDB(ctx, id, &product); err != nil {
 			return nil, err
-		}
-		fmt.Printf("从数据库查询到的数据: %+v\n", product)
-
-		// 将基本数据存入缓存
-		productMap = map[string]interface{}{
-			"id":          product.Id,
-			"name":        product.Name,
-			"desc":        product.Desc,
-			"stock":       product.Stock,
-			"amount":      product.Amount,
-			"status":      product.Status,
-			"category_id": product.CategoryId,
-		}
-		fmt.Printf("准备写入缓存的数据: %+v\n", productMap)
-
-		// 写入缓存，设置过期时间
-		err = m.cache.SetWithExpireCtx(ctx, productIdKey, productMap, defaultExpiry)
-		if err != nil {
-			fmt.Printf("写入缓存失败，错误: %v\n", err)
-		} else {
-			fmt.Printf("成功写入缓存\n")
 		}
 	}
 
@@ -189,6 +164,42 @@ func (m *defaultGormProductModel) FindOne(ctx context.Context, id int64) (*Produ
 	}
 
 	return &product, nil
+}
+
+// 从数据库查询商品信息并更新缓存
+func (m *defaultGormProductModel) queryFromDB(ctx context.Context, id int64, product *Product) error {
+	err := m.db.WithContext(ctx).First(product, id).Error
+	if err != nil {
+		fmt.Printf("数据库查询失败，错误: %v\n", err)
+		if err == gorm.ErrRecordNotFound {
+			return sqlx.ErrNotFound
+		}
+		return err
+	}
+	fmt.Printf("从数据库查询到的数据: %+v\n", product)
+
+	// 将基本数据存入缓存
+	productMap := map[string]interface{}{
+		"id":          float64(product.Id),
+		"name":        product.Name,
+		"desc":        product.Desc,
+		"stock":       float64(product.Stock),
+		"amount":      float64(product.Amount),
+		"status":      float64(product.Status),
+		"category_id": float64(product.CategoryId),
+	}
+	fmt.Printf("准备写入缓存的数据: %+v\n", productMap)
+
+	// 写入缓存，设置过期时间
+	productIdKey := fmt.Sprintf("%s%v", cacheKeyPrefix, id)
+	err = m.cache.SetWithExpireCtx(ctx, productIdKey, productMap, defaultExpiry)
+	if err != nil {
+		fmt.Printf("写入缓存失败，错误: %v\n", err)
+	} else {
+		fmt.Printf("成功写入缓存\n")
+	}
+
+	return nil
 }
 
 func (m *defaultGormProductModel) Update(ctx context.Context, data *Product) error {

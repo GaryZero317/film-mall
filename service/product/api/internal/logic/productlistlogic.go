@@ -11,14 +11,15 @@ import (
 
 // Product 数据库模型
 type Product struct {
-	Id        int64    `gorm:"column:id;primaryKey"`
-	Name      string   `gorm:"column:name"`
-	Desc      string   `gorm:"column:desc"`
-	Stock     int64    `gorm:"column:stock"`
-	Amount    int64    `gorm:"column:amount"`
-	Status    int64    `gorm:"column:status"`
-	MainImage string   `gorm:"column:main_image"`
-	Images    []string `gorm:"column:images;type:json"`
+	Id         int64    `gorm:"column:id;primaryKey"`
+	Name       string   `gorm:"column:name"`
+	Desc       string   `gorm:"column:desc"`
+	Stock      int64    `gorm:"column:stock"`
+	Amount     int64    `gorm:"column:amount"`
+	Status     int64    `gorm:"column:status"`
+	MainImage  string   `gorm:"column:main_image"`
+	Images     []string `gorm:"column:images;type:json"`
+	CategoryId int64    `gorm:"column:category_id"`
 }
 
 // TableName 指定表名
@@ -88,14 +89,15 @@ func (l *ProductListLogic) ProductList(req *types.ProductListRequest) (resp *typ
 
 		// 添加到列表
 		list = append(list, types.Product{
-			Id:        p.Id,
-			Name:      p.Name,
-			Desc:      p.Desc,
-			Stock:     p.Stock,
-			Amount:    p.Amount,
-			Status:    p.Status,
-			Images:    imageUrls,
-			MainImage: mainImage,
+			Id:         p.Id,
+			Name:       p.Name,
+			Desc:       p.Desc,
+			Stock:      p.Stock,
+			Amount:     p.Amount,
+			Status:     p.Status,
+			CategoryId: p.CategoryId,
+			Images:     imageUrls,
+			MainImage:  mainImage,
 		})
 	}
 

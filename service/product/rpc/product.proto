@@ -54,6 +54,7 @@ message DetailResponse {
   int64 Amount = 5;
   int64 Status = 6;
   repeated string ImageUrls = 7;  // 商品图片URL列表
+  int64 CategoryId = 8;  // 商品分类ID
 }
 // 产品详情
 

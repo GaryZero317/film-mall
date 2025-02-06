@@ -53,13 +53,14 @@ func (l *SearchLogic) Search(req *types.SearchRequest) (resp *types.SearchRespon
 		}
 
 		productList = append(productList, types.Product{
-			Id:        p.Id,
-			Name:      p.Name,
-			Desc:      p.Desc,
-			Stock:     p.Stock,
-			Amount:    p.Amount,
-			Status:    p.Status,
-			MainImage: mainImage,
+			Id:         p.Id,
+			Name:       p.Name,
+			Desc:       p.Desc,
+			Stock:      p.Stock,
+			Amount:     p.Amount,
+			Status:     p.Status,
+			CategoryId: p.CategoryId,
+			MainImage:  mainImage,
 		})
 	}
 

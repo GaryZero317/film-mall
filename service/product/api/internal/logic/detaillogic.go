@@ -58,13 +58,14 @@ func (l *DetailLogic) Detail(req *types.DetailRequest) (resp *types.DetailRespon
 
 	l.Logger.Info("获取商品详情成功")
 	return &types.DetailResponse{
-		Id:        product.Id,
-		Name:      product.Name,
-		Desc:      product.Desc,
-		Stock:     product.Stock,
-		Amount:    product.Amount,
-		Status:    product.Status,
-		ImageUrls: imageUrls,
-		MainImage: mainImage,
+		Id:         product.Id,
+		Name:       product.Name,
+		Desc:       product.Desc,
+		Stock:      product.Stock,
+		Amount:     product.Amount,
+		Status:     product.Status,
+		ImageUrls:  imageUrls,
+		MainImage:  mainImage,
+		CategoryId: product.CategoryId,
 	}, nil
 }

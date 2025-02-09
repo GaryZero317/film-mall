@@ -1,2 +1,61 @@
 <!--pages/user/settings/index.wxml-->
-<text>pages/user/settings/index.wxml</text>
+<view class="container">
+  <view class="settings-list">
+    <!-- 账户安全 -->
+    <view class="settings-section">
+      <view class="section-title">账户安全</view>
+      <view class="settings-item" bindtap="onChangePassword">
+        <text>修改密码</text>
+        <image class="arrow" src="/assets/images/arrow-right.png" />
+      </view>
+      <view class="settings-item" bindtap="onBindPhone">
+        <text>绑定手机</text>
+        <text class="sub-text">{{phoneNumber || '未绑定'}}</text>
+        <image class="arrow" src="/assets/images/arrow-right.png" />
+      </view>
+    </view>
+
+    <!-- 通知设置 -->
+    <view class="settings-section">
+      <view class="section-title">通知设置</view>
+      <view class="settings-item">
+        <text>订单通知</text>
+        <switch checked="{{orderNotification}}" bindchange="onOrderNotificationChange" />
+      </view>
+      <view class="settings-item">
+        <text>优惠活动通知</text>
+        <switch checked="{{promotionNotification}}" bindchange="onPromotionNotificationChange" />
+      </view>
+    </view>
+
+    <!-- 隐私设置 -->
+    <view class="settings-section">
+      <view class="section-title">隐私设置</view>
+      <view class="settings-item" bindtap="onPrivacyPolicy">
+        <text>隐私政策</text>
+        <image class="arrow" src="/assets/images/arrow-right.png" />
+      </view>
+      <view class="settings-item" bindtap="onUserAgreement">
+        <text>用户协议</text>
+        <image class="arrow" src="/assets/images/arrow-right.png" />
+      </view>
+    </view>
+
+    <!-- 其他设置 -->
+    <view class="settings-section">
+      <view class="section-title">其他设置</view>
+      <view class="settings-item" bindtap="clearCache">
+        <text>清除缓存</text>
+        <text class="sub-text">{{cacheSize}}</text>
+        <image class="arrow" src="/assets/images/arrow-right.png" />
+      </view>
+      <view class="settings-item" bindtap="onAboutUs">
+        <text>关于我们</text>
+        <image class="arrow" src="/assets/images/arrow-right.png" />
+      </view>
+    </view>
+  </view>
+
+  <!-- 退出登录按钮 -->
+  <view class="logout-button" bindtap="onLogout">退出登录</view>
+</view>

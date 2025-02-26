@@ -27,4 +27,4 @@ ProductRpc:
 # 静态文件服务配置
 FileUpload:
   UploadPath: D:/graduation/FilmMall/service/product/api/uploads
-  UrlPrefix: http://localhost:8001/uploads/
+  UrlPrefix: /uploads/

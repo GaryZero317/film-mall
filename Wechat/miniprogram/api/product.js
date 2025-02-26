@@ -94,7 +94,7 @@ export const removeProduct = (id) => {
 export const uploadImage = (filePath) => {
   return new Promise((resolve, reject) => {
     wx.uploadFile({
-      url: 'http://localhost:8001/api/product/upload',  // 上传文件需要完整URL
+      url: 'http://localhost:8001/api/product/upload',  // 上传API仍需保留完整URL
       filePath: filePath,
       name: 'file',
       success: (res) => {

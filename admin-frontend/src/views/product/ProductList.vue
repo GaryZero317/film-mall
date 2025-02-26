@@ -271,6 +271,14 @@ const categoryOptions = [
       { id: 14, name: '彩色反转片' },
       { id: 15, name: '黑白负片' }
     ]
+  },
+  {
+    id: 12,
+    name: '胶卷冲洗',
+    children: [
+      { id: 17, name: '哈苏X5' },
+      { id: 18, name: '富士SP3000' }
+    ]
   }
 ]
 

@@ -35,4 +35,10 @@ INSERT INTO `product_category` (`name`, `parent_id`, `level`, `sort_order`) VALU
 -- 插入拍立得相纸的子分类
 INSERT INTO `product_category` (`name`, `parent_id`, `level`, `sort_order`) VALUES
 ('宝丽来相纸', 3, 2, 1),      -- 适用于：itype系列
-('富士相纸', 3, 2, 2);        -- 适用于：instax系列 
+('富士相纸', 3, 2, 2);        -- 适用于：instax系列
+
+-- 插入胶卷冲洗分类及其子分类
+INSERT INTO `product_category` (`name`, `parent_id`, `level`, `sort_order`) VALUES
+('胶卷冲洗', 0, 1, 2),
+('哈苏X5', LAST_INSERT_ID(), 2, 1),
+('富士SP3000', LAST_INSERT_ID(), 2, 2); 

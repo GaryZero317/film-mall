@@ -22,12 +22,18 @@ const categories = [
   },
   {
     id: 4,
+    name: '胶卷冲洗',
+    icon: '/assets/images/categories/development.png',
+    keywords: ['冲洗']
+  },
+  {
+    id: 5,
     name: '拍立得',
     icon: '/assets/images/categories/instant.png',
     keywords: ['拍立得']
   },
   {
-    id: 5,
+    id: 6,
     name: '电影胶片',
     icon: '/assets/images/categories/cinema.png',
     keywords: ['电影卷']

@@ -35,7 +35,7 @@
           {{ (scope.row.shipping_fee / 100).toFixed(2) }} 元
         </template>
       </el-table-column>
-      <el-table-column label="回寄底片" width="80">
+      <el-table-column label="回寄底片" width="100" align="center">
         <template #default="scope">
           <el-tag :type="scope.row.return_film ? 'success' : 'info'">
             {{ scope.row.return_film ? '是' : '否' }}

@@ -39,7 +39,7 @@
         </view>
         
         <!-- 胶片订单独有字段 -->
-        <view class="amount-item" wx:if="{{isFilmOrder && order.shipping_fee > 0}}">
+        <view class="amount-item" wx:if="{{isFilmOrder && order.return_film && order.shipping_fee > 0}}">
           <text>运费</text>
           <text>¥{{order.shipping_fee}}</text>
         </view>

@@ -73,7 +73,8 @@ export function updateFilmOrderStatus(id) {
     url: `/api/film/user/order/${id}`,
     method: 'put',
     data: {
-      status: 1 // 更新为"冲洗处理中"状态
+      status: 1, // 更新为"冲洗处理中"状态
+      // 不发送ReturnFilm字段，让后端保留原始值
     }
   })
 }

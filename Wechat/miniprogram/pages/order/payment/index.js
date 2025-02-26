@@ -270,9 +270,23 @@ Page({
       orderData.total_price = (parseInt(totalPrice) / 100).toFixed(2)
       orderData.shipping_fee = (parseInt(shippingFee) / 100).toFixed(2)
       
-      // 计算应付金额
-      const totalAmount = parseInt(totalPrice) + parseInt(shippingFee)
+      // 检查是否回寄底片
+      const isReturnFilm = Boolean(orderData.return_film)
+      console.log('[胶片订单支付] 回寄底片状态:', isReturnFilm)
+      orderData.return_film = isReturnFilm
+      
+      // 如果不回寄底片，则不收取运费
+      const effectiveShippingFee = isReturnFilm ? parseInt(shippingFee) : 0
+      console.log('[胶片订单支付] 实际计算的运费:', effectiveShippingFee)
+      
+      // 计算应付金额（只有回寄底片才加运费）
+      const totalAmount = parseInt(totalPrice) + effectiveShippingFee
       orderData.amount = (totalAmount / 100).toFixed(2)
+      
+      // 如果不回寄底片，显示运费为0
+      if (!isReturnFilm) {
+        orderData.shipping_fee = "0.00"
+      }
       
       // 处理订单项，确保字段存在
       if (orderData.items && orderData.items.length > 0) {
@@ -383,6 +397,7 @@ Page({
     }
 
     console.log(`[订单支付] 开始支付订单，ID: ${order.id}, 订单号: ${order.order_no || order.foid}, 当前状态: ${order.status}, 状态描述: ${order.status_desc}`)
+    console.log(`[订单支付] 回寄底片状态: ${order.return_film}`)
     
     // 模拟支付逻辑
     wx.showLoading({
@@ -392,32 +407,58 @@ Page({
     
     // 胶片订单和商品订单使用不同的处理逻辑
     if (isFilmOrder) {
-      // 胶片订单 - 不再调用后端更新API，直接在前端模拟支付成功
-      setTimeout(() => {
-        wx.hideLoading()
-        
-        // 在前端更新订单状态显示
-        const updatedOrder = {...order, status: 1, status_desc: '冲洗处理中'}
-        this.setData({
-          order: updatedOrder,
-          'paySuccess': true
+      // 胶片订单支付处理 - 使用updateFilmOrderStatus更新订单状态
+      const { updateFilmOrderStatus } = require('../../../api/film')
+      
+      updateFilmOrderStatus(order.id)
+        .then(res => {
+          wx.hideLoading()
+          console.log('[订单支付] 胶片订单状态更新响应:', res)
+          
+          if (res && res.code === 0) {
+            // 更新成功
+            wx.showToast({
+              title: '支付成功，订单已更新为冲洗处理中',
+              icon: 'none',
+              duration: 2000
+            })
+            
+            // 更新本地状态显示
+            const updatedOrder = {...order, status: 1, status_desc: '冲洗处理中'}
+            this.setData({
+              order: updatedOrder,
+              'paySuccess': true
+            })
+            
+            // 发送支付结果事件
+            const eventChannel = this.getOpenerEventChannel()
+            if (eventChannel && eventChannel.emit) {
+              eventChannel.emit('paymentResult', { success: true })
+            }
+          } else {
+            // 更新失败
+            console.error('[订单支付] 订单状态更新失败:', res)
+            wx.showToast({
+              title: res.msg || '支付失败',
+              icon: 'none'
+            })
+          }
+          
+          // 延迟返回首页
+          setTimeout(() => {
+            wx.switchTab({
+              url: '/pages/index/index'
+            })
+          }, 2000)
         })
-        
-        console.log('[订单支付] 胶片订单模拟支付成功，本地状态已更新', updatedOrder)
-        
-        wx.showToast({
-          title: '支付成功，订单已更新为冲洗处理中',
-          icon: 'none',
-          duration: 2000
-        })
-        
-        // 延迟返回首页
-        setTimeout(() => {
-          wx.switchTab({
-            url: '/pages/index/index'
+        .catch(err => {
+          wx.hideLoading()
+          console.error('[订单支付] 支付异常:', err)
+          wx.showToast({
+            title: '支付过程中发生错误',
+            icon: 'none'
           })
-        }, 2000)
-      }, 1500)
+        })
     } else {
       // 普通商品订单 - 保持原有逻辑
       updateOrderStatus(order.id)
@@ -434,6 +475,12 @@ Page({
                 this.setData({
                   'paySuccess': true
                 })
+                
+                // 发送支付结果事件
+                const eventChannel = this.getOpenerEventChannel()
+                if (eventChannel && eventChannel.emit) {
+                  eventChannel.emit('paymentResult', { success: true })
+                }
                 
                 // 延迟返回首页
                 setTimeout(() => {

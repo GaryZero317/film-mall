@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/builder"
 	"github.com/zeromicro/go-zero/core/stores/sqlc"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
@@ -60,7 +61,20 @@ func NewFilmOrderModel(conn sqlx.SqlConn) FilmOrderModel {
 
 func (m *defaultFilmOrderModel) Insert(ctx context.Context, data *FilmOrder) (sql.Result, error) {
 	query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?, ?, ?, ?)", m.table, filmOrderRowsExpectAutoSet)
-	ret, err := m.conn.ExecCtx(ctx, query, data.Foid, data.Uid, data.AddressId, data.ReturnFilm, data.TotalPrice, data.ShippingFee, data.Status, data.Remark)
+
+	// 日志记录原始值
+	logx.Infof("插入订单ReturnFilm值: %v (类型: %T)", data.ReturnFilm, data.ReturnFilm)
+
+	// 将bool值显式转换为int
+	returnFilmInt := 0
+	if data.ReturnFilm {
+		returnFilmInt = 1
+	}
+
+	logx.Infof("转换后的returnFilmInt值: %d", returnFilmInt)
+
+	// 使用转换后的整型值替代原始布尔值
+	ret, err := m.conn.ExecCtx(ctx, query, data.Foid, data.Uid, data.AddressId, returnFilmInt, data.TotalPrice, data.ShippingFee, data.Status, data.Remark)
 	return ret, err
 }
 
@@ -167,7 +181,20 @@ func (m *defaultFilmOrderModel) FindAll(ctx context.Context, status int64, page,
 
 func (m *defaultFilmOrderModel) Update(ctx context.Context, data *FilmOrder) error {
 	query := fmt.Sprintf("update %s set %s where `id` = ?", m.table, filmOrderRowsWithPlaceHolder)
-	_, err := m.conn.ExecCtx(ctx, query, data.Foid, data.Uid, data.AddressId, data.ReturnFilm, data.TotalPrice, data.ShippingFee, data.Status, data.Remark, data.Id)
+
+	// 日志记录原始值
+	logx.Infof("更新订单前ReturnFilm值: %v (类型: %T)", data.ReturnFilm, data.ReturnFilm)
+
+	// 将bool值显式转换为int
+	returnFilmInt := 0
+	if data.ReturnFilm {
+		returnFilmInt = 1
+	}
+
+	logx.Infof("转换后的returnFilmInt值: %d", returnFilmInt)
+
+	// 使用转换后的整型值替代原始布尔值
+	_, err := m.conn.ExecCtx(ctx, query, data.Foid, data.Uid, data.AddressId, returnFilmInt, data.TotalPrice, data.ShippingFee, data.Status, data.Remark, data.Id)
 	return err
 }
 

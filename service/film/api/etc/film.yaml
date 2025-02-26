@@ -1,0 +1,33 @@
+Name: Film
+Host: 0.0.0.0
+Port: 8007
+
+Mysql:
+  DataSource: root:200317@tcp(localhost:3306)/mall?charset=utf8mb4&parseTime=true&loc=Asia%2FShanghai
+
+CacheRedis:
+  - Host: localhost:6379
+    Type: node
+    Pass: "123456"
+
+Auth:
+  AccessSecret: uOvKLmVfztaXGpNYd4Z0I1SiT7MweJhl
+  AccessExpire: 86400
+
+AdminAuth:
+  AccessSecret: uOvKLmVfztaXGpNYd4Z0I1SiT7MweJhl
+  AccessExpire: 86400
+
+# 如果需要RPC服务（后续开发）
+# FilmRpc:
+#   Etcd:
+#     Hosts:
+#       - localhost:2379
+#     Key: film.rpc
+
+# 如果需要调用用户服务获取地址信息
+UserRpc:
+  Etcd:
+    Hosts:
+      - localhost:2379
+    Key: user.rpc

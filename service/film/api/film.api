@@ -1,0 +1,181 @@
+syntax = "v1"
+
+info (
+	title: "胶片冲洗服务"
+	desc: "胶片冲洗服务API"
+	author: "filmall"
+	version: "v1"
+)
+
+type (
+	// 胶片冲洗订单项
+	FilmOrderItem {
+		Id          int64  `json:"id"`            // 冲洗订单项ID
+		FilmOrderId int64  `json:"film_order_id"` // 冲洗订单ID
+		FilmType    string `json:"film_type"`     // 胶片类型
+		FilmBrand   string `json:"film_brand"`    // 胶片品牌
+		Size        string `json:"size"`          // 尺寸规格
+		Quantity    int64  `json:"quantity"`      // 数量
+		Price       int64  `json:"price"`         // 单价(分)
+		Amount      int64  `json:"amount"`        // 总价(分)
+		Remark      string `json:"remark"`        // 备注
+	}
+
+	// 创建胶片冲洗订单项
+	CreateFilmOrderItem {
+		FilmType  string `json:"film_type"`  // 胶片类型
+		FilmBrand string `json:"film_brand"` // 胶片品牌
+		Size      string `json:"size"`       // 尺寸规格
+		Quantity  int64  `json:"quantity"`   // 数量
+		Price     int64  `json:"price"`      // 单价(分)
+		Amount    int64  `json:"amount"`     // 总价(分)
+		Remark    string `json:"remark"`     // 备注
+	}
+
+	// 胶片冲洗订单
+	FilmOrder {
+		Id          int64           `json:"id"`           // 订单ID
+		Foid        string          `json:"foid"`         // 订单号
+		Uid         int64           `json:"uid"`          // 用户ID
+		AddressId   int64           `json:"address_id"`   // 收货地址ID
+		ReturnFilm  bool            `json:"return_film"`  // 是否回寄底片
+		TotalPrice  int64           `json:"total_price"`  // 冲洗总价(分)
+		ShippingFee int64           `json:"shipping_fee"` // 运费(分)
+		Status      int64           `json:"status"`       // 订单状态:0待付款,1冲洗处理中,2待收货,3已完成
+		StatusDesc  string          `json:"status_desc"`  // 状态描述
+		Remark      string          `json:"remark"`       // 订单备注
+		Items       []FilmOrderItem `json:"items"`        // 订单项列表
+		CreateTime  string          `json:"create_time"`  // 创建时间
+		UpdateTime  string          `json:"update_time"`  // 更新时间
+	}
+
+	// 创建胶片冲洗订单请求
+	CreateFilmOrderReq {
+		Uid         int64                 `json:"uid"`          // 用户ID
+		AddressId   int64                 `json:"address_id"`   // 收货地址ID
+		ReturnFilm  bool                  `json:"return_film"`  // 是否回寄底片
+		TotalPrice  int64                 `json:"total_price"`  // 冲洗总价(分)
+		ShippingFee int64                 `json:"shipping_fee"` // 运费(分)
+		Remark      string                `json:"remark"`       // 订单备注
+		Items       []CreateFilmOrderItem `json:"items"`        // 订单项列表
+		Status      int64                 `json:"status"`       // 订单状态
+	}
+
+	// 创建胶片冲洗订单返回数据
+	CreateFilmOrderData {
+		Id   int64  `json:"id"`   // 订单ID
+		Foid string `json:"foid"` // 订单号
+	}
+
+	// 创建胶片冲洗订单响应
+	CreateFilmOrderResp {
+		Code int64               `json:"code"`
+		Msg  string              `json:"msg"`
+		Data CreateFilmOrderData `json:"data"`
+	}
+
+	// 更新胶片冲洗订单请求
+	UpdateFilmOrderReq {
+		Id         int64  `path:"id"`                   // 订单ID
+		Status     int64  `json:"status,optional"`      // 订单状态
+		AddressId  int64  `json:"address_id,optional"`  // 收货地址ID
+		ReturnFilm bool   `json:"return_film,optional"` // 是否回寄底片
+		Remark     string `json:"remark,optional"`      // 备注
+	}
+
+	// 更新胶片冲洗订单响应
+	UpdateFilmOrderResp {
+		Code int64  `json:"code"`
+		Msg  string `json:"msg"`
+	}
+
+	// 获取胶片冲洗订单请求
+	GetFilmOrderReq {
+		Id int64 `path:"id"` // 订单ID
+	}
+
+	// 获取胶片冲洗订单响应
+	GetFilmOrderResp {
+		Code int64     `json:"code"`
+		Msg  string    `json:"msg"`
+		Data FilmOrder `json:"data"` // 订单信息
+	}
+
+	// 胶片冲洗订单列表请求
+	ListFilmOrderReq {
+		Uid      int64 `form:"uid,optional"`         // 用户ID
+		Status   int64 `form:"status,optional"`      // 订单状态
+		Page     int64 `form:"page,default=1"`       // 页码
+		PageSize int64 `form:"page_size,default=10"` // 每页数量
+	}
+
+	// 胶片冲洗订单列表数据
+	ListFilmOrderData {
+		Total int64       `json:"total"` // 总数
+		List  []FilmOrder `json:"list"`  // 订单列表
+	}
+
+	// 胶片冲洗订单列表响应
+	ListFilmOrderResp {
+		Code int64             `json:"code"`
+		Msg  string            `json:"msg"`
+		Data ListFilmOrderData `json:"data"`
+	}
+
+	// 删除胶片冲洗订单请求
+	DeleteFilmOrderReq {
+		Id int64 `path:"id"` // 订单ID
+	}
+
+	// 删除胶片冲洗订单响应
+	DeleteFilmOrderResp {
+		Code int64  `json:"code"`
+		Msg  string `json:"msg"`
+	}
+)
+
+// 用户接口，需要用户JWT认证
+@server(
+	jwt: Auth
+	prefix: /api/film
+)
+service film {
+	@doc "创建胶片冲洗订单"
+	@handler create
+	post /order (CreateFilmOrderReq) returns (CreateFilmOrderResp)
+	
+	@doc "更新用户自己的胶片冲洗订单"
+	@handler userUpdate
+	put /user/order/:id (UpdateFilmOrderReq) returns (UpdateFilmOrderResp)
+	
+	@doc "获取用户自己的胶片冲洗订单"
+	@handler userGet
+	get /user/order/:id (GetFilmOrderReq) returns (GetFilmOrderResp)
+	
+	@doc "获取用户自己的胶片冲洗订单列表"
+	@handler userList
+	get /user/order/list (ListFilmOrderReq) returns (ListFilmOrderResp)
+}
+
+// 管理员接口，需要管理员JWT认证
+@server(
+	jwt: AdminAuth
+	prefix: /api/film
+)
+service film {
+	@doc "管理员更新胶片冲洗订单"
+	@handler adminUpdate
+	put /admin/order/:id (UpdateFilmOrderReq) returns (UpdateFilmOrderResp)
+	
+	@doc "管理员获取任意胶片冲洗订单"
+	@handler adminGet
+	get /admin/order/:id (GetFilmOrderReq) returns (GetFilmOrderResp)
+	
+	@doc "管理员获取所有胶片冲洗订单列表"
+	@handler adminList
+	get /admin/order/list (ListFilmOrderReq) returns (ListFilmOrderResp)
+	
+	@doc "管理员删除胶片冲洗订单"
+	@handler adminDelete
+	delete /admin/order/:id (DeleteFilmOrderReq) returns (DeleteFilmOrderResp)
+}

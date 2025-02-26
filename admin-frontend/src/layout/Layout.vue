@@ -32,6 +32,11 @@
           <template #title>订单管理</template>
         </el-menu-item>
         
+        <el-menu-item index="/processing">
+          <el-icon><Picture /></el-icon>
+          <template #title>冲洗管理</template>
+        </el-menu-item>
+        
         <el-menu-item index="/payments">
           <el-icon><Money /></el-icon>
           <template #title>支付管理</template>
@@ -91,7 +96,8 @@ import {
   Money, 
   Fold, 
   Expand,
-  CaretBottom
+  CaretBottom,
+  Picture
 } from '@element-plus/icons-vue'
 import Breadcrumb from './components/Breadcrumb.vue'
 

@@ -500,32 +500,22 @@ Page(loginGuard({
         const defaultSize = filmSize || { id: 0, name: '标准尺寸' }
         
         return {
-          film_type: String(defaultType.id),
-          film_type_name: defaultType.name,
-          film_brand: String(defaultBrand.id),
-          film_brand_name: defaultBrand.name,
-          film_size: String(defaultSize.id),
-          film_size_name: defaultSize.name,
+          film_type: defaultType.name,
+          film_brand: defaultBrand.name,
           size: defaultSize.name,
           quantity: item.quantity,
           price: Math.round(item.price * 100), // 转换为分
-          unit_price: Math.round(item.price * 100), // 转换为分
           amount: Math.round(item.price * item.quantity * 100), // 转换为分
           remark: item.remark
         }
       }
       
       return {
-        film_type: String(filmType.id),
-        film_type_name: filmType.name,
-        film_brand: String(filmBrand.id),
-        film_brand_name: filmBrand.name,
-        film_size: String(filmSize.id),
-        film_size_name: filmSize.name,
+        film_type: filmType.name,
+        film_brand: filmBrand.name,
         size: filmSize.name,
         quantity: item.quantity,
         price: Math.round(item.price * 100), // 转换为分
-        unit_price: Math.round(item.price * 100), // 转换为分
         amount: Math.round(item.price * item.quantity * 100), // 转换为分
         remark: item.remark
       }

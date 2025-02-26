@@ -25,7 +25,14 @@ func main() {
 	// 打印JWT配置信息
 	logx.Infof("JWT Auth配置: AccessSecret长度=%d, AccessExpire=%d", len(c.Auth.AccessSecret), c.Auth.AccessExpire)
 
-	server := rest.MustNewServer(c.RestConf)
+	server := rest.MustNewServer(c.RestConf, rest.WithCustomCors(nil, func(w http.ResponseWriter) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
+		w.Header().Set("Access-Control-Expose-Headers", "Content-Length, Content-Type, Access-Control-Allow-Origin, Access-Control-Allow-Headers")
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
+	}, "*"))
+
 	defer server.Stop()
 
 	// 添加一个自定义中间件，用于记录请求头信息

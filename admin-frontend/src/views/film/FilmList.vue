@@ -1,81 +1,75 @@
 <template>
-  <div class="processing-list-container">
-    <el-card class="table-card" shadow="never">
-      <template #header>
-        <div class="action-bar">
-          <div class="search-area">
-            <el-form :inline="true" :model="queryParams" class="demo-form-inline">
-              <el-form-item label="用户ID">
-                <el-input v-model="queryParams.uid" placeholder="用户ID" clearable></el-input>
-              </el-form-item>
-              <el-form-item label="订单状态">
-                <el-select v-model="queryParams.status" placeholder="全部状态" clearable>
-                  <el-option v-for="item in statusOptions" :key="item.value" :label="item.label" :value="item.value"></el-option>
-                </el-select>
-              </el-form-item>
-              <el-form-item>
-                <el-button type="primary" @click="handleSearch">搜索</el-button>
-                <el-button @click="resetSearch">重置</el-button>
-              </el-form-item>
-            </el-form>
-          </div>
-        </div>
-      </template>
+  <div class="container">
+    <div class="page-header">
+      <h2>胶片冲洗订单管理</h2>
+    </div>
+    
+    <div class="toolbar">
+      <el-form :inline="true" :model="queryParams" class="demo-form-inline">
+        <el-form-item label="用户ID">
+          <el-input v-model="queryParams.uid" placeholder="用户ID" clearable></el-input>
+        </el-form-item>
+        <el-form-item label="订单状态">
+          <el-select v-model="queryParams.status" placeholder="全部状态" clearable>
+            <el-option v-for="item in statusOptions" :key="item.value" :label="item.label" :value="item.value"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="handleQuery">搜索</el-button>
+          <el-button @click="resetQuery">重置</el-button>
+        </el-form-item>
+      </el-form>
+    </div>
 
-      <!-- 胶片冲洗订单列表 -->
-      <el-table 
-        :data="filmOrderList" 
-        style="width: 100%" 
-        v-loading="loading">
-        <el-table-column prop="id" label="订单ID" width="80" align="center" />
-        <el-table-column prop="foid" label="订单号" min-width="180" />
-        <el-table-column prop="uid" label="用户ID" width="100" align="center" />
-        <el-table-column label="总价" width="120" align="right">
-          <template #default="scope">
-            {{ (scope.row.total_price / 100).toFixed(2) }} 元
-          </template>
-        </el-table-column>
-        <el-table-column label="运费" width="120" align="right">
-          <template #default="scope">
-            {{ (scope.row.shipping_fee / 100).toFixed(2) }} 元
-          </template>
-        </el-table-column>
-        <el-table-column label="回寄底片" width="100" align="center">
-          <template #default="scope">
-            <el-tag :type="scope.row.return_film ? 'success' : 'info'">
-              {{ scope.row.return_film ? '是' : '否' }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="订单状态" width="120" align="center">
-          <template #default="scope">
-            <el-tag :type="getStatusType(scope.row.status)">
-              {{ scope.row.status_desc }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="create_time" label="创建时间" min-width="180" align="center" />
-        <el-table-column label="操作" width="200" align="center">
-          <template #default="scope">
-            <el-button size="small" type="primary" @click="viewOrder(scope.row)">详情</el-button>
-            <el-button size="small" type="warning" @click="editOrder(scope.row)">编辑</el-button>
-            <el-button v-if="scope.row.status === 3" size="small" type="danger" @click="handleDelete(scope.row)">删除</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+    <el-table v-loading="loading" :data="orderList" border style="width: 100%">
+      <el-table-column prop="id" label="订单ID" width="80" />
+      <el-table-column prop="foid" label="订单号" width="180" />
+      <el-table-column prop="uid" label="用户ID" width="80" />
+      <el-table-column label="总价" width="120">
+        <template #default="scope">
+          {{ (scope.row.total_price / 100).toFixed(2) }} 元
+        </template>
+      </el-table-column>
+      <el-table-column label="运费" width="120">
+        <template #default="scope">
+          {{ (scope.row.shipping_fee / 100).toFixed(2) }} 元
+        </template>
+      </el-table-column>
+      <el-table-column label="回寄底片" width="80">
+        <template #default="scope">
+          <el-tag :type="scope.row.return_film ? 'success' : 'info'">
+            {{ scope.row.return_film ? '是' : '否' }}
+          </el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column label="订单状态" width="120">
+        <template #default="scope">
+          <el-tag :type="getStatusTagType(scope.row.status)">
+            {{ scope.row.status_desc }}
+          </el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column prop="create_time" label="创建时间" width="180" />
+      <el-table-column label="操作" width="200">
+        <template #default="scope">
+          <el-button size="small" type="primary" @click="viewOrder(scope.row)">查看</el-button>
+          <el-button size="small" type="warning" @click="editOrder(scope.row)">编辑</el-button>
+          <el-button v-if="scope.row.status === 3" size="small" type="danger" @click="handleDelete(scope.row)">删除</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
 
-      <div class="pagination-container">
-        <el-pagination
-          :current-page="queryParams.page"
-          :page-size="queryParams.page_size"
-          :page-sizes="[10, 20, 50, 100]"
-          layout="total, sizes, prev, pager, next, jumper"
-          :total="total"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        />
-      </div>
-    </el-card>
+    <div class="pagination-container">
+      <el-pagination
+        :current-page="queryParams.page"
+        :page-size="queryParams.page_size"
+        :page-sizes="[10, 20, 50, 100]"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+      />
+    </div>
 
     <!-- 编辑订单对话框 -->
     <el-dialog v-model="dialogVisible" title="编辑胶片冲洗订单" width="500px">
@@ -107,13 +101,13 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getFilmOrderList, updateFilmOrder, deleteFilmOrder } from '@/api/film'
+import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const loading = ref(false)
-const filmOrderList = ref([])
+const orderList = ref([])
 const total = ref(0)
 const dialogVisible = ref(false)
 const formRef = ref(null)
@@ -149,30 +143,30 @@ const getList = async () => {
   try {
     const res = await getFilmOrderList(queryParams)
     if (res.code === 0) {
-      filmOrderList.value = res.data.list
+      orderList.value = res.data.list
       total.value = res.data.total
     } else {
-      ElMessage.error(res.msg || '获取胶片冲洗订单列表失败')
+      ElMessage.error(res.msg || '获取订单列表失败')
     }
   } catch (error) {
-    console.error('获取胶片冲洗订单列表出错:', error)
-    ElMessage.error('获取胶片冲洗订单列表出错')
+    console.error('获取订单列表出错:', error)
+    ElMessage.error('获取订单列表出错')
   } finally {
     loading.value = false
   }
 }
 
-// 搜索按钮点击
-const handleSearch = () => {
+// 查询按钮点击
+const handleQuery = () => {
   queryParams.page = 1
   getList()
 }
 
-// 重置搜索
-const resetSearch = () => {
+// 重置查询
+const resetQuery = () => {
   queryParams.uid = ''
   queryParams.status = ''
-  handleSearch()
+  handleQuery()
 }
 
 // 分页大小变更
@@ -198,7 +192,7 @@ const editOrder = (row) => {
   form.foid = row.foid
   form.status = row.status
   form.return_film = row.return_film
-  form.remark = row.remark || ''
+  form.remark = row.remark
   dialogVisible.value = true
 }
 
@@ -249,7 +243,7 @@ const handleDelete = (row) => {
 }
 
 // 获取状态标签类型
-const getStatusType = (status) => {
+const getStatusTagType = (status) => {
   const statusMap = {
     0: 'info',
     1: 'warning',
@@ -265,23 +259,21 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.processing-list-container {
+.container {
   padding: 20px;
 }
 
-.table-card {
+.page-header {
   margin-bottom: 20px;
 }
 
-.action-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.page-header h2 {
+  margin: 0;
+  font-size: 20px;
 }
 
-.search-area {
-  display: flex;
-  flex-wrap: wrap;
+.toolbar {
+  margin-bottom: 20px;
 }
 
 .pagination-container {

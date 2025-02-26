@@ -32,7 +32,7 @@
           <template #title>订单管理</template>
         </el-menu-item>
         
-        <el-menu-item index="/processing">
+        <el-menu-item index="/film/list">
           <el-icon><Picture /></el-icon>
           <template #title>冲洗管理</template>
         </el-menu-item>

@@ -99,4 +99,5 @@ const createService = (baseURL) => {
 export const adminService = createService('http://localhost:8000')
 export const productService = createService('http://localhost:8001')
 export const orderService = createService('http://localhost:8002')
-export const paymentService = createService('http://localhost:8003') 
+export const paymentService = createService('http://localhost:8003')
+export const filmService = createService('http://localhost:8007') 

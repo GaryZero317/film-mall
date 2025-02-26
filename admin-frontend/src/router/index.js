@@ -34,13 +34,22 @@ const routes = [
       },
       {
         path: 'processing',
-        name: 'ProcessingList',
-        component: () => import('../views/processing/ProcessingList.vue')
+        redirect: 'film/list'
       },
       {
         path: 'payments',
         name: 'PaymentList',
         component: () => import('../views/payment/PaymentList.vue')
+      },
+      {
+        path: 'film/list',
+        name: 'FilmList',
+        component: () => import('../views/film/FilmList.vue')
+      },
+      {
+        path: 'film/detail/:id',
+        name: 'FilmDetail',
+        component: () => import('../views/film/FilmDetail.vue')
       }
     ]
   }

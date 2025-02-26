@@ -34,6 +34,11 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path
       },
+      '/api/film': {
+        target: 'http://localhost:8007',
+        changeOrigin: true,
+        rewrite: (path) => path
+      },
       '/api/upload': {
         target: 'http://localhost:8001',
         changeOrigin: true,

@@ -23,31 +23,19 @@
     </view>
   </view>
 
-  <!-- 分类导航 -->
-  <view class="category-section">
-    <!-- "全部"分类 -->
-    <view 
-      class="category-item {{selectedCategory === 0 ? 'active' : ''}}"
-      data-id="0"
-      bindtap="switchCategory"
-    >
-      全部
+  <!-- 胶片冲洗服务入口 -->
+  <view class="film-service-section">
+    <view class="film-service-title">胶片冲洗服务</view>
+    <view class="film-service-content" bindtap="navigateToFilmCreate">
+      <view class="film-service-left">
+        <text class="film-service-label">专业冲洗 快速出片</text>
+        <text class="film-service-desc">支持多种胶片类型和尺寸</text>
+        <button class="film-service-btn">立即使用</button>
+      </view>
+      <view class="film-service-right">
+        <image src="/assets/images/film-icon.png" mode="aspectFit" class="film-service-image"></image>
+      </view>
     </view>
-    
-    <!-- 两行分类 -->
-    <view class="category-rows">
-      <view class="category-row" wx:for="{{categoryRows}}" wx:key="index" wx:for-item="row">
-        <view 
-          class="category-item {{selectedCategory === item.id ? 'active' : ''}}"
-          wx:for="{{row}}"
-          wx:key="id"
-          data-id="{{item.id}}"
-          bindtap="switchCategory"
-        >
-          {{item.name}}
-    </view>
-    </view>
-  </view>
   </view>
 
   <!-- 商品列表 -->
@@ -83,5 +71,19 @@
   <!-- 加载更多 -->
   <view class="load-more" wx:if="{{hasMore && !loading}}">
     <text>上拉加载更多</text>
+  </view>
+
+  <!-- 服务模块 -->
+  <view class="services">
+    <view class="section-title">
+      <text>专业服务</text>
+    </view>
+    <view class="service-list">
+      <view class="service-item" bindtap="navigateToFilmCreate">
+        <image src="/assets/images/film-icon.png" mode="aspectFill"></image>
+        <text>胶片冲洗</text>
+      </view>
+      <!-- 其他服务项目 -->
+    </view>
   </view>
 </view> 

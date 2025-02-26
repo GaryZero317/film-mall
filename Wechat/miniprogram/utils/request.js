@@ -23,6 +23,8 @@ const request = (options) => {
       baseUrl = 'http://localhost:8002'
     } else if (url.startsWith('/api/pay')) {
       baseUrl = 'http://localhost:8003'
+    } else if (url.startsWith('/api/film')) {
+      baseUrl = 'http://localhost:8007'
     }
 
     console.log('选择的baseUrl:', baseUrl, '请求路径:', url)

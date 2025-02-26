@@ -16,7 +16,10 @@
     "pages/user/favorites/index",
     "pages/user/coupons/index",
     "pages/user/settings/index",
-    "pages/user/settings/change-password/index"
+    "pages/user/settings/change-password/index",
+    "pages/user/film/index",
+    "pages/user/film/detail/index",
+    "pages/film/create/index"
   ],
   "window": {
     "backgroundTextStyle": "light",

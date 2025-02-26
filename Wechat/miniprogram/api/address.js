@@ -1,63 +1,61 @@
-const app = getApp()
-const request = require('../utils/request').default
+import request from '../utils/request'
 
-module.exports = {
-  // 获取地址列表
-  getAddressList() {
-    return request({
-      url: '/api/address/list',
-      method: 'GET'
-    })
-  },
+export function getAddressList() {
+  return request({
+    url: '/api/address/list',
+    method: 'GET'
+  })
+}
 
-  // 新增地址
-  createAddress(data) {
-    return request({
-      url: '/api/address/add',
-      method: 'POST',
-      data
-    })
-  },
+export function getDefaultAddress() {
+  return request({
+    url: '/api/address/default',
+    method: 'GET'
+  })
+}
 
-  // 更新地址
-  updateAddress(id, data) {
-    return request({
-      url: '/api/address/update',
-      method: 'POST',
-      data: {
-        id,
-        ...data
-      }
-    })
-  },
+export function createAddress(data) {
+  return request({
+    url: '/api/address/add',
+    method: 'POST',
+    data
+  })
+}
 
-  // 删除地址
-  deleteAddress(id) {
-    return request({
-      url: '/api/address/delete',
-      method: 'POST',
-      data: {
-        id
-      }
-    })
-  },
+export function updateAddress(id, data) {
+  return request({
+    url: '/api/address/update',
+    method: 'POST',
+    data: {
+      id,
+      ...data
+    }
+  })
+}
 
-  // 设置默认地址
-  setDefaultAddress(id) {
-    return request({
-      url: '/api/address/setDefault',
-      method: 'POST',
-      data: {
-        id
-      }
-    })
-  },
+export function deleteAddress(id) {
+  return request({
+    url: '/api/address/delete',
+    method: 'POST',
+    data: {
+      id
+    }
+  })
+}
 
-  // 获取地址详情
-  getAddressDetail(id) {
-    return request({
-      url: `/api/address/${id}`,
-      method: 'GET'
-    })
-  }
+export function setDefaultAddress(id) {
+  return request({
+    url: '/api/address/setDefault',
+    method: 'POST',
+    data: {
+      id
+    }
+  })
+}
+
+export function getAddressDetail(id) {
+  return request({
+    url: `/api/address/${id}`,
+    method: 'GET'
+  })
 } 

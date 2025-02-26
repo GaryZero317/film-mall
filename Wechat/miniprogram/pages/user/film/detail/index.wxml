@@ -1,0 +1,89 @@
+<!--pages/user/film/detail/index.wxml-->
+<view class="container" wx:if="{{orderDetail}}">
+  <view class="header">
+    <view class="back-icon" bindtap="onBack">
+      <text class="iconfont icon-back"></text>
+    </view>
+    <text class="header-title">订单详情</text>
+  </view>
+  
+  <!-- 订单状态 -->
+  <view class="status-card" style="background-color: {{statusMap[orderDetail.status].color}}">
+    <view class="status-text">{{orderDetail.status_desc}}</view>
+  </view>
+  
+  <!-- 订单信息 -->
+  <view class="card order-info">
+    <view class="card-title">订单信息</view>
+    <view class="info-item">
+      <text class="label">订单编号</text>
+      <view class="value-wrap">
+        <text class="value">{{orderDetail.foid}}</text>
+        <text class="copy-btn" bindtap="copyOrderNo">复制</text>
+      </view>
+    </view>
+    <view class="info-item">
+      <text class="label">创建时间</text>
+      <text class="value">{{orderDetail.create_time}}</text>
+    </view>
+    <view class="info-item">
+      <text class="label">回寄底片</text>
+      <text class="value">{{orderDetail.return_film ? '是' : '否'}}</text>
+    </view>
+    <view class="info-item" wx:if="{{orderDetail.remark}}">
+      <text class="label">备注</text>
+      <text class="value">{{orderDetail.remark}}</text>
+    </view>
+  </view>
+  
+  <!-- 胶片详情 -->
+  <view class="card">
+    <view class="card-title">胶片详情</view>
+    <view class="film-items">
+      <view class="film-item" wx:for="{{orderDetail.items}}" wx:key="id">
+        <view class="film-info">
+          <view class="film-type">{{item.film_type}} {{item.film_brand}}</view>
+          <view class="film-size">{{item.size}}</view>
+          <view class="film-remark" wx:if="{{item.remark}}">备注：{{item.remark}}</view>
+        </view>
+        <view class="film-price">
+          <text class="quantity">x{{item.quantity}}</text>
+          <text class="price">¥{{item.price/100}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 价格汇总 -->
+  <view class="card price-summary">
+    <view class="summary-item">
+      <text>胶片冲洗费</text>
+      <text>¥{{orderDetail.total_price/100}}</text>
+    </view>
+    <view class="summary-item">
+      <text>运费</text>
+      <text>¥{{orderDetail.shipping_fee/100}}</text>
+    </view>
+    <view class="summary-item total">
+      <text>实付款</text>
+      <text class="total-price">¥{{(orderDetail.total_price + orderDetail.shipping_fee)/100}}</text>
+    </view>
+  </view>
+  
+  <!-- 底部操作按钮 -->
+  <view class="footer-btns">
+    <block wx:if="{{orderDetail.status === 0}}">
+      <button class="footer-btn pay-btn" bindtap="payOrder">立即支付</button>
+    </block>
+    <block wx:elif="{{orderDetail.status === 2}}">
+      <button class="footer-btn" bindtap="viewLogistics">查看物流</button>
+      <button class="footer-btn confirm-btn" bindtap="confirmReceive">确认收货</button>
+    </block>
+  </view>
+</view>
+
+<!-- 加载中 -->
+<view class="loading-container" wx:else>
+  <view wx:if="{{loading}}">加载中...</view>
+  <view wx:else>订单不存在或已被删除</view>
+</view> 

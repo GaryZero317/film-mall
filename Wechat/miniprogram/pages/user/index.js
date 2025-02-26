@@ -171,6 +171,17 @@ Page({
     })
   },
 
+  // 查看胶片冲洗订单
+  onViewFilmOrders() {
+    if (!this.data.isLogin) {
+      this.showLoginTip()
+      return
+    }
+    wx.navigateTo({
+      url: '/pages/user/film/index'
+    })
+  },
+
   // 查看优惠券
   onViewCoupons() {
     if (!this.data.isLogin) {

@@ -61,36 +61,76 @@
   height: 100%;
 }
 
-/* 分类导航样式 */
-.category-section {
+/* 胶片冲洗服务样式 */
+.film-service-section {
   background: #fff;
   padding: 20rpx;
   margin-bottom: 20rpx;
   border-radius: 12rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
 }
 
-.category-row {
-  display: flex;
-  flex-wrap: wrap;
-  margin: 0 -10rpx;
-}
-
-.category-item {
-  flex: 1;
-  min-width: 160rpx;
-  height: 80rpx;
-  line-height: 80rpx;
-  text-align: center;
-  background: #f5f5f5;
-  margin: 10rpx;
-  border-radius: 40rpx;
-  font-size: 28rpx;
+.film-service-title {
+  font-size: 32rpx;
+  font-weight: bold;
   color: #333;
+  margin-bottom: 20rpx;
 }
 
-.category-item.active {
-  background: #1296db;
+.film-service-content {
+  display: flex;
+  background: linear-gradient(to right, #4a90e2, #6a5acd);
+  border-radius: 12rpx;
+  padding: 30rpx;
   color: #fff;
+  overflow: hidden;
+  position: relative;
+}
+
+.film-service-left {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  z-index: 1;
+}
+
+.film-service-label {
+  font-size: 34rpx;
+  font-weight: bold;
+  margin-bottom: 10rpx;
+}
+
+.film-service-desc {
+  font-size: 26rpx;
+  opacity: 0.8;
+  margin-bottom: 30rpx;
+}
+
+.film-service-btn {
+  width: 200rpx;
+  height: 70rpx;
+  line-height: 70rpx;
+  text-align: center;
+  background: #fff;
+  color: #4a90e2;
+  border-radius: 35rpx;
+  font-size: 28rpx;
+  font-weight: bold;
+  padding: 0;
+  margin: 0;
+}
+
+.film-service-right {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.film-service-image {
+  width: 160rpx;
+  height: 160rpx;
 }
 
 /* 商品列表样式 */
@@ -189,4 +229,43 @@
 
 .product-info .stock.sold-out {
   color: #ff4444;
+}
+
+/* 服务模块 */
+.services {
+  margin: 30rpx 0;
+  padding: 0 20rpx;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  margin-bottom: 20rpx;
+  padding-left: 10rpx;
+  border-left: 8rpx solid #157efb;
+  line-height: 1.2;
+}
+
+.service-list {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.service-item {
+  width: 25%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.service-item image {
+  width: 80rpx;
+  height: 80rpx;
+  margin-bottom: 10rpx;
+}
+
+.service-item text {
+  font-size: 26rpx;
+  color: #333;
 } 

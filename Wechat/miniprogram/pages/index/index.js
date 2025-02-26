@@ -19,31 +19,8 @@ Page({
         link: '/pages/product/detail/index?id=3'
       }
     ],
-    categories: [
-      { id: 0, name: '全部' },
-      { id: 1, name: '彩色胶卷' },
-      { id: 2, name: '黑白胶卷' },
-      { id: 3, name: '135胶卷' },
-      { id: 4, name: '120胶卷' },
-      { id: 5, name: '反转片' },
-      { id: 6, name: '拍立得' }
-    ],
-    // 用于布局的分类数组，将分类分成两行
-    categoryRows: [
-      [
-        { id: 1, name: '彩色胶卷' },
-        { id: 2, name: '黑白胶卷' },
-        { id: 3, name: '135胶卷' }
-      ],
-      [
-        { id: 4, name: '120胶卷' },
-        { id: 5, name: '反转片' },
-        { id: 6, name: '拍立得' }
-      ]
-    ],
     products: [],
     loading: false,
-    selectedCategory: 0,
     searchValue: '',
     page: 1,
     pageSize: 10,
@@ -140,17 +117,6 @@ Page({
     }
   },
 
-  // 切换分类
-  async switchCategory(e) {
-    const categoryId = e.currentTarget.dataset.id
-    this.setData({ 
-      selectedCategory: categoryId,
-      page: 1,
-      products: []
-    })
-    await this.loadProducts(true)
-  },
-
   // 搜索输入
   onSearchInput(e) {
     this.setData({
@@ -200,6 +166,28 @@ Page({
   goToSearch() {
     wx.navigateTo({
       url: '/pages/search/index'
+    })
+  },
+
+  // 胶片冲洗服务
+  navigateToFilmCreate() {
+    // 判断是否登录
+    const token = wx.getStorageSync('token')
+    if (!token) {
+      wx.showToast({
+        title: '请先登录',
+        icon: 'none'
+      })
+      setTimeout(() => {
+        wx.navigateTo({
+          url: '/pages/login/index'
+        })
+      }, 1500)
+      return
+    }
+    
+    wx.navigateTo({
+      url: '/pages/film/create/index'
     })
   }
 }) 

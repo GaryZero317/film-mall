@@ -132,7 +132,49 @@ type (
 		Code int64  `json:"code"`
 		Msg  string `json:"msg"`
 	}
+
+	// 胶片价格列表
+	FilmPriceList {
+		Types  []FilmType  `json:"types"`  // 胶片类型列表
+		Brands []FilmBrand `json:"brands"` // 胶片品牌列表
+		Sizes  []FilmSize  `json:"sizes"`  // 胶片尺寸列表
+	}
+
+	// 胶片类型
+	FilmType {
+		Id   int64  `json:"id"`   // 类型ID
+		Name string `json:"name"` // 类型名称
+	}
+
+	// 胶片品牌
+	FilmBrand {
+		Id   int64  `json:"id"`   // 品牌ID
+		Name string `json:"name"` // 品牌名称
+	}
+
+	// 胶片尺寸
+	FilmSize {
+		Id   int64  `json:"id"`   // 尺寸ID
+		Name string `json:"name"` // 尺寸名称
+	}
+
+	// 价格列表响应
+	FilmPriceListResp {
+		Code int64         `json:"code"`
+		Msg  string        `json:"msg"`
+		Data FilmPriceList `json:"data"`
+	}
 )
+
+// 公共接口，不需要认证
+@server(
+	prefix: /api/film
+)
+service film {
+	@doc "获取胶片价格列表"
+	@handler getPriceList
+	get /prices returns (FilmPriceListResp)
+}
 
 // 用户接口，需要用户JWT认证
 @server(

@@ -110,3 +110,30 @@ type DeleteFilmOrderResp struct {
 	Code int64  `json:"code"`
 	Msg  string `json:"msg"`
 }
+
+type FilmPriceList struct {
+	Types  []FilmType  `json:"types"`  // 胶片类型列表
+	Brands []FilmBrand `json:"brands"` // 胶片品牌列表
+	Sizes  []FilmSize  `json:"sizes"`  // 胶片尺寸列表
+}
+
+type FilmType struct {
+	Id   int64  `json:"id"`   // 类型ID
+	Name string `json:"name"` // 类型名称
+}
+
+type FilmBrand struct {
+	Id   int64  `json:"id"`   // 品牌ID
+	Name string `json:"name"` // 品牌名称
+}
+
+type FilmSize struct {
+	Id   int64  `json:"id"`   // 尺寸ID
+	Name string `json:"name"` // 尺寸名称
+}
+
+type FilmPriceListResp struct {
+	Code int64         `json:"code"`
+	Msg  string        `json:"msg"`
+	Data FilmPriceList `json:"data"`
+}

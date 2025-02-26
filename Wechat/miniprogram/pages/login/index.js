@@ -1,4 +1,4 @@
-import { wxLogin, login, register } from '../../api/user'
+import { wxLogin, login, register, getUserInfo } from '../../api/user'
 
 Page({
   data: {
@@ -115,6 +115,19 @@ Page({
         
         // 更新全局数据
         getApp().globalData.token = res.data.accessToken
+        
+        // 获取用户信息并保存
+        try {
+          const userInfoRes = await getUserInfo()
+          if (userInfoRes && userInfoRes.code === 200 && userInfoRes.data) {
+            wx.setStorageSync('userInfo', userInfoRes.data)
+            console.log('[登录] 已保存用户信息:', userInfoRes.data)
+          } else {
+            console.error('[登录] 获取用户信息失败:', userInfoRes)
+          }
+        } catch (error) {
+          console.error('[登录] 获取用户信息出错:', error)
+        }
         
         wx.showToast({
           title: '登录成功',
@@ -278,6 +291,19 @@ Page({
         
         // 更新全局数据
         getApp().globalData.token = res.data.accessToken
+        
+        // 获取用户信息并保存
+        try {
+          const userInfoRes = await getUserInfo()
+          if (userInfoRes && userInfoRes.code === 200 && userInfoRes.data) {
+            wx.setStorageSync('userInfo', userInfoRes.data)
+            console.log('[微信登录] 已保存用户信息:', userInfoRes.data)
+          } else {
+            console.error('[微信登录] 获取用户信息失败:', userInfoRes)
+          }
+        } catch (error) {
+          console.error('[微信登录] 获取用户信息出错:', error)
+        }
         
         wx.showToast({
           title: '登录成功',

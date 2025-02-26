@@ -13,6 +13,17 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 	server.AddRoutes(
 		[]rest.Route{
 			{
+				Method:  http.MethodGet,
+				Path:    "/prices",
+				Handler: getPriceListHandler(serverCtx),
+			},
+		},
+		rest.WithPrefix("/api/film"),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
 				Method:  http.MethodPost,
 				Path:    "/order",
 				Handler: createHandler(serverCtx),

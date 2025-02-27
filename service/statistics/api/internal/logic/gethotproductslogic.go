@@ -3,9 +3,9 @@ package logic
 import (
 	"context"
 	"fmt"
+	"mall/service/product/rpc/product"
 	"mall/service/statistics/api/internal/svc"
 	"mall/service/statistics/api/internal/types"
-
 	"mall/service/statistics/api/internal/utils"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -47,9 +47,22 @@ func (l *GetHotProductsLogic) GetHotProducts(req *types.HotProductsReq) (resp *t
 		return resp, nil
 	}
 
-	// 填充数据
+	// 获取商品详情并填充数据
 	for _, p := range products {
-		resp.Data.Products = append(resp.Data.Products, fmt.Sprintf("%d", p.ProductId))
+		// 调用商品服务RPC获取商品名称
+		productInfo, err := l.svcCtx.ProductRpc.Detail(l.ctx, &product.DetailRequest{
+			Id: p.ProductId,
+		})
+
+		if err != nil {
+			// 如果获取商品信息失败，则使用商品ID作为名称
+			l.Logger.Errorf("获取商品[%d]详情失败: %v", p.ProductId, err)
+			resp.Data.Products = append(resp.Data.Products, fmt.Sprintf("商品#%d", p.ProductId))
+		} else {
+			// 使用商品名称
+			resp.Data.Products = append(resp.Data.Products, productInfo.Name)
+		}
+
 		resp.Data.Sales = append(resp.Data.Sales, int(p.SalesCount))
 	}
 

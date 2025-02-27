@@ -27,13 +27,24 @@ func (l *GetUserActivityLogic) GetUserActivity(req *types.UserActivityReq) (resp
 	// 获取时间范围
 	start, end := utils.GetTimeRange(req.TimeRange)
 
-	// 获取小时列表
+	// 准备返回数据
 	hours := utils.GetHoursList()
+	resp = &types.UserActivityResp{
+		Code: 0,
+		Msg:  "success",
+		Data: types.UserActivityData{
+			Hours:    hours,
+			Activity: make([][]int, 0),
+		},
+	}
 
 	// 查询用户活跃度数据
 	activities, err := l.svcCtx.UserActivityLogModel.FindUserActivities(l.ctx, start, end)
 	if err != nil {
-		return nil, err
+		l.Logger.Errorf("查询用户活跃度数据失败: %v", err)
+		// 生成默认数据
+		generateDefaultActivityData(resp)
+		return resp, nil
 	}
 
 	// 初始化活跃度矩阵 [7][24]
@@ -54,16 +65,6 @@ func (l *GetUserActivityLogic) GetUserActivity(req *types.UserActivityReq) (resp
 		activityMatrix[weekday][hour]++
 	}
 
-	// 构造返回数据
-	resp = &types.UserActivityResp{
-		Code: 0,
-		Msg:  "success",
-		Data: types.UserActivityData{
-			Hours:    hours,
-			Activity: make([][]int, 0),
-		},
-	}
-
 	// 转换数据格式为 [hour, weekday, value]
 	for weekday := 0; weekday < 7; weekday++ {
 		for hour := 0; hour < 24; hour++ {
@@ -75,5 +76,19 @@ func (l *GetUserActivityLogic) GetUserActivity(req *types.UserActivityReq) (resp
 		}
 	}
 
+	// 如果没有数据，添加默认数据
+	if len(resp.Data.Activity) == 0 {
+		generateDefaultActivityData(resp)
+	}
+
 	return resp, nil
+}
+
+// 生成默认的活跃度数据
+func generateDefaultActivityData(resp *types.UserActivityResp) {
+	for i := range resp.Data.Hours {
+		for j := 0; j < 7; j++ { // 周一到周日
+			resp.Data.Activity = append(resp.Data.Activity, []int{i, j, 0})
+		}
+	}
 }

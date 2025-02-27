@@ -102,7 +102,8 @@ func (m *defaultProductSalesDailyModel) Delete(ctx context.Context, id int64) er
 
 // FindHotProducts 查询指定时间范围内的热门商品
 func (m *defaultProductSalesDailyModel) FindHotProducts(ctx context.Context, start, end time.Time, limit int) ([]*ProductSalesDaily, error) {
-	query := fmt.Sprintf("select %s from %s where sales_date between ? and ? group by product_id order by sum(sales_count) desc limit ?", productSalesDailyRows, m.table)
+	// 修复字段不匹配问题，确保返回所有必要字段
+	query := fmt.Sprintf("select MIN(id) as id, product_id, category_id, MAX(sales_date) as sales_date, SUM(sales_count) as sales_count, SUM(sales_amount) as sales_amount, MAX(created_at) as created_at, MAX(updated_at) as updated_at from %s where sales_date between ? and ? group by product_id, category_id order by SUM(sales_count) desc limit ?", m.table)
 	var resp []*ProductSalesDaily
 	err := m.conn.QueryRowsCtx(ctx, &resp, query, start.Format("2006-01-02"), end.Format("2006-01-02"), limit)
 	return resp, err

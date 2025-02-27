@@ -103,7 +103,8 @@ func (m *defaultCategorySalesDailyModel) Delete(ctx context.Context, id int64) e
 
 // FindCategorySales 查询指定时间范围内的类别销售数据
 func (m *defaultCategorySalesDailyModel) FindCategorySales(ctx context.Context, start, end time.Time) ([]*CategorySalesDaily, error) {
-	query := fmt.Sprintf("select %s from %s where sales_date between ? and ? group by category_id order by sum(sales_count) desc", categorySalesDailyRows, m.table)
+	// 修复字段不匹配问题，确保返回所有必要字段
+	query := fmt.Sprintf("select MIN(id) as id, category_id, MAX(sales_date) as sales_date, SUM(sales_count) as sales_count, SUM(sales_amount) as sales_amount, MAX(created_at) as created_at, MAX(updated_at) as updated_at from %s where sales_date between ? and ? group by category_id order by SUM(sales_count) desc", m.table)
 	var resp []*CategorySalesDaily
 	err := m.conn.QueryRowsCtx(ctx, &resp, query, start.Format("2006-01-02"), end.Format("2006-01-02"))
 	return resp, err

@@ -143,18 +143,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, reactive } from 'vue'
+import { ref, onMounted, onUnmounted, reactive, watch } from 'vue'
 import { ShoppingBag, List, Money, Download } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
 import { getAdminProductList } from '@/api/product'
 import { getAdminOrderList } from '@/api/order'
 import { getAdminPaymentList } from '@/api/payment'
 import { ElMessage } from 'element-plus'
-import { getHotProducts } from '@/api/statistics'
-import { getCategoryStats } from '@/api/statistics'
-import { getUserBehavior } from '@/api/statistics'
-import { getUserActivity } from '@/api/statistics'
-import { exportStatistics } from '@/api/statistics'
+import { getHotProducts, getCategoryStats, getUserBehavior, getUserActivity, exportStatistics } from '@/api/statistics'
+import { getCategoryName } from '@/utils/categoryMap'
 
 // 统计数据
 const statistics = reactive({
@@ -668,6 +665,8 @@ const initHotProductsChart = async () => {
     const res = await getHotProducts({ timeRange: timeRange.value })
     const { products, sales } = res.data
 
+    // 产品名称已经通过API返回，无需额外转换
+
     hotProductsChart = echarts.init(hotProductsChartRef.value)
     const option = {
       tooltip: {
@@ -687,7 +686,16 @@ const initHotProductsChart = async () => {
       },
       yAxis: {
         type: 'category',
-        data: products
+        data: products, // 使用产品名称
+        axisLabel: {
+          formatter: function(value) {
+            // 如果产品名称太长，进行截断
+            if (value.length > 15) {
+              return value.substring(0, 12) + '...';
+            }
+            return value;
+          }
+        }
       },
       series: [
         {
@@ -714,6 +722,15 @@ const initCategoryChart = async () => {
     const res = await getCategoryStats({ timeRange: timeRange.value })
     const { categories, sales } = res.data
 
+    // 将类别ID转换为类别名称
+    const categoryNames = categories.map(id => getCategoryName(id))
+    
+    // 构建饼图数据
+    const pieData = categories.map((id, index) => ({
+      name: getCategoryName(id),
+      value: sales[index]
+    }))
+
     categoryChart = echarts.init(categoryChartRef.value)
     const option = {
       tooltip: {
@@ -721,15 +738,30 @@ const initCategoryChart = async () => {
         formatter: '{b}: {c} ({d}%)'
       },
       legend: {
-        orient: 'vertical',
+        type: 'scroll',        // 启用滚动
+        orient: 'vertical',    // 垂直排列
         right: 10,
-        top: 'center'
+        top: 20,               // 调整顶部位置
+        bottom: 20,            // 设置底部边界以允许滚动
+        itemGap: 10,           // 图例项之间的间距
+        formatter: function(name) {
+          // 如果名称太长则截断
+          if (name.length > 10) {
+            return name.substring(0, 8) + '...';
+          }
+          return name;
+        },
+        textStyle: {
+          fontSize: 12         // 调整文本大小
+        },
+        data: categoryNames    // 使用类别名称数组
       },
       series: [
         {
           name: '类别销售',
           type: 'pie',
-          radius: ['50%', '70%'],
+          radius: ['40%', '60%'],  // 调小饼图的半径
+          center: ['40%', '50%'],  // 将饼图向左移动，为图例腾出更多空间
           avoidLabelOverlap: false,
           itemStyle: {
             borderRadius: 10,
@@ -750,16 +782,13 @@ const initCategoryChart = async () => {
           labelLine: {
             show: false
           },
-          data: categories.map((category, index) => ({
-            name: category,
-            value: sales[index]
-          }))
+          data: pieData // 使用已转换的数据
         }
       ]
     }
     categoryChart.setOption(option)
   } catch (error) {
-    console.error('获取类别统计数据失败:', error)
+    console.error('获取类别销售数据失败:', error)
   }
 }
 

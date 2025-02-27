@@ -30,13 +30,7 @@ func (l *GetUserBehaviorLogic) GetUserBehavior(req *types.UserBehaviorReq) (resp
 	// 获取日期列表
 	dates := utils.GetDatesBetween(start, end)
 
-	// 查询用户行为数据
-	behaviors, err := l.svcCtx.UserActivityLogModel.FindUserBehaviors(l.ctx, start, end)
-	if err != nil {
-		return nil, err
-	}
-
-	// 初始化返回数据
+	// 准备返回数据
 	resp = &types.UserBehaviorResp{
 		Code: 0,
 		Msg:  "success",
@@ -52,6 +46,14 @@ func (l *GetUserBehaviorLogic) GetUserBehavior(req *types.UserBehaviorReq) (resp
 	dateMap := make(map[string]int)
 	for i, date := range dates {
 		dateMap[date] = i
+	}
+
+	// 查询用户行为数据
+	behaviors, err := l.svcCtx.UserActivityLogModel.FindUserBehaviors(l.ctx, start, end)
+	if err != nil {
+		l.Logger.Errorf("查询用户行为数据失败: %v", err)
+		// 出错时直接返回空数据(已经初始化为0了)
+		return resp, nil
 	}
 
 	// 填充数据

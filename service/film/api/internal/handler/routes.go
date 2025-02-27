@@ -43,6 +43,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Path:    "/user/order/list",
 				Handler: userListHandler(serverCtx),
 			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/user/photo/list",
+				Handler: userPhotoListHandler(serverCtx),
+			},
 		},
 		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
 		rest.WithPrefix("/api/film"),
@@ -69,6 +74,21 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Method:  http.MethodDelete,
 				Path:    "/admin/order/:id",
 				Handler: adminDeleteHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/admin/photo/upload",
+				Handler: uploadPhotoHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/admin/photo/list",
+				Handler: adminPhotoListHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodDelete,
+				Path:    "/admin/photo/:id",
+				Handler: deletePhotoHandler(serverCtx),
 			},
 		},
 		rest.WithJwt(serverCtx.Config.AdminAuth.AccessSecret),

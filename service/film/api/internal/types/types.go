@@ -137,3 +137,49 @@ type FilmPriceListResp struct {
 	Msg  string        `json:"msg"`
 	Data FilmPriceList `json:"data"`
 }
+
+type FilmPhoto struct {
+	Id          int64  `json:"id"`            // 照片ID
+	FilmOrderId int64  `json:"film_order_id"` // 冲洗订单ID
+	Url         string `json:"url"`           // 照片URL
+	Sort        int64  `json:"sort"`          // 排序
+	CreateTime  string `json:"create_time"`   // 创建时间
+}
+
+type FilmPhotoListReq struct {
+	FilmOrderId int64 `form:"film_order_id"` // 冲洗订单ID
+}
+
+type FilmPhotoListData struct {
+	List []FilmPhoto `json:"list"` // 照片列表
+}
+
+type FilmPhotoListResp struct {
+	Code int64             `json:"code"`
+	Msg  string            `json:"msg"`
+	Data FilmPhotoListData `json:"data"`
+}
+
+type UploadFilmPhotoReq struct {
+	FilmOrderId int64 `form:"film_order_id"` // 冲洗订单ID
+	Sort        int64 `form:"sort,optional"` // 排序
+}
+
+type UploadFilmPhotoData struct {
+	Url string `json:"url"` // 照片URL
+}
+
+type UploadFilmPhotoResp struct {
+	Code int64               `json:"code"`
+	Msg  string              `json:"msg"`
+	Data UploadFilmPhotoData `json:"data"`
+}
+
+type DeleteFilmPhotoReq struct {
+	Id int64 `path:"id"` // 照片ID
+}
+
+type DeleteFilmPhotoResp struct {
+	Code int64  `json:"code"`
+	Msg  string `json:"msg"`
+}

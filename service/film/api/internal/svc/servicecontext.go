@@ -14,6 +14,7 @@ type ServiceContext struct {
 	Config             config.Config
 	FilmOrderModel     model.FilmOrderModel
 	FilmOrderItemModel model.FilmOrderItemModel
+	FilmPhotoModel     model.FilmPhotoModel
 }
 
 // 用于调试JWT令牌的函数
@@ -76,5 +77,6 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		Config:             c,
 		FilmOrderModel:     model.NewFilmOrderModel(conn),
 		FilmOrderItemModel: model.NewFilmOrderItemModel(conn),
+		FilmPhotoModel:     model.NewFilmPhotoModel(conn),
 	}
 }

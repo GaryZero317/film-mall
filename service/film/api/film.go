@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"os"
 
 	"mall/service/film/api/internal/config"
 	"mall/service/film/api/internal/handler"
@@ -35,6 +36,23 @@ func main() {
 
 	defer server.Stop()
 
+	// 添加静态文件服务 - 使用与product服务相同的简单方式
+	uploadDir := "D:/graduation/FilmMall/service/film/api/uploads"
+	logx.Infof("静态文件服务设置: 目录=%s", uploadDir)
+
+	// 确保目录存在
+	if err := os.MkdirAll(uploadDir, 0755); err != nil {
+		logx.Errorf("创建上传目录失败: %v", err)
+	}
+
+	// 直接注册静态文件路由, 使用简单的http.FileServer
+	server.AddRoute(rest.Route{
+		Method: http.MethodGet,
+		Path:   "/uploads/:file",
+		Handler: http.StripPrefix("/uploads/",
+			http.FileServer(http.Dir(uploadDir))).ServeHTTP,
+	})
+
 	// 添加一个自定义中间件，用于记录请求头信息
 	server.Use(func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
@@ -65,6 +83,16 @@ func main() {
 	handler.RegisterHandlers(server, ctx)
 
 	fmt.Printf("Starting server at %s:%d...\n", c.Host, c.Port)
-	logx.Infof("Film服务已启动，监听地址: %s:%d", c.Host, c.Port)
+	logx.Infof("胶片冲洗服务已启动，监听地址: %s:%d", c.Host, c.Port)
 	server.Start()
+}
+
+// 获取文件大小（保留这个辅助函数，以便在其他地方可能会用到）
+func getFileSize(dir string, file os.DirEntry) int64 {
+	if !file.IsDir() {
+		if info, err := file.Info(); err == nil {
+			return info.Size()
+		}
+	}
+	return 0
 }

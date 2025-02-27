@@ -164,6 +164,61 @@ type (
 		Msg  string        `json:"msg"`
 		Data FilmPriceList `json:"data"`
 	}
+
+	// 胶片照片
+	FilmPhoto {
+		Id          int64  `json:"id"`            // 照片ID
+		FilmOrderId int64  `json:"film_order_id"` // 冲洗订单ID
+		Url         string `json:"url"`           // 照片URL
+		Sort        int64  `json:"sort"`          // 排序
+		CreateTime  string `json:"create_time"`   // 创建时间
+	}
+
+	// 冲洗照片列表
+	FilmPhotoListReq {
+		FilmOrderId int64 `form:"film_order_id"` // 冲洗订单ID
+	}
+
+	// 冲洗照片列表数据
+	FilmPhotoListData {
+		List []FilmPhoto `json:"list"` // 照片列表
+	}
+
+	// 冲洗照片列表响应
+	FilmPhotoListResp {
+		Code int64             `json:"code"`
+		Msg  string            `json:"msg"`
+		Data FilmPhotoListData `json:"data"`
+	}
+
+	// 上传冲洗照片请求
+	UploadFilmPhotoReq {
+		FilmOrderId int64 `form:"film_order_id"` // 冲洗订单ID
+		Sort        int64 `form:"sort,optional"` // 排序
+	}
+
+	// 上传冲洗照片返回数据
+	UploadFilmPhotoData {
+		Url string `json:"url"` // 照片URL
+	}
+
+	// 上传冲洗照片响应
+	UploadFilmPhotoResp {
+		Code int64               `json:"code"`
+		Msg  string              `json:"msg"`
+		Data UploadFilmPhotoData `json:"data"`
+	}
+
+	// 删除冲洗照片请求
+	DeleteFilmPhotoReq {
+		Id int64 `path:"id"` // 照片ID
+	}
+
+	// 删除冲洗照片响应
+	DeleteFilmPhotoResp {
+		Code int64  `json:"code"`
+		Msg  string `json:"msg"`
+	}
 )
 
 // 公共接口，不需要认证
@@ -197,6 +252,10 @@ service film {
 	@doc "获取用户自己的胶片冲洗订单列表"
 	@handler userList
 	get /user/order/list (ListFilmOrderReq) returns (ListFilmOrderResp)
+	
+	@doc "获取用户自己的胶片冲洗照片列表"
+	@handler userPhotoList
+	get /user/photo/list (FilmPhotoListReq) returns (FilmPhotoListResp)
 }
 
 // 管理员接口，需要管理员JWT认证
@@ -220,4 +279,16 @@ service film {
 	@doc "管理员删除胶片冲洗订单"
 	@handler adminDelete
 	delete /admin/order/:id (DeleteFilmOrderReq) returns (DeleteFilmOrderResp)
+	
+	@doc "管理员上传冲洗照片"
+	@handler uploadPhoto
+	post /admin/photo/upload (UploadFilmPhotoReq) returns (UploadFilmPhotoResp)
+	
+	@doc "管理员获取胶片冲洗照片列表"
+	@handler adminPhotoList
+	get /admin/photo/list (FilmPhotoListReq) returns (FilmPhotoListResp)
+	
+	@doc "管理员删除胶片冲洗照片"
+	@handler deletePhoto
+	delete /admin/photo/:id (DeleteFilmPhotoReq) returns (DeleteFilmPhotoResp)
 }

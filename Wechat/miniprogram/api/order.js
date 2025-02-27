@@ -25,6 +25,7 @@ export const getOrderList = (params = {}) => {
 
 // 获取订单详情
 export const getOrderDetail = (id) => {
+  console.log('调用订单详情API, 订单ID:', id)
   return request({
     url: `/api/order/${id}`,
     method: 'GET'

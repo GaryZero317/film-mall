@@ -44,17 +44,45 @@ Page({
   },
 
   onLoad(options) {
+    console.log('订单详情页面参数:', options)
+    
+    let orderId = ''
     if (options.id) {
-      this.setData({
-        orderId: options.id
+      orderId = options.id
+      console.log('从options.id获取订单ID:', orderId)
+    } else if (options.orderId) {
+      orderId = options.orderId
+      console.log('从options.orderId获取订单ID:', orderId)
+    } else {
+      console.error('没有提供订单ID参数!')
+      wx.showToast({
+        title: '订单ID不存在',
+        icon: 'none'
       })
+      // 延迟返回
+      setTimeout(() => {
+        wx.navigateBack()
+      }, 1500)
+      return
+    }
+    
+    this.setData({
+      orderId: orderId
+    })
+    
+    // 确保orderId有效后再请求详情
+    if (orderId) {
+      console.log('开始请求订单详情，ID:', orderId)
       this.getOrderDetail()
     }
   },
 
   async getOrderDetail() {
     try {
+      console.log('开始获取订单详情，订单ID:', this.data.orderId)
       const res = await getOrderDetail(this.data.orderId)
+      console.log('获取订单详情API响应:', res)
+      
       if (res.code === 0 && res.data) {
         const { data } = res
         console.log('订单详情数据:', data)
@@ -65,6 +93,8 @@ Page({
           price: Number(item.price || 0),
           quantity: Number(item.quantity || item.num || 0)
         })) : []
+
+        console.log('处理后的商品列表:', items)
 
         // 计算商品总价
         const totalPrice = calculateTotalPrice(items)
@@ -78,6 +108,8 @@ Page({
           quantity: item.quantity
         }))
 
+        console.log('处理后的商品展示列表:', goodsList)
+
         const orderData = {
           orderNo: data.oid || '',
           createTime: data.create_time || '',
@@ -88,13 +120,17 @@ Page({
           actualPrice: formatPrice(data.actual_price || totalPrice + (data.shipping_fee || 0))
         }
 
+        console.log('设置到页面的数据:', orderData)
         this.setData(orderData)
 
         // 获取地址信息
         if (data.address_id) {
           this.getAddressInfo(data.address_id)
+        } else {
+          console.log('订单中没有地址ID信息')
         }
       } else {
+        console.error('API返回错误:', res)
         wx.showToast({
           title: res.msg || '获取订单详情失败',
           icon: 'none'

@@ -11,8 +11,9 @@ const request = (options) => {
   
   try {
     // 如果url已经包含完整域名，不使用baseUrl
-    if (url.indexOf('localhost:') !== -1) {
+    if (url.indexOf('http://') !== -1 || url.indexOf('https://') !== -1) {
       baseUrl = ''
+      console.log('使用完整URL:', url)
     }
     // 根据API路径选择不同的服务地址
     else if (url.startsWith('/api/cart')) {
@@ -21,6 +22,7 @@ const request = (options) => {
       baseUrl = 'http://localhost:8005'
     } else if (url.startsWith('/api/order')) {
       baseUrl = 'http://localhost:8002'
+      console.log('使用订单服务地址:', baseUrl)
     } else if (url.startsWith('/api/pay')) {
       baseUrl = 'http://localhost:8003'
     } else if (url.startsWith('/api/film')) {
@@ -45,7 +47,7 @@ const request = (options) => {
       fullUrl = `${fullUrl}${fullUrl.includes('?') ? '&' : '?'}${queryString}`
     }
     
-    console.log('完整请求URL:', fullUrl)
+    console.log('完整请求URL:', fullUrl, '请求方法:', method)
 
     console.log('发起请求:', {
       baseUrl,

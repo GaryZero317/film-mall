@@ -1,5 +1,6 @@
 <!--pages/user/film/detail/index.wxml-->
 <view class="container" wx:if="{{orderDetail}}">
+  <!-- 顶部导航 -->
   <view class="header">
     <view class="back-icon" bindtap="onBack">
       <text class="iconfont icon-back"></text>
@@ -10,6 +11,10 @@
   <!-- 订单状态 -->
   <view class="status-card" style="background-color: {{statusMap[orderDetail.status].color}}">
     <view class="status-text">{{orderDetail.status_desc}}</view>
+    <view class="status-desc" wx:if="{{orderDetail.status === 0}}">请尽快完成支付</view>
+    <view class="status-desc" wx:elif="{{orderDetail.status === 1}}">正在为您冲洗胶片中</view>
+    <view class="status-desc" wx:elif="{{orderDetail.status === 2}}">您的胶片已冲洗完成，等待收货</view>
+    <view class="status-desc" wx:elif="{{orderDetail.status === 3}}">感谢您的支持</view>
   </view>
   
   <!-- 订单信息 -->
@@ -18,7 +23,7 @@
     <view class="info-item">
       <text class="label">订单编号</text>
       <view class="value-wrap">
-        <text class="value">{{orderDetail.foid}}</text>
+        <text class="value order-id">{{orderDetail.foid}}</text>
         <text class="copy-btn" bindtap="copyOrderNo">复制</text>
       </view>
     </view>
@@ -28,11 +33,13 @@
     </view>
     <view class="info-item">
       <text class="label">回寄底片</text>
-      <text class="value">{{orderDetail.return_film ? '是' : '否'}}</text>
+      <text class="value tag {{orderDetail.return_film ? 'tag-success' : 'tag-default'}}">
+        {{orderDetail.return_film ? '是' : '否'}}
+      </text>
     </view>
     <view class="info-item" wx:if="{{orderDetail.remark}}">
       <text class="label">备注</text>
-      <text class="value">{{orderDetail.remark}}</text>
+      <text class="value remark">{{orderDetail.remark}}</text>
     </view>
   </view>
   
@@ -73,20 +80,29 @@
   <!-- 底部操作按钮 -->
   <view class="footer-btns">
     <block wx:if="{{orderDetail.status === 0}}">
-      <button class="footer-btn pay-btn" bindtap="payOrder">立即支付</button>
+      <button class="footer-btn pay-btn" bindtap="payOrder">
+        <text class="btn-icon">￥</text> 立即支付
+      </button>
     </block>
     <block wx:elif="{{orderDetail.status === 2}}">
-      <button class="footer-btn" bindtap="viewLogistics">查看物流</button>
-      <button class="footer-btn confirm-btn" bindtap="confirmReceive">确认收货</button>
+      <button class="footer-btn" bindtap="viewLogistics">
+        <text class="btn-icon">🚚</text> 查看物流
+      </button>
+      <button class="footer-btn confirm-btn" bindtap="confirmReceive">
+        确认收货
+      </button>
     </block>
     <block wx:if="{{orderDetail.status >= 1}}">
-      <button class="footer-btn photo-btn" bindtap="viewPhotos" data-id="{{orderDetail.id}}">查看冲洗照片</button>
+      <button class="footer-btn photo-btn" bindtap="viewPhotos" data-id="{{orderDetail.id}}">
+        <text class="btn-icon">📷</text> 查看冲洗照片
+      </button>
     </block>
   </view>
 </view>
 
 <!-- 加载中 -->
 <view class="loading-container" wx:else>
+  <view class="loading-icon"></view>
   <view wx:if="{{loading}}">加载中...</view>
   <view wx:else>订单不存在或已被删除</view>
 </view> 

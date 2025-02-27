@@ -79,6 +79,9 @@
       <button class="footer-btn" bindtap="viewLogistics">查看物流</button>
       <button class="footer-btn confirm-btn" bindtap="confirmReceive">确认收货</button>
     </block>
+    <block wx:if="{{orderDetail.status >= 1}}">
+      <button class="footer-btn photo-btn" bindtap="viewPhotos" data-id="{{orderDetail.id}}">查看冲洗照片</button>
+    </block>
   </view>
 </view>
 

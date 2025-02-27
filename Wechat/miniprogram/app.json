@@ -19,6 +19,7 @@
     "pages/user/settings/change-password/index",
     "pages/user/film/index",
     "pages/user/film/detail/index",
+    "pages/user/film/photos/index",
     "pages/film/create/index"
   ],
   "window": {

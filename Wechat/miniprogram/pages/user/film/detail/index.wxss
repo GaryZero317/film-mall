@@ -180,6 +180,11 @@ page {
   color: #ffffff;
 }
 
+.photo-btn {
+  background-color: #42b983;
+  color: #ffffff;
+}
+
 .loading-container {
   display: flex;
   justify-content: center;

@@ -35,6 +35,7 @@ type FilmOrder struct {
 	StatusDesc  string          `json:"status_desc"`  // 状态描述
 	Remark      string          `json:"remark"`       // 订单备注
 	Items       []FilmOrderItem `json:"items"`        // 订单项列表
+	Photos      []FilmPhoto     `json:"photos"`       // 照片列表
 	CreateTime  string          `json:"create_time"`  // 创建时间
 	UpdateTime  string          `json:"update_time"`  // 更新时间
 }

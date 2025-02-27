@@ -1,0 +1,165 @@
+/* pages/user/film/photos/index.wxss */
+.container {
+  padding: 0 0 100rpx 0;
+  min-height: 100vh;
+  background-color: #f8f8f8;
+}
+
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100rpx;
+  padding-top: 80rpx;
+  background-color: #ffffff;
+  display: flex;
+  align-items: center;
+  padding-left: 30rpx;
+  padding-right: 30rpx;
+  z-index: 100;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.back-icon {
+  width: 120rpx;
+  height: 50rpx;
+  display: flex;
+  align-items: center;
+}
+
+.back-text {
+  font-size: 28rpx;
+  color: #157efb;
+  font-weight: bold;
+}
+
+.header-title {
+  flex: 1;
+  text-align: center;
+  font-size: 34rpx;
+  font-weight: 500;
+  color: #333333;
+  margin-right: 120rpx;
+}
+
+.content-area {
+  padding-top: 180rpx;
+}
+
+.debug-info {
+  background-color: #f0f9ff;
+  padding: 10rpx 20rpx;
+  margin: 0 20rpx 20rpx;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+  color: #0078d4;
+}
+
+.photos-container {
+  padding: 20rpx;
+}
+
+.photo-grid {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 -10rpx;
+}
+
+.photo-item {
+  width: calc(33.33% - 20rpx);
+  margin: 10rpx;
+  aspect-ratio: 1/1;
+  overflow: hidden;
+  border-radius: 8rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+  background-color: #eee;
+  position: relative;
+}
+
+.photo-item image {
+  width: 100%;
+  height: 100%;
+  transition: transform 0.3s;
+}
+
+.photo-info {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  font-size: 20rpx;
+  padding: 4rpx 8rpx;
+  border-top-left-radius: 8rpx;
+}
+
+.photo-item:active image {
+  transform: scale(0.97);
+}
+
+.empty-state {
+  padding: 100rpx 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-state image {
+  width: 240rpx;
+  height: 240rpx;
+  margin-bottom: 30rpx;
+  opacity: 0.7;
+}
+
+.empty-state text {
+  font-size: 28rpx;
+  color: #999999;
+}
+
+.status-tip {
+  background-color: #FFF9E6;
+  padding: 20rpx;
+  border-radius: 8rpx;
+  margin: 20rpx;
+  text-align: center;
+}
+
+.status-tip text {
+  font-size: 26rpx;
+  color: #FF9900;
+}
+
+/* 底部返回按钮样式 */
+.footer-action {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 20rpx;
+  background-color: #ffffff;
+  box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: center;
+}
+
+.back-btn {
+  width: 90%;
+  height: 80rpx;
+  line-height: 80rpx;
+  text-align: center;
+  background-color: #42b983;
+  color: #ffffff;
+  font-size: 30rpx;
+  border-radius: 40rpx;
+}
+
+.loading-container {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999999;
+  font-size: 28rpx;
+} 

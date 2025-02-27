@@ -88,6 +88,25 @@ func (l *UserGetLogic) UserGet(req *types.GetFilmOrderReq) (resp *types.GetFilmO
 		})
 	}
 
+	// 获取胶片照片列表
+	var photoList []types.FilmPhoto
+	if filmOrder.Status >= 1 { // 只有已支付及以上状态的订单才获取照片
+		photos, err := l.svcCtx.FilmPhotoModel.FindByFilmOrderId(l.ctx, filmOrder.Id)
+		if err != nil && err != model.ErrNotFound {
+			l.Logger.Errorf("获取胶片照片列表失败: %v", err)
+		} else if photos != nil {
+			for _, photo := range photos {
+				photoList = append(photoList, types.FilmPhoto{
+					Id:          photo.Id,
+					FilmOrderId: photo.FilmOrderId,
+					Url:         photo.Url,
+					Sort:        photo.Sort,
+					CreateTime:  photo.CreateTime.Format("2006-01-02 15:04:05"),
+				})
+			}
+		}
+	}
+
 	return &types.GetFilmOrderResp{
 		Code: 0,
 		Msg:  "success",
@@ -103,6 +122,7 @@ func (l *UserGetLogic) UserGet(req *types.GetFilmOrderReq) (resp *types.GetFilmO
 			StatusDesc:  model.GetFilmOrderStatusText(filmOrder.Status),
 			Remark:      filmOrder.Remark,
 			Items:       itemList,
+			Photos:      photoList,
 			CreateTime:  filmOrder.CreateTime.Format("2006-01-02 15:04:05"),
 			UpdateTime:  filmOrder.UpdateTime.Format("2006-01-02 15:04:05"),
 		},

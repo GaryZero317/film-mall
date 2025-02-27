@@ -117,5 +117,40 @@ Page({
         }
       }
     })
+  },
+  
+  // 查看胶片照片
+  viewPhotos() {
+    console.log('查看照片按钮被点击')
+    if (!this.data.orderDetail) {
+      console.log('订单详情不存在')
+      return
+    }
+    
+    // 如果订单状态小于1（未支付），提示需要先支付
+    if (this.data.orderDetail.status < 1) {
+      console.log('订单状态不允许查看照片', this.data.orderDetail.status)
+      wx.showToast({
+        title: '请先支付订单',
+        icon: 'none'
+      })
+      return
+    }
+    
+    // 保存基础URL到本地存储，供照片页面使用
+    const baseUrl = 'http://localhost:8007' // 可以从配置中获取
+    wx.setStorageSync('baseUrl', baseUrl)
+    
+    console.log('跳转到照片页面', this.data.orderId)
+    wx.navigateTo({
+      url: `/pages/user/film/photos/index?id=${this.data.orderId}`,
+      fail: (err) => {
+        console.error('跳转失败:', err)
+        wx.showToast({
+          title: '页面跳转失败',
+          icon: 'none'
+        })
+      }
+    })
   }
 }) 

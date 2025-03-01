@@ -8,20 +8,27 @@ import (
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
 )
 
-// ChatMessage 聊天消息结构
+// 发送者类型常量
+const (
+	SenderTypeUser  = 1 // 用户
+	SenderTypeAdmin = 2 // 管理员
+)
+
+// ChatMessage 聊天消息结构 - 匹配数据库结构
 type ChatMessage struct {
 	Id         int64     `db:"id"`
-	UserId     int64     `db:"user_id"`
-	AdminId    int64     `db:"admin_id"`
-	Direction  int64     `db:"direction"`
-	Content    string    `db:"content"`
-	ReadStatus int64     `db:"read_status"`
-	CreateTime time.Time `db:"create_time"`
+	SessionId  int64     `db:"session_id"`  // 会话ID（对应用户ID）
+	SenderType int64     `db:"sender_type"` // 发送者类型：1-用户，2-管理员
+	SenderId   int64     `db:"sender_id"`   // 发送者ID
+	Content    string    `db:"content"`     // 消息内容
+	ReadStatus int64     `db:"read_status"` // 读取状态：0-未读，1-已读
+	CreateTime time.Time `db:"create_time"` // 创建时间
 }
 
 // ChatMessageModel 聊天消息模型接口
 type ChatMessageModel interface {
 	Insert(context.Context, *ChatMessage) (sql.Result, error)
+	FindBySession(context.Context, int64, int, int) ([]*ChatMessage, int64, error)
 	FindByUserAndAdmin(context.Context, int64, int64, int, int) ([]*ChatMessage, int64, error)
 }
 
@@ -34,19 +41,40 @@ func NewChatMessageModel(conn sqlx.SqlConn) ChatMessageModel {
 	return &defaultChatMessageModel{conn: conn}
 }
 
+// Insert 插入聊天消息
 func (m *defaultChatMessageModel) Insert(ctx context.Context, data *ChatMessage) (sql.Result, error) {
-	query := `insert into chat_message (user_id, admin_id, direction, content, read_status, create_time) values (?, ?, ?, ?, ?, ?)`
-	return m.conn.ExecCtx(ctx, query, data.UserId, data.AdminId, data.Direction, data.Content, data.ReadStatus, data.CreateTime)
+	query := `insert into chat_message (session_id, sender_type, sender_id, content, read_status, create_time) 
+              values (?, ?, ?, ?, ?, ?)`
+	return m.conn.ExecCtx(ctx, query, data.SessionId, data.SenderType, data.SenderId, data.Content, data.ReadStatus, data.CreateTime)
 }
 
-func (m *defaultChatMessageModel) FindByUserAndAdmin(ctx context.Context, userId, adminId int64, page, pageSize int) ([]*ChatMessage, int64, error) {
+// FindBySession 根据会话ID查询消息
+func (m *defaultChatMessageModel) FindBySession(ctx context.Context, sessionId int64, page, pageSize int) ([]*ChatMessage, int64, error) {
 	var messages []*ChatMessage
-	query := `select id, user_id, admin_id, direction, content, read_status, create_time from chat_message where user_id = ? and admin_id = ? order by create_time desc limit ?, ?`
-	err := m.conn.QueryRowsCtx(ctx, &messages, query, userId, adminId, (page-1)*pageSize, pageSize)
+	query := `select id, session_id, sender_type, sender_id, content, read_status, create_time 
+              from chat_message where session_id = ? 
+              order by create_time desc limit ?, ?`
+	err := m.conn.QueryRowsCtx(ctx, &messages, query, sessionId, (page-1)*pageSize, pageSize)
 
 	var count int64
-	countQuery := `select count(*) from chat_message where user_id = ? and admin_id = ?`
-	_ = m.conn.QueryRowCtx(ctx, &count, countQuery, userId, adminId)
+	countQuery := `select count(*) from chat_message where session_id = ?`
+	_ = m.conn.QueryRowCtx(ctx, &count, countQuery, sessionId)
+
+	return messages, count, err
+}
+
+// FindByUserAndAdmin 根据用户ID和管理员ID查询消息（向后兼容）
+func (m *defaultChatMessageModel) FindByUserAndAdmin(ctx context.Context, userId, adminId int64, page, pageSize int) ([]*ChatMessage, int64, error) {
+	// 使用userId作为会话ID
+	var messages []*ChatMessage
+	query := `select id, session_id, sender_type, sender_id, content, read_status, create_time 
+              from chat_message where session_id = ? 
+              order by create_time desc limit ?, ?`
+	err := m.conn.QueryRowsCtx(ctx, &messages, query, userId, (page-1)*pageSize, pageSize)
+
+	var count int64
+	countQuery := `select count(*) from chat_message where session_id = ?`
+	_ = m.conn.QueryRowCtx(ctx, &count, countQuery, userId)
 
 	return messages, count, err
 }

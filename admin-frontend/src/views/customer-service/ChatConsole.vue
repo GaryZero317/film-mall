@@ -154,13 +154,16 @@ const fetchChatMessages = async () => {
   
   loadingMessages.value = true
   try {
-    const res = await getChatMessages(currentSession.value.id, { page: 1, page_size: 100 })
-    messageList.value = res.data.list.reverse() // 倒序，最新的消息在底部
+    const res = await getChatMessages(currentSession.value.user_id, { page: 1, pageSize: 20 })
+    if (res.data && res.data.list) {
+      messageList.value = res.data.list.reverse() // 倒序，最新的消息在底部
+    } else {
+      messageList.value = []
+    }
     
     // 更新当前会话的未读数
     if (currentSession.value.unread_count > 0) {
-      // TODO: 调用标记已读接口
-      const sessionIndex = sessionList.value.findIndex(s => s.id === currentSession.value.id)
+      const sessionIndex = sessionList.value.findIndex(s => s.user_id === currentSession.value.user_id)
       if (sessionIndex > -1) {
         sessionList.value[sessionIndex].unread_count = 0
       }
@@ -188,32 +191,34 @@ const sendMessage = async () => {
   if (!messageInput.value.trim() || !currentSession.value) return
   
   try {
+    const adminInfo = JSON.parse(localStorage.getItem('adminInfo') || '{}')
     const message = {
-      session_id: currentSession.value.id,
+      userId: currentSession.value.user_id,
       content: messageInput.value.trim(),
-      sender_type: 2, // 客服发送
-      create_time: Math.floor(Date.now() / 1000)
+      type: 1 // 文本消息
     }
-    
-    // 先添加到本地消息列表
-    messageList.value.push(message)
-    scrollToBottom()
     
     // 清空输入框
     messageInput.value = ''
     
     // 调用发送接口
-    await sendChatMessage(currentSession.value.id, {
-      content: message.content
+    await sendChatMessage(currentSession.value.user_id, {
+      content: message.content,
+      type: 1
     })
     
-    // 发送到WebSocket
-    if (websocket && isConnected.value) {
-      websocket.send(JSON.stringify({
-        type: 'message',
-        data: message
-      }))
-    }
+    // 本地添加消息，方便显示
+    messageList.value.push({
+      id: new Date().getTime(),
+      userId: currentSession.value.user_id,
+      adminId: adminInfo.id,
+      direction: 2, // 管理员到用户
+      content: message.content,
+      readStatus: 0,
+      createTime: Math.floor(Date.now() / 1000)
+    })
+    
+    scrollToBottom()
   } catch (error) {
     console.error('发送消息失败', error)
     ElMessage.error('发送消息失败')
@@ -255,8 +260,21 @@ const connectWebSocket = () => {
     return
   }
   
-  // 创建WebSocket连接
-  websocket = new WebSocket(`ws://localhost:8000/api/chat/admin?token=${token}`)
+  // 获取管理员信息
+  const adminInfo = JSON.parse(localStorage.getItem('adminInfo') || '{}')
+  const adminId = adminInfo.id
+  
+  if (!adminId) {
+    ElMessage.error('无法获取管理员信息')
+    return
+  }
+  
+  // 创建WebSocket连接，使用正确的路径
+  const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+  const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+  const wsBaseUrl = baseUrl.replace(/^https?:/, wsProtocol)
+  
+  websocket = new WebSocket(`${wsBaseUrl}/api/admin/chat/connect?adminId=${adminId}&token=${token}`)
   
   // 连接开启
   websocket.onopen = () => {

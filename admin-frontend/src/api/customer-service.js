@@ -64,26 +64,32 @@ export function deleteFaq(id) {
 // 获取聊天会话列表
 export function getChatSessions(params) {
   return request({
-    url: '/customer-service/chat/sessions',
+    url: '/api/admin/chat/sessions',
     method: 'get',
     params
   })
 }
 
 // 获取聊天记录
-export function getChatMessages(sessionId, params) {
+export function getChatMessages(userId, params) {
   return request({
-    url: `/customer-service/chat/sessions/${sessionId}/messages`,
+    url: `/api/admin/chat/history`,
     method: 'get',
-    params
+    params: {
+      userId,
+      ...params
+    }
   })
 }
 
 // 发送聊天消息
-export function sendChatMessage(sessionId, data) {
+export function sendChatMessage(userId, data) {
   return request({
-    url: `/customer-service/chat/sessions/${sessionId}/messages`,
+    url: `/api/admin/chat/send`,
     method: 'post',
-    data
+    data: {
+      userId,
+      ...data
+    }
   })
 } 

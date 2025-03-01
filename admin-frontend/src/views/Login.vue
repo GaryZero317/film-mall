@@ -88,9 +88,10 @@ const handleLogin = async () => {
     const res = await login(loginForm)
     console.log('登录响应:', res)
     
-    if (res && res.accessToken) {
-      userStore.token = res.accessToken
-      localStorage.setItem('token', res.accessToken)
+    if (res && res.code === 0) {
+      userStore.token = res.data.token
+      localStorage.setItem('token', res.data.token)
+      localStorage.setItem('adminInfo', JSON.stringify(res.data))
       localStorage.setItem('username', loginForm.username)
       ElMessage.success('登录成功')
       await router.push('/')

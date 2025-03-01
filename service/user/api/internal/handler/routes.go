@@ -57,6 +57,21 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Path:    "/api/user/service/faq/list",
 				Handler: FaqListHandler(serverCtx),
 			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/api/chat/send",
+				Handler: SendChatMessageHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/api/chat/history",
+				Handler: GetChatHistoryHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/api/chat/connect",
+				Handler: ChatConnectHandler(serverCtx),
+			},
 		},
 		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
 	)
@@ -87,6 +102,26 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Method:  http.MethodPost,
 				Path:    "/api/admin/list",
 				Handler: AdminListHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/api/admin/chat/send",
+				Handler: AdminSendChatMessageHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/api/admin/chat/history",
+				Handler: AdminGetChatHistoryHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/api/admin/chat/sessions",
+				Handler: AdminGetChatSessionsHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/api/admin/chat/connect",
+				Handler: AdminChatConnectHandler(serverCtx),
 			},
 		},
 		rest.WithJwt(serverCtx.Config.AdminAuth.AccessSecret),

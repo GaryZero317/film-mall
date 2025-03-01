@@ -191,6 +191,19 @@ const refreshPage = () => {
 }
 </script>
 
+<style>
+/* 全局样式修复客服中心菜单 */
+.el-sub-menu__icon-arrow {
+  right: 15px !important;
+  margin-top: -5px !important;
+  font-size: 12px !important;
+}
+
+.el-sub-menu.is-active > .el-sub-menu__title .el-sub-menu__icon-arrow {
+  color: #ffffff !important;
+}
+</style>
+
 <style scoped>
 .layout-container {
   height: 100vh;
@@ -270,6 +283,66 @@ const refreshPage = () => {
 
 :deep(.el-menu-item:hover) {
   background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* 修改子菜单标题样式，确保与菜单项一致 */
+:deep(.el-sub-menu__title) {
+  color: var(--sidebar-text);
+  height: 50px;
+  line-height: 50px;
+  padding-left: 20px !important;
+}
+
+:deep(.el-sub-menu__title .el-icon) {
+  margin-right: 10px;
+  width: 24px;
+  text-align: center;
+}
+
+:deep(.el-sub-menu__title span) {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 14px;
+}
+
+:deep(.el-sub-menu__title:hover) {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+:deep(.el-sub-menu.is-active > .el-sub-menu__title) {
+  color: var(--sidebar-active-text);
+}
+
+/* 修复子菜单箭头样式 */
+:deep(.el-sub-menu__icon-arrow) {
+  right: 15px;
+  margin-top: -5px;
+  color: var(--sidebar-text);
+  font-size: 12px;
+  transition: transform 0.3s;
+}
+
+:deep(.el-sub-menu.is-active > .el-sub-menu__title .el-sub-menu__icon-arrow) {
+  color: var(--sidebar-active-text);
+}
+
+:deep(.el-sub-menu.is-opened > .el-sub-menu__title .el-sub-menu__icon-arrow) {
+  transform: rotateZ(-180deg);
+}
+
+/* 子菜单内的菜单项样式 */
+:deep(.el-menu--inline) {
+  background-color: rgba(0, 0, 0, 0.15) !important;
+}
+
+:deep(.el-sub-menu.is-opened .el-menu-item) {
+  padding-left: 48px !important;
+  background-color: rgba(0, 0, 0, 0.15);
+}
+
+:deep(.el-sub-menu.is-opened .el-menu-item.is-active) {
+  background-color: var(--sidebar-active-bg);
 }
 
 .sidebar-footer {
@@ -391,5 +464,28 @@ const refreshPage = () => {
 .fade-leave-to {
   opacity: 0;
   transform: translateY(10px);
+}
+
+/* 折叠状态下的样式 */
+.el-menu--collapse {
+  width: 64px;
+}
+
+:deep(.el-menu--collapse .el-sub-menu__title span) {
+  display: none;
+}
+
+:deep(.el-menu--vertical .el-menu--popup) {
+  background-color: var(--sidebar-bg);
+  border-radius: 4px;
+}
+
+:deep(.el-menu--vertical .el-menu-item) {
+  color: var(--sidebar-text);
+}
+
+:deep(.el-menu--vertical .el-menu-item.is-active) {
+  color: var(--sidebar-active-text);
+  background-color: var(--sidebar-active-bg);
 }
 </style> 

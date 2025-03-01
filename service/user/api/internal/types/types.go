@@ -161,3 +161,61 @@ type FaqListResponse struct {
 	Total int64             `json:"total"`
 	List  []FaqItemResponse `json:"list"`
 }
+
+type SendChatMessageRequest struct {
+	AdminId int64  `json:"adminId,optional"` // 管理员ID，如果是发给系统客服则不填
+	Content string `json:"content"`          // 消息内容
+	Type    int64  `json:"type,optional"`    // 消息类型：1-文本，2-图片，默认为1
+}
+
+type SendChatMessageResponse struct {
+	Id         int64  `json:"id"`         // 消息ID
+	Content    string `json:"content"`    // 消息内容
+	CreateTime int64  `json:"createTime"` // 发送时间
+}
+
+type ChatHistoryRequest struct {
+	AdminId  int64 `form:"adminId"`           // 管理员ID
+	Page     int64 `form:"page,optional"`     // 页码
+	PageSize int64 `form:"pageSize,optional"` // 页大小
+}
+
+type ChatMessageItem struct {
+	Id         int64  `json:"id"`         // 消息ID
+	UserId     int64  `json:"userId"`     // 用户ID
+	AdminId    int64  `json:"adminId"`    // 管理员ID
+	Direction  int64  `json:"direction"`  // 消息方向：1-用户发送，2-管理员发送
+	Content    string `json:"content"`    // 消息内容
+	ReadStatus int64  `json:"readStatus"` // 读取状态：1-未读，2-已读
+	CreateTime int64  `json:"createTime"` // 发送时间
+}
+
+type ChatHistoryResponse struct {
+	Total int64             `json:"total"`
+	List  []ChatMessageItem `json:"list"`
+}
+
+type ChatSessionItem struct {
+	Id           int64  `json:"id"`           // 会话ID(用户ID)
+	UserName     string `json:"userName"`     // 用户名
+	LastMessage  string `json:"lastMessage"`  // 最后一条消息内容
+	UnreadCount  int64  `json:"unreadCount"`  // 未读消息数
+	LastActivity int64  `json:"lastActivity"` // 最后活动时间
+}
+
+type ChatSessionListResponse struct {
+	Total int64             `json:"total"`
+	List  []ChatSessionItem `json:"list"`
+}
+
+type AdminSendChatMessageRequest struct {
+	UserId  int64  `json:"userId"`        // 用户ID
+	Content string `json:"content"`       // 消息内容
+	Type    int64  `json:"type,optional"` // 消息类型：1-文本，2-图片，默认为1
+}
+
+type AdminSendChatMessageResponse struct {
+	Id         int64  `json:"id"`         // 消息ID
+	Content    string `json:"content"`    // 消息内容
+	CreateTime int64  `json:"createTime"` // 发送时间
+}

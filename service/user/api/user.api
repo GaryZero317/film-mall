@@ -172,6 +172,66 @@ type (
 		List  []FaqItemResponse `json:"list"`
 	}
 	// 常见问题列表
+
+	// 聊天消息相关定义
+	SendChatMessageRequest {
+		AdminId int64  `json:"adminId,optional"` // 管理员ID，如果是发给系统客服则不填
+		Content string `json:"content"`          // 消息内容
+		Type    int64  `json:"type,optional"`    // 消息类型：1-文本，2-图片，默认为1
+	}
+
+	SendChatMessageResponse {
+		Id         int64  `json:"id"`         // 消息ID
+		Content    string `json:"content"`    // 消息内容
+		CreateTime int64  `json:"createTime"` // 发送时间
+	}
+
+	ChatHistoryRequest {
+		AdminId  int64 `form:"adminId"`           // 管理员ID
+		Page     int64 `form:"page,optional"`     // 页码
+		PageSize int64 `form:"pageSize,optional"` // 页大小
+	}
+
+	ChatMessageItem {
+		Id         int64  `json:"id"`         // 消息ID
+		UserId     int64  `json:"userId"`     // 用户ID
+		AdminId    int64  `json:"adminId"`    // 管理员ID
+		Direction  int64  `json:"direction"`  // 消息方向：1-用户发送，2-管理员发送
+		Content    string `json:"content"`    // 消息内容
+		ReadStatus int64  `json:"readStatus"` // 读取状态：1-未读，2-已读
+		CreateTime int64  `json:"createTime"` // 发送时间
+	}
+
+	ChatHistoryResponse {
+		Total int64             `json:"total"`
+		List  []ChatMessageItem `json:"list"`
+	}
+
+	ChatSessionItem {
+		Id           int64  `json:"id"`           // 会话ID(用户ID)
+		UserName     string `json:"userName"`     // 用户名
+		LastMessage  string `json:"lastMessage"`  // 最后一条消息内容
+		UnreadCount  int64  `json:"unreadCount"`  // 未读消息数
+		LastActivity int64  `json:"lastActivity"` // 最后活动时间
+	}
+
+	ChatSessionListResponse {
+		Total int64             `json:"total"`
+		List  []ChatSessionItem `json:"list"`
+	}
+
+	// 管理员客服相关API
+	AdminSendChatMessageRequest {
+		UserId  int64  `json:"userId"`        // 用户ID
+		Content string `json:"content"`       // 消息内容
+		Type    int64  `json:"type,optional"` // 消息类型：1-文本，2-图片，默认为1
+	}
+
+	AdminSendChatMessageResponse {
+		Id         int64  `json:"id"`         // 消息ID
+		Content    string `json:"content"`    // 消息内容
+		CreateTime int64  `json:"createTime"` // 发送时间
+	}
 )
 
 service User {
@@ -204,6 +264,17 @@ service User {
 	
 	@handler FaqList
 	post /api/user/service/faq/list (FaqListRequest) returns (FaqListResponse)
+	
+	// 客服聊天相关API
+	@handler SendChatMessage
+	post /api/chat/send (SendChatMessageRequest) returns (SendChatMessageResponse)
+	
+	@handler GetChatHistory
+	get /api/chat/history (ChatHistoryRequest) returns (ChatHistoryResponse)
+	
+	// WebSocket端点会在这个HTTP路由基础上升级连接
+	@handler ChatConnect
+	get /api/chat/connect
 }
 
 @server(
@@ -224,4 +295,18 @@ service User {
 	
 	@handler AdminList
 	post /api/admin/list (AdminListRequest) returns (AdminListResponse)
+	
+	// 管理员客服相关API
+	@handler AdminSendChatMessage
+	post /api/admin/chat/send (AdminSendChatMessageRequest) returns (AdminSendChatMessageResponse)
+	
+	@handler AdminGetChatHistory
+	get /api/admin/chat/history (ChatHistoryRequest) returns (ChatHistoryResponse)
+	
+	@handler AdminGetChatSessions
+	get /api/admin/chat/sessions returns (ChatSessionListResponse)
+	
+	// 管理员WebSocket端点
+	@handler AdminChatConnect
+	get /api/admin/chat/connect
 }

@@ -72,18 +72,4 @@
   <view class="load-more" wx:if="{{hasMore && !loading}}">
     <text>上拉加载更多</text>
   </view>
-
-  <!-- 服务模块 -->
-  <view class="services">
-    <view class="section-title">
-      <text>专业服务</text>
-    </view>
-    <view class="service-list">
-      <view class="service-item" bindtap="navigateToFilmCreate">
-        <image src="/assets/images/film-icon.png" mode="aspectFill"></image>
-        <text>胶片冲洗</text>
-      </view>
-      <!-- 其他服务项目 -->
-    </view>
-  </view>
 </view> 

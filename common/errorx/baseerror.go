@@ -3,17 +3,17 @@ package errorx
 const defaultCode = 1001
 
 type CodeError struct {
-	Code    int    `json:"code"`
-	Message string `json:"msg"`
+	Code int    `json:"code"`
+	Msg  string `json:"msg"`
 }
 
 type CodeErrorResponse struct {
-	Code    int    `json:"code"`
-	Message string `json:"msg"`
+	Code int    `json:"code"`
+	Msg  string `json:"msg"`
 }
 
 func NewCodeError(code int, msg string) error {
-	return &CodeError{Code: code, Message: msg}
+	return &CodeError{Code: code, Msg: msg}
 }
 
 func NewDefaultError(msg string) error {
@@ -21,12 +21,12 @@ func NewDefaultError(msg string) error {
 }
 
 func (e *CodeError) Error() string {
-	return e.Message
+	return e.Msg
 }
 
 func (e *CodeError) Data() *CodeErrorResponse {
 	return &CodeErrorResponse{
-		Code:    e.Code,
-		Message: e.Message,
+		Code: e.Code,
+		Msg:  e.Msg,
 	}
 }

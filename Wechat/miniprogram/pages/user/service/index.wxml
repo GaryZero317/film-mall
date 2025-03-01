@@ -1,0 +1,69 @@
+<!--pages/user/service/index.wxml-->
+<view class="container">
+  <view class="header">
+    <image class="logo" src="/assets/images/logo.png" mode="aspectFit"></image>
+    <text class="title">客服中心</text>
+  </view>
+
+  <view class="content">
+    <view class="service-card">
+      <view class="card-title">联系我们</view>
+      <view class="contact-item" bindtap="callService">
+        <view class="icon">📞</view>
+        <view class="info">
+          <text class="label">客服电话</text>
+          <text class="value">400-123-4567</text>
+        </view>
+      </view>
+      <view class="contact-item">
+        <view class="icon">📧</view>
+        <view class="info">
+          <text class="label">客服邮箱</text>
+          <text class="value">service@filmmall.com</text>
+        </view>
+      </view>
+      <view class="contact-item">
+        <view class="icon">🕙</view>
+        <view class="info">
+          <text class="label">服务时间</text>
+          <text class="value">周一至周日 9:00-18:00</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="service-card">
+      <view class="card-title">常见问题</view>
+      <view class="faq-list">
+        <view class="faq-item" bindtap="toggleFaq" data-index="0">
+          <view class="faq-question">
+            <text>如何查询订单状态？</text>
+            <text class="arrow {{faqOpen[0] ? 'open' : ''}}">〉</text>
+          </view>
+          <view class="faq-answer {{faqOpen[0] ? 'show' : ''}}">
+            您可以在"我的订单"页面查看所有订单的状态，包括待付款、待发货、待收货和已完成等状态。
+          </view>
+        </view>
+        <view class="faq-item" bindtap="toggleFaq" data-index="1">
+          <view class="faq-question">
+            <text>如何修改收货地址？</text>
+            <text class="arrow {{faqOpen[1] ? 'open' : ''}}">〉</text>
+          </view>
+          <view class="faq-answer {{faqOpen[1] ? 'show' : ''}}">
+            您可以在个人中心页面点击"收货地址"选项，进入地址管理页面添加、编辑或删除收货地址。
+          </view>
+        </view>
+        <view class="faq-item" bindtap="toggleFaq" data-index="2">
+          <view class="faq-question">
+            <text>胶片冲洗服务流程是什么？</text>
+            <text class="arrow {{faqOpen[2] ? 'open' : ''}}">〉</text>
+          </view>
+          <view class="faq-answer {{faqOpen[2] ? 'show' : ''}}">
+            胶片冲洗流程：1. 在小程序提交冲洗订单；2. 将胶卷寄送至指定地址；3. 我们进行专业冲洗；4. 冲洗完成后将照片和胶片原件寄回您的收货地址。
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <button class="contact-btn" open-type="contact">在线客服</button>
+  </view>
+</view> 

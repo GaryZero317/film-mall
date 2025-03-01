@@ -50,6 +50,21 @@ const routes = [
         path: 'film/detail/:id',
         name: 'FilmDetail',
         component: () => import('../views/film/FilmDetail.vue')
+      },
+      {
+        path: 'customer-service/questions',
+        name: 'CustomerServiceQuestions',
+        component: () => import('../views/customer-service/QuestionList.vue')
+      },
+      {
+        path: 'customer-service/chat',
+        name: 'CustomerServiceChat',
+        component: () => import('../views/customer-service/ChatConsole.vue')
+      },
+      {
+        path: 'customer-service/faq',
+        name: 'CustomerServiceFaq',
+        component: () => import('../views/customer-service/FaqList.vue')
       }
     ]
   }

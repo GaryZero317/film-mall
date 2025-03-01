@@ -32,7 +32,7 @@
       >
         <view class="order-header">
           <text class="order-number">订单号: {{item.foid}}</text>
-          <text class="order-status">{{item.status_desc}}</text>
+          <text class="order-status" status="{{item.status_desc}}">{{item.status_desc}}</text>
         </view>
         
         <view class="order-content">

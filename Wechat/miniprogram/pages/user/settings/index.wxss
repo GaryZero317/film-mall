@@ -1,33 +1,81 @@
 /* pages/user/settings/index.wxss */
+page {
+  --primary-color: #4A6FE3;
+  --secondary-color: #6A85E8;
+  --text-color: #333333;
+  --light-text: #888888;
+  --bg-color: #F7F8FC;
+  --card-bg: #FFFFFF;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --hover-color: #F0F4FF;
+  --border-radius: 12px;
+  --spacing: 15px;
+  --accent-color: #FF5252;
+  --section-bg: rgba(0, 0, 0, 0.02);
+  
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  box-sizing: border-box;
+}
+
 .container {
   min-height: 100vh;
-  background-color: #f5f5f5;
   padding-bottom: 40rpx;
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .settings-list {
   width: 100%;
+  padding: var(--spacing);
 }
 
 .settings-section {
-  margin-top: 20rpx;
-  background-color: #fff;
+  margin-bottom: 20rpx;
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
 }
 
 .section-title {
-  padding: 20rpx 30rpx;
+  padding: 20rpx 30rpx 20rpx 36rpx;
   font-size: 28rpx;
-  color: #666;
-  background-color: #f8f8f8;
+  color: var(--primary-color);
+  background-color: var(--section-bg);
+  font-weight: 600;
+  position: relative;
+}
+
+.section-title::before {
+  content: '';
+  position: absolute;
+  left: 16rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6rpx;
+  height: 24rpx;
+  background: linear-gradient(to bottom, var(--primary-color), var(--secondary-color));
+  border-radius: 3rpx;
 }
 
 .settings-item {
   display: flex;
   align-items: center;
   padding: 30rpx;
-  background-color: #fff;
-  border-bottom: 1rpx solid #eee;
+  background-color: var(--card-bg);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   position: relative;
+  transition: background-color 0.3s ease;
+}
+
+.settings-item:active {
+  background-color: var(--hover-color);
 }
 
 .settings-item:last-child {
@@ -37,19 +85,46 @@
 .settings-item text {
   flex: 1;
   font-size: 30rpx;
-  color: #333;
+  color: var(--text-color);
 }
 
 .sub-text {
-  font-size: 28rpx !important;
-  color: #999 !important;
+  font-size: 26rpx !important;
+  color: var(--light-text) !important;
   margin-right: 20rpx;
   flex: none !important;
+  background: rgba(0, 0, 0, 0.03);
+  padding: 4rpx 12rpx;
+  border-radius: 20rpx;
 }
 
 .arrow {
   width: 32rpx;
   height: 32rpx;
+  opacity: 0.6;
+  transition: transform 0.3s ease;
+}
+
+.settings-item:active .arrow {
+  transform: translateX(4rpx);
+  opacity: 0.8;
+}
+
+/* 开关样式 */
+switch {
+  zoom: 0.8;
+}
+
+/* 开关未选中状态 */
+wx-switch .wx-switch-input {
+  background-color: rgba(0, 0, 0, 0.1) !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* 开关选中状态 */
+wx-switch .wx-switch-input.wx-switch-input-checked {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
 }
 
 .logout-button {
@@ -57,8 +132,17 @@
   height: 88rpx;
   line-height: 88rpx;
   text-align: center;
-  background-color: #ff4444;
-  color: #fff;
+  background-color: var(--accent-color);
+  color: white;
   border-radius: 44rpx;
   font-size: 32rpx;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(255, 82, 82, 0.2);
+  transition: all 0.3s ease;
+}
+
+.logout-button:active {
+  transform: scale(0.98);
+  box-shadow: 0 2px 6px rgba(255, 82, 82, 0.15);
+  background-color: #ff3a3a;
 } 

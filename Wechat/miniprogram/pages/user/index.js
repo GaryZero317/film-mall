@@ -160,14 +160,14 @@ Page({
     })
   },
 
-  // 查看收藏
-  onViewFavorites() {
+  // 查看客服中心
+  onViewServiceCenter() {
     if (!this.data.isLogin) {
       this.showLoginTip()
       return
     }
     wx.navigateTo({
-      url: '/pages/user/favorites/index'
+      url: '/pages/user/service/index'
     })
   },
 

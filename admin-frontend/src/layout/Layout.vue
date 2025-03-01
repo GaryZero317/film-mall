@@ -42,6 +42,25 @@
             <el-icon><Money /></el-icon>
             <template #title>支付管理</template>
           </el-menu-item>
+          
+          <el-sub-menu index="/customer-service">
+            <template #title>
+              <el-icon><Service /></el-icon>
+              <span>客服中心</span>
+            </template>
+            <el-menu-item index="/customer-service/questions">
+              <el-icon><Tickets /></el-icon>
+              <template #title>问题管理</template>
+            </el-menu-item>
+            <el-menu-item index="/customer-service/chat">
+              <el-icon><ChatDotRound /></el-icon>
+              <template #title>在线客服</template>
+            </el-menu-item>
+            <el-menu-item index="/customer-service/faq">
+              <el-icon><QuestionFilled /></el-icon>
+              <template #title>常见问题</template>
+            </el-menu-item>
+          </el-sub-menu>
         </el-menu>
       </div>
       
@@ -129,7 +148,11 @@ import {
   CaretBottom,
   Picture,
   FullScreen,
-  Refresh
+  Refresh,
+  Service,
+  Tickets,
+  ChatDotRound,
+  QuestionFilled
 } from '@element-plus/icons-vue'
 import Breadcrumb from './components/Breadcrumb.vue'
 

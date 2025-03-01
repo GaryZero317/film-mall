@@ -103,6 +103,79 @@ message AdminInfoResponse {
 }
 // 管理员信息
 
+// 客服功能 - 提交问题
+message CustomerServiceRequest {
+  int64 UserId = 1;      // 用户ID
+  string Title = 2;      // 问题标题
+  string Content = 3;    // 问题内容
+  int64 Type = 4;        // 问题类型：1-订单问题，2-产品咨询，3-售后服务，4-其他
+  string ContactWay = 5; // 联系方式
+}
+message CustomerServiceResponse {
+  int64 Id = 1;          // 问题ID
+  int64 Status = 2;      // 状态：1-待处理，2-处理中，3-已解决
+  int64 CreateTime = 3;  // 创建时间
+}
+// 客服功能 - 提交问题
+
+// 客服功能 - 问题列表
+message ServiceListRequest {
+  int64 UserId = 1;      // 用户ID
+  int64 Page = 2;        // 页码
+  int64 PageSize = 3;    // 每页数量
+  int64 Status = 4;      // 状态筛选：0-全部，1-待处理，2-处理中，3-已解决
+}
+message ServiceItem {
+  int64 Id = 1;          // 问题ID
+  string Title = 2;      // 问题标题
+  int64 Type = 3;        // 问题类型
+  int64 Status = 4;      // 状态
+  int64 CreateTime = 5;  // 创建时间
+  int64 UpdateTime = 6;  // 更新时间
+}
+message ServiceListResponse {
+  int64 Total = 1;                 // 总数
+  repeated ServiceItem List = 2;   // 问题列表
+}
+// 客服功能 - 问题列表
+
+// 客服功能 - 问题详情
+message ServiceDetailRequest {
+  int64 UserId = 1;     // 用户ID
+  int64 Id = 2;         // 问题ID
+}
+message ServiceDetailResponse {
+  int64 Id = 1;         // 问题ID
+  string Title = 2;     // 问题标题
+  string Content = 3;   // 问题内容
+  int64 Type = 4;       // 问题类型
+  int64 Status = 5;     // 状态
+  string Reply = 6;     // 客服回复
+  int64 ReplyTime = 7;  // 回复时间
+  string ContactWay = 8;// 联系方式
+  int64 CreateTime = 9; // 创建时间
+  int64 UpdateTime = 10;// 更新时间
+}
+// 客服功能 - 问题详情
+
+// 常见问题列表
+message FaqListRequest {
+  int64 Page = 1;       // 页码
+  int64 PageSize = 2;   // 每页数量
+  int64 Category = 3;   // 分类：0-全部，1-订单相关，2-产品相关，3-配送相关，4-其他
+}
+message FaqItem {
+  int64 Id = 1;         // 问题ID
+  string Question = 2;  // 问题
+  string Answer = 3;    // 答案
+  int64 Category = 4;   // 分类
+}
+message FaqListResponse {
+  int64 Total = 1;                // 总数
+  repeated FaqItem List = 2;      // 问题列表
+}
+// 常见问题列表
+
 service User {
   rpc Login(LoginRequest) returns(LoginResponse);
   rpc Register(RegisterRequest) returns(RegisterResponse);
@@ -113,4 +186,10 @@ service User {
   rpc UpdateAdmin(UpdateAdminRequest) returns(UpdateAdminResponse);
   rpc DeleteAdmin(DeleteAdminRequest) returns(DeleteAdminResponse);
   rpc AdminInfo(AdminInfoRequest) returns(AdminInfoResponse);
+  
+  // 客服服务
+  rpc SubmitCustomerService(CustomerServiceRequest) returns(CustomerServiceResponse);
+  rpc GetServiceList(ServiceListRequest) returns(ServiceListResponse);
+  rpc GetServiceDetail(ServiceDetailRequest) returns(ServiceDetailResponse);
+  rpc GetFaqList(FaqListRequest) returns(FaqListResponse);
 }

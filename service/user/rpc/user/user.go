@@ -13,33 +13,48 @@ import (
 )
 
 type (
-	AdminInfoRequest    = user.AdminInfoRequest
-	AdminInfoResponse   = user.AdminInfoResponse
-	AdminLoginRequest   = user.AdminLoginRequest
-	AdminLoginResponse  = user.AdminLoginResponse
-	CreateAdminRequest  = user.CreateAdminRequest
-	CreateAdminResponse = user.CreateAdminResponse
-	DeleteAdminRequest  = user.DeleteAdminRequest
-	DeleteAdminResponse = user.DeleteAdminResponse
-	LoginRequest        = user.LoginRequest
-	LoginResponse       = user.LoginResponse
-	RegisterRequest     = user.RegisterRequest
-	RegisterResponse    = user.RegisterResponse
-	UpdateAdminRequest  = user.UpdateAdminRequest
-	UpdateAdminResponse = user.UpdateAdminResponse
-	UserInfoRequest     = user.UserInfoRequest
-	UserInfoResponse    = user.UserInfoResponse
+	AdminInfoRequest        = user.AdminInfoRequest
+	AdminInfoResponse       = user.AdminInfoResponse
+	AdminLoginRequest       = user.AdminLoginRequest
+	AdminLoginResponse      = user.AdminLoginResponse
+	CreateAdminRequest      = user.CreateAdminRequest
+	CreateAdminResponse     = user.CreateAdminResponse
+	CustomerServiceRequest  = user.CustomerServiceRequest
+	CustomerServiceResponse = user.CustomerServiceResponse
+	DeleteAdminRequest      = user.DeleteAdminRequest
+	DeleteAdminResponse     = user.DeleteAdminResponse
+	FaqItem                 = user.FaqItem
+	FaqListRequest          = user.FaqListRequest
+	FaqListResponse         = user.FaqListResponse
+	LoginRequest            = user.LoginRequest
+	LoginResponse           = user.LoginResponse
+	RegisterRequest         = user.RegisterRequest
+	RegisterResponse        = user.RegisterResponse
+	ServiceDetailRequest    = user.ServiceDetailRequest
+	ServiceDetailResponse   = user.ServiceDetailResponse
+	ServiceItem             = user.ServiceItem
+	ServiceListRequest      = user.ServiceListRequest
+	ServiceListResponse     = user.ServiceListResponse
+	UpdateAdminRequest      = user.UpdateAdminRequest
+	UpdateAdminResponse     = user.UpdateAdminResponse
+	UserInfoRequest         = user.UserInfoRequest
+	UserInfoResponse        = user.UserInfoResponse
 
 	User interface {
 		Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
 		Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
 		UserInfo(ctx context.Context, in *UserInfoRequest, opts ...grpc.CallOption) (*UserInfoResponse, error)
-		// 管理员服务
+		//  管理员服务
 		AdminLogin(ctx context.Context, in *AdminLoginRequest, opts ...grpc.CallOption) (*AdminLoginResponse, error)
 		CreateAdmin(ctx context.Context, in *CreateAdminRequest, opts ...grpc.CallOption) (*CreateAdminResponse, error)
 		UpdateAdmin(ctx context.Context, in *UpdateAdminRequest, opts ...grpc.CallOption) (*UpdateAdminResponse, error)
 		DeleteAdmin(ctx context.Context, in *DeleteAdminRequest, opts ...grpc.CallOption) (*DeleteAdminResponse, error)
 		AdminInfo(ctx context.Context, in *AdminInfoRequest, opts ...grpc.CallOption) (*AdminInfoResponse, error)
+		//  客服服务
+		SubmitCustomerService(ctx context.Context, in *CustomerServiceRequest, opts ...grpc.CallOption) (*CustomerServiceResponse, error)
+		GetServiceList(ctx context.Context, in *ServiceListRequest, opts ...grpc.CallOption) (*ServiceListResponse, error)
+		GetServiceDetail(ctx context.Context, in *ServiceDetailRequest, opts ...grpc.CallOption) (*ServiceDetailResponse, error)
+		GetFaqList(ctx context.Context, in *FaqListRequest, opts ...grpc.CallOption) (*FaqListResponse, error)
 	}
 
 	defaultUser struct {
@@ -68,7 +83,7 @@ func (m *defaultUser) UserInfo(ctx context.Context, in *UserInfoRequest, opts ..
 	return client.UserInfo(ctx, in, opts...)
 }
 
-// 管理员服务
+//  管理员服务
 func (m *defaultUser) AdminLogin(ctx context.Context, in *AdminLoginRequest, opts ...grpc.CallOption) (*AdminLoginResponse, error) {
 	client := user.NewUserClient(m.cli.Conn())
 	return client.AdminLogin(ctx, in, opts...)
@@ -92,4 +107,25 @@ func (m *defaultUser) DeleteAdmin(ctx context.Context, in *DeleteAdminRequest, o
 func (m *defaultUser) AdminInfo(ctx context.Context, in *AdminInfoRequest, opts ...grpc.CallOption) (*AdminInfoResponse, error) {
 	client := user.NewUserClient(m.cli.Conn())
 	return client.AdminInfo(ctx, in, opts...)
+}
+
+//  客服服务
+func (m *defaultUser) SubmitCustomerService(ctx context.Context, in *CustomerServiceRequest, opts ...grpc.CallOption) (*CustomerServiceResponse, error) {
+	client := user.NewUserClient(m.cli.Conn())
+	return client.SubmitCustomerService(ctx, in, opts...)
+}
+
+func (m *defaultUser) GetServiceList(ctx context.Context, in *ServiceListRequest, opts ...grpc.CallOption) (*ServiceListResponse, error) {
+	client := user.NewUserClient(m.cli.Conn())
+	return client.GetServiceList(ctx, in, opts...)
+}
+
+func (m *defaultUser) GetServiceDetail(ctx context.Context, in *ServiceDetailRequest, opts ...grpc.CallOption) (*ServiceDetailResponse, error) {
+	client := user.NewUserClient(m.cli.Conn())
+	return client.GetServiceDetail(ctx, in, opts...)
+}
+
+func (m *defaultUser) GetFaqList(ctx context.Context, in *FaqListRequest, opts ...grpc.CallOption) (*FaqListResponse, error) {
+	client := user.NewUserClient(m.cli.Conn())
+	return client.GetFaqList(ctx, in, opts...)
 }

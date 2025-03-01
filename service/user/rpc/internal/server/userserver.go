@@ -37,7 +37,7 @@ func (s *UserServer) UserInfo(ctx context.Context, in *user.UserInfoRequest) (*u
 	return l.UserInfo(in)
 }
 
-// 管理员服务
+//  管理员服务
 func (s *UserServer) AdminLogin(ctx context.Context, in *user.AdminLoginRequest) (*user.AdminLoginResponse, error) {
 	l := logic.NewAdminLoginLogic(ctx, s.svcCtx)
 	return l.AdminLogin(in)
@@ -61,4 +61,25 @@ func (s *UserServer) DeleteAdmin(ctx context.Context, in *user.DeleteAdminReques
 func (s *UserServer) AdminInfo(ctx context.Context, in *user.AdminInfoRequest) (*user.AdminInfoResponse, error) {
 	l := logic.NewAdminInfoLogic(ctx, s.svcCtx)
 	return l.AdminInfo(in)
+}
+
+//  客服服务
+func (s *UserServer) SubmitCustomerService(ctx context.Context, in *user.CustomerServiceRequest) (*user.CustomerServiceResponse, error) {
+	l := logic.NewSubmitCustomerServiceLogic(ctx, s.svcCtx)
+	return l.SubmitCustomerService(in)
+}
+
+func (s *UserServer) GetServiceList(ctx context.Context, in *user.ServiceListRequest) (*user.ServiceListResponse, error) {
+	l := logic.NewGetServiceListLogic(ctx, s.svcCtx)
+	return l.GetServiceList(in)
+}
+
+func (s *UserServer) GetServiceDetail(ctx context.Context, in *user.ServiceDetailRequest) (*user.ServiceDetailResponse, error) {
+	l := logic.NewGetServiceDetailLogic(ctx, s.svcCtx)
+	return l.GetServiceDetail(in)
+}
+
+func (s *UserServer) GetFaqList(ctx context.Context, in *user.FaqListRequest) (*user.FaqListResponse, error) {
+	l := logic.NewGetFaqListLogic(ctx, s.svcCtx)
+	return l.GetFaqList(in)
 }

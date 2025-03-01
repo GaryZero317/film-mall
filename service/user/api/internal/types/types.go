@@ -93,3 +93,71 @@ type AdminListResponse struct {
 	Total int64               `json:"total"`
 	List  []AdminInfoResponse `json:"list"`
 }
+
+type SubmitServiceRequest struct {
+	Title      string `json:"title"`               // 问题标题
+	Content    string `json:"content"`             // 问题内容
+	Type       int64  `json:"type"`                // 问题类型：1-订单问题，2-产品咨询，3-售后服务，4-其他
+	ContactWay string `json:"contactWay,optional"` // 联系方式
+}
+
+type SubmitServiceResponse struct {
+	Id         int64 `json:"id"`         // 问题ID
+	Status     int64 `json:"status"`     // 状态：1-待处理，2-处理中，3-已解决
+	CreateTime int64 `json:"createTime"` // 创建时间
+}
+
+type ServiceListRequest struct {
+	Page     int64 `json:"page,optional"`
+	PageSize int64 `json:"pageSize,optional"`
+	Status   int64 `json:"status,optional"` // 状态筛选：0-全部，1-待处理，2-处理中，3-已解决
+}
+
+type ServiceItemResponse struct {
+	Id         int64  `json:"id"`         // 问题ID
+	Title      string `json:"title"`      // 问题标题
+	Type       int64  `json:"type"`       // 问题类型
+	Status     int64  `json:"status"`     // 状态
+	CreateTime int64  `json:"createTime"` // 创建时间
+	UpdateTime int64  `json:"updateTime"` // 更新时间
+}
+
+type ServiceListResponse struct {
+	Total int64                 `json:"total"`
+	List  []ServiceItemResponse `json:"list"`
+}
+
+type ServiceDetailRequest struct {
+	Id int64 `json:"id"` // 问题ID
+}
+
+type ServiceDetailResponse struct {
+	Id         int64  `json:"id"`         // 问题ID
+	Title      string `json:"title"`      // 问题标题
+	Content    string `json:"content"`    // 问题内容
+	Type       int64  `json:"type"`       // 问题类型
+	Status     int64  `json:"status"`     // 状态
+	Reply      string `json:"reply"`      // 客服回复
+	ReplyTime  int64  `json:"replyTime"`  // 回复时间
+	ContactWay string `json:"contactWay"` // 联系方式
+	CreateTime int64  `json:"createTime"` // 创建时间
+	UpdateTime int64  `json:"updateTime"` // 更新时间
+}
+
+type FaqListRequest struct {
+	Page     int64 `json:"page,optional"`
+	PageSize int64 `json:"pageSize,optional"`
+	Category int64 `json:"category,optional"` // 分类：0-全部，1-订单相关，2-产品相关，3-配送相关，4-其他
+}
+
+type FaqItemResponse struct {
+	Id       int64  `json:"id"`       // 问题ID
+	Question string `json:"question"` // 问题
+	Answer   string `json:"answer"`   // 答案
+	Category int64  `json:"category"` // 分类
+}
+
+type FaqListResponse struct {
+	Total int64             `json:"total"`
+	List  []FaqItemResponse `json:"list"`
+}

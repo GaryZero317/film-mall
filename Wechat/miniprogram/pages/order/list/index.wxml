@@ -31,7 +31,7 @@
         <!-- 订单头部 -->
         <view class="order-header">
           <text class="order-number">订单号：{{item.oid}}</text>
-          <text class="order-status">{{item.status_text}}</text>
+          <text class="order-status" data-status="{{item.status}}">{{item.status_text}}</text>
         </view>
         
         <!-- 商品信息 -->

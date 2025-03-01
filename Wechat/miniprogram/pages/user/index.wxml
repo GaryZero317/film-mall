@@ -6,7 +6,10 @@
       <image class="avatar" src="{{userInfo.avatar || '/assets/images/default-avatar.png'}}" mode="aspectFill"></image>
       <view class="info">
         <text class="nickname">{{userInfo.name}}</text>
-        <text class="mobile">{{userInfo.mobile}}</text>
+        <view class="mobile">
+          <text class="icon-mobile">📱</text>
+          <text>{{userInfo.mobile}}</text>
+        </view>
       </view>
     </block>
     <block wx:else>
@@ -21,7 +24,7 @@
   <view class="order-section">
     <view class="section-header" bindtap="onViewAllOrders">
       <text>我的订单</text>
-      <text class="more">查看全部 ></text>
+      <view class="more">查看全部<text class="icon-arrow">〉</text></view>
     </view>
     <view class="order-types">
       <view class="type-item" bindtap="onViewOrders" data-type="unpaid">
@@ -49,27 +52,37 @@
   <!-- 功能列表 -->
   <view class="menu-list">
     <view class="menu-item" bindtap="onViewAddress">
-      <image src="/assets/images/address.png"></image>
+      <view class="menu-icon address-icon">
+        <image src="/assets/images/address.png"></image>
+      </view>
       <text>收货地址</text>
       <image class="arrow" src="/assets/images/arrow-right.png"></image>
     </view>
     <view class="menu-item" bindtap="onViewFavorites">
-      <image src="/assets/images/favorite.png"></image>
+      <view class="menu-icon favorite-icon">
+        <image src="/assets/images/favorite.png"></image>
+      </view>
       <text>我的收藏</text>
       <image class="arrow" src="/assets/images/arrow-right.png"></image>
     </view>
     <view class="menu-item" bindtap="onViewFilmOrders">
-      <image src="/assets/images/film.png"></image>
+      <view class="menu-icon film-icon">
+        <image src="/assets/images/film.png"></image>
+      </view>
       <text>胶片冲洗</text>
       <image class="arrow" src="/assets/images/arrow-right.png"></image>
     </view>
     <view class="menu-item" bindtap="onViewSettings">
-      <image src="/assets/images/settings.png"></image>
+      <view class="menu-icon settings-icon">
+        <image src="/assets/images/settings.png"></image>
+      </view>
       <text>设置</text>
       <image class="arrow" src="/assets/images/arrow-right.png"></image>
     </view>
   </view>
 
   <!-- 退出登录 -->
-  <view class="logout-btn" bindtap="onLogout" wx:if="{{isLogin}}">退出登录</view>
+  <view class="logout-btn" bindtap="onLogout" wx:if="{{isLogin}}">
+    <text>退出登录</text>
+  </view>
 </view>

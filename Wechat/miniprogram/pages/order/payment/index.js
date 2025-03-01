@@ -466,7 +466,14 @@ Page({
           wx.hideLoading()
           if (res.code === 0) {
             // 执行支付回调
-            payCallback(this.data.payId)
+            payCallback({
+              id: parseInt(this.data.payId),  // 确保ID是整数
+              uid: parseInt(order.uid),       // 确保用户ID是整数
+              oid: parseInt(order.id),        // 确保订单ID是整数
+              amount: parseInt(parseFloat(order.amount) * 100),  // 转换元为分，确保是整数
+              source: 1, // 表示微信支付
+              status: 1  // 表示已支付
+            })
               .then(callbackRes => {
                 wx.showToast({
                   title: '支付成功',

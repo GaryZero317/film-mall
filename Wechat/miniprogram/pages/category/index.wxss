@@ -1,60 +1,122 @@
+/* 全局变量 */
+page {
+  --primary-color: #4A6FE3;
+  --secondary-color: #6A85E8;
+  --text-color: #333333;
+  --light-text: #888888;
+  --bg-color: #F7F8FC;
+  --card-bg: #FFFFFF;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --hover-color: #F0F4FF;
+  --border-radius: 12px;
+  --spacing: 15px;
+  --accent-color: #FF5252;
+  
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
 .container {
   display: flex;
   height: 100vh;
-  background: #f5f5f5;
+  background: var(--bg-color);
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 /* 左侧分类菜单 */
 .category-menu {
-  width: 180rpx;
+  width: 200rpx;
   height: 100%;
-  background: #fff;
+  background: var(--card-bg);
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+  border-radius: 0 16rpx 16rpx 0;
+  overflow: hidden;
 }
 
 .menu-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20rpx 10rpx;
-  border-bottom: 1rpx solid #f5f5f5;
+  padding: 24rpx 10rpx;
+  border-bottom: 1rpx solid rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
 }
 
 .menu-item.active {
-  background: #f5f5f5;
-  color: #1296db;
+  background: var(--hover-color);
+  color: var(--primary-color);
+  position: relative;
+}
+
+.menu-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6rpx;
+  height: 70%;
+  background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+  border-radius: 0 3rpx 3rpx 0;
 }
 
 .category-icon {
   width: 80rpx;
   height: 80rpx;
-  margin-bottom: 8rpx;
-  padding: 10rpx;
+  margin-bottom: 12rpx;
+  padding: 12rpx;
   border-radius: 50%;
   background: #f8f8f8;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease;
+}
+
+.menu-item:active .category-icon {
+  transform: scale(0.9);
 }
 
 .menu-item.active .category-icon {
-  background: #e6f4fb;
+  background: rgba(74, 111, 227, 0.1);
 }
 
 .menu-item text {
-  font-size: 24rpx;
-  line-height: 1.2;
+  font-size: 26rpx;
+  line-height: 1.3;
   text-align: center;
+  transition: color 0.3s ease;
 }
 
 /* 右侧商品列表 */
 .product-list {
   flex: 1;
   height: 100%;
-  padding: 0 20rpx;
+  padding: 0 var(--spacing);
 }
 
 .category-title {
   padding: 30rpx 0;
-  font-size: 32rpx;
-  font-weight: bold;
-  color: #333;
+  font-size: 34rpx;
+  font-weight: 600;
+  color: var(--text-color);
+  position: relative;
+  margin-bottom: 10rpx;
+}
+
+.category-title::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 20rpx;
+  width: 60rpx;
+  height: 6rpx;
+  background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+  border-radius: 3rpx;
 }
 
 .products {
@@ -65,41 +127,57 @@
 
 .product-item {
   width: 48%;
-  margin-bottom: 20rpx;
-  background: #fff;
-  border-radius: 12rpx;
+  margin-bottom: 24rpx;
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
   overflow: hidden;
+  box-shadow: var(--shadow);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.product-item:active {
+  transform: translateY(2rpx);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .product-image {
   width: 100%;
   height: 320rpx;
+  transition: opacity 0.3s ease;
 }
 
 .product-info {
-  padding: 20rpx;
+  padding: 24rpx;
 }
 
 .product-name {
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   overflow: hidden;
+  margin-bottom: 12rpx;
+  line-height: 1.4;
 }
 
 .product-price {
-  font-size: 32rpx;
-  color: #e4393c;
-  font-weight: bold;
-  margin-top: 10rpx;
+  font-size: 34rpx;
+  color: var(--accent-color);
+  font-weight: 600;
 }
 
 /* 加载状态 */
 .loading, .no-more {
   text-align: center;
   padding: 30rpx;
-  color: #999;
+  color: var(--light-text);
   font-size: 28rpx;
+}
+
+.no-more {
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 30rpx;
+  margin: 20rpx 0;
+  padding: 20rpx;
 } 

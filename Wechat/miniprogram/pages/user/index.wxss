@@ -1,156 +1,255 @@
-.container {
-  min-height: 100vh;
-  background: #f5f5f5;
+/* pages/user/index.wxss */
+/* 全局变量 */
+page {
+  --primary-color: #4A6FE3;
+  --text-color: #333333;
+  --light-text: #888888;
+  --bg-color: #F7F8FC;
+  --card-bg: #FFFFFF;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --hover-color: #F0F4FF;
+  --border-radius: 12px;
+  --spacing: 15px;
+  --badge-color: #FF5252;
+  
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  padding-bottom: 40px;
 }
 
-/* 用户信息 */
+/* 容器样式 */
+.container {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* 用户信息区域 */
 .user-info {
   display: flex;
   align-items: center;
-  padding: 40rpx 30rpx;
-  background: #1296db;
-  color: #fff;
+  padding: 30px var(--spacing);
+  position: relative;
+  background: linear-gradient(135deg, #6A85E8, #4A6FE3);
+  color: white;
+  border-radius: 0 0 24px 24px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow);
 }
 
 .avatar {
-  width: 120rpx;
-  height: 120rpx;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
-  margin-right: 30rpx;
-  border: 4rpx solid rgba(255, 255, 255, 0.3);
+  border: 3px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease;
+}
+
+.avatar:active {
+  transform: scale(0.95);
 }
 
 .info {
+  margin-left: 15px;
   flex: 1;
 }
 
 .nickname {
-  font-size: 32rpx;
-  font-weight: bold;
-  margin-bottom: 10rpx;
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 5px;
   display: block;
 }
 
 .mobile {
-  font-size: 26rpx;
-  opacity: 0.8;
+  font-size: 14px;
+  opacity: 0.9;
+  display: flex;
+  align-items: center;
+}
+
+.icon-mobile {
+  margin-right: 5px;
+  font-size: 14px;
 }
 
 .login-btn {
-  font-size: 32rpx;
-  font-weight: bold;
+  color: white;
+  font-size: 18px;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 8px 16px;
+  border-radius: 20px;
+  display: inline-block;
 }
 
 /* 订单区域 */
 .order-section {
-  margin: 20rpx;
-  background: #fff;
-  border-radius: 10rpx;
-  overflow: hidden;
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius);
+  margin: 0 var(--spacing) 20px;
+  padding: 15px;
+  box-shadow: var(--shadow);
 }
 
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 30rpx;
-  border-bottom: 1rpx solid #f5f5f5;
-}
-
-.section-header text {
-  font-size: 30rpx;
-  color: #333;
-  font-weight: bold;
+  padding: 0 5px 10px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  font-size: 16px;
+  font-weight: 600;
 }
 
 .more {
-  font-size: 26rpx;
-  color: #999;
-  font-weight: normal;
+  font-size: 13px;
+  color: var(--light-text);
+  display: flex;
+  align-items: center;
+}
+
+.icon-arrow {
+  font-size: 12px;
+  margin-left: 2px;
 }
 
 .order-types {
   display: flex;
-  padding: 30rpx 0;
+  justify-content: space-between;
+  padding: 15px 0 5px;
 }
 
 .type-item {
-  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 25%;
   position: relative;
 }
 
 .type-item image {
-  width: 60rpx;
-  height: 60rpx;
-  margin-bottom: 10rpx;
+  width: 28px;
+  height: 28px;
+  margin-bottom: 8px;
+  transition: transform 0.2s ease;
+}
+
+.type-item:active image {
+  transform: scale(1.1);
 }
 
 .type-item text {
-  font-size: 26rpx;
-  color: #666;
+  font-size: 13px;
+  color: var(--text-color);
 }
 
 .badge {
   position: absolute;
-  top: -10rpx;
-  right: 50rpx;
-  min-width: 32rpx;
-  height: 32rpx;
-  line-height: 32rpx;
+  top: -5px;
+  right: 15px;
+  background-color: var(--badge-color);
+  color: white;
+  font-size: 11px;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 16px;
   text-align: center;
-  background: #e4393c;
-  color: #fff;
-  border-radius: 16rpx;
-  font-size: 22rpx;
-  padding: 0 8rpx;
+  line-height: 16px;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(255, 82, 82, 0.4);
 }
 
-/* 功能列表 */
+/* 功能菜单列表 */
 .menu-list {
-  margin: 20rpx;
-  background: #fff;
-  border-radius: 10rpx;
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius);
+  margin: 0 var(--spacing);
+  box-shadow: var(--shadow);
+  overflow: hidden;
 }
 
 .menu-item {
   display: flex;
   align-items: center;
-  padding: 30rpx;
-  border-bottom: 1rpx solid #f5f5f5;
+  padding: 16px;
+  position: relative;
+  transition: background-color 0.2s ease;
 }
 
-.menu-item:last-child {
-  border-bottom: none;
+.menu-item:not(:last-child) {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
-.menu-item image {
-  width: 40rpx;
-  height: 40rpx;
-  margin-right: 20rpx;
+.menu-item:active {
+  background-color: var(--hover-color);
+}
+
+.menu-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+}
+
+.menu-icon image {
+  width: 22px;
+  height: 22px;
+}
+
+.address-icon {
+  background-color: rgba(74, 111, 227, 0.1);
+}
+
+.favorite-icon {
+  background-color: rgba(255, 82, 82, 0.1);
+}
+
+.film-icon {
+  background-color: rgba(255, 193, 7, 0.1);
+}
+
+.settings-icon {
+  background-color: rgba(33, 150, 243, 0.1);
 }
 
 .menu-item text {
   flex: 1;
-  font-size: 28rpx;
-  color: #333;
+  font-size: 15px;
 }
 
 .arrow {
-  width: 32rpx;
-  height: 32rpx;
+  width: 16px;
+  height: 16px;
+  opacity: 0.5;
 }
 
 /* 退出登录按钮 */
 .logout-btn {
-  margin: 40rpx 20rpx;
-  height: 88rpx;
-  line-height: 88rpx;
+  margin: 30px var(--spacing);
+  background-color: white;
+  color: #FF5252;
+  padding: 12px 0;
+  border-radius: 24px;
   text-align: center;
-  background: #fff;
-  border-radius: 10rpx;
-  font-size: 30rpx;
-  color: #e4393c;
+  font-weight: 500;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.logout-btn:active {
+  transform: scale(0.98);
+  background-color: #FFF0F0;
 } 

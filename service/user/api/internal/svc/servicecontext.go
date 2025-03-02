@@ -15,14 +15,15 @@ import (
 )
 
 type ServiceContext struct {
-	Config               config.Config
-	UserRpc              user.UserClient
-	UserModel            model.UserModel
-	AdminModel           *model.GormAdminModel
-	CustomerServiceModel model.CustomerServiceModel
-	FaqModel             model.FaqModel
-	ChatMessageModel     model.ChatMessageModel
-	WSManager            *ws.Manager
+	Config                   config.Config
+	UserRpc                  user.UserClient
+	UserModel                model.UserModel
+	AdminModel               *model.GormAdminModel
+	CustomerServiceModel     model.CustomerServiceModel
+	GormCustomerServiceModel *model.GormCustomerServiceModel
+	FaqModel                 model.FaqModel
+	ChatMessageModel         model.ChatMessageModel
+	WSManager                *ws.Manager
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
@@ -103,16 +104,26 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	go wsManager.Start()
 	logx.Info("WebSocket管理器已在后台启动")
 
+	// 初始化GORM版本的CustomerServiceModel
+	logx.Info("开始初始化GORM版本的CustomerServiceModel")
+	gormCustomerServiceModel, err := model.NewGormCustomerServiceModel(sqlDB)
+	if err != nil {
+		logx.Errorf("初始化GORM版本的CustomerServiceModel失败: %v", err)
+		panic(err)
+	}
+	logx.Info("GORM版本的CustomerServiceModel初始化成功")
+
 	logx.Info("服务上下文初始化完成")
 	return &ServiceContext{
-		Config:               c,
-		UserRpc:              user.NewUserClient(zrpc.MustNewClient(c.UserRpc).Conn()),
-		UserModel:            model.NewUserModel(conn, c.CacheRedis),
-		AdminModel:           adminModel,
-		CustomerServiceModel: model.NewCustomerServiceModel(conn),
-		FaqModel:             model.NewFaqModel(conn),
-		ChatMessageModel:     chatMessageModel,
-		WSManager:            wsManager,
+		Config:                   c,
+		UserRpc:                  user.NewUserClient(zrpc.MustNewClient(c.UserRpc).Conn()),
+		UserModel:                model.NewUserModel(conn, c.CacheRedis),
+		AdminModel:               adminModel,
+		CustomerServiceModel:     model.NewCustomerServiceModel(conn),
+		GormCustomerServiceModel: gormCustomerServiceModel,
+		FaqModel:                 model.NewFaqModel(conn),
+		ChatMessageModel:         chatMessageModel,
+		WSManager:                wsManager,
 	}
 }
 

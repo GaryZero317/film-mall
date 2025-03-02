@@ -31,7 +31,7 @@ func (l *ServiceDetailLogic) ServiceDetail(req *types.ServiceDetailRequest) (res
 	uid, _ := l.ctx.Value("uid").(json.Number).Int64()
 
 	// 查询问题详情
-	service, err := l.svcCtx.CustomerServiceModel.FindOne(l.ctx, req.Id)
+	service, err := l.svcCtx.GormCustomerServiceModel.FindOne(l.ctx, req.Id)
 	if err != nil {
 		if err == model.ErrNotFound {
 			return nil, errorx.NewDefaultError("问题不存在")
@@ -47,7 +47,7 @@ func (l *ServiceDetailLogic) ServiceDetail(req *types.ServiceDetailRequest) (res
 
 	// 组装响应
 	replyTime := int64(0)
-	if !service.ReplyTime.IsZero() {
+	if service.ReplyTime != nil && !service.ReplyTime.IsZero() {
 		replyTime = service.ReplyTime.Unix()
 	}
 

@@ -15,9 +15,11 @@ export const useUserStore = defineStore('user', {
     async login(username, password) {
       try {
         const res = await login({ username, password })
-        this.token = res.token
+        // 兼容两种返回格式
+        const token = res.data?.token || res.accessToken || res.token
+        this.token = token
         this.username = username
-        localStorage.setItem('token', res.token)
+        localStorage.setItem('token', token)
         localStorage.setItem('username', username)
         return true
       } catch (error) {

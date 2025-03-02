@@ -106,6 +106,8 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getFaqList, addFaq, updateFaq, deleteFaq } from '../../api/customer-service'
+import { adminService } from '../../api/request'  // 导入adminService
+import { callDirectApi } from '../../api/index'  // 导入直接调用API的方法
 
 // FAQ列表数据
 const faqList = ref([])
@@ -144,12 +146,31 @@ const fetchFaqList = async () => {
     if (category.value !== -1) {
       params.category = category.value
     }
-    const res = await getFaqList(params)
-    faqList.value = res.data.list
-    total.value = res.data.total
+    
+    console.log('发送FAQ请求参数:', params)
+    
+    // 使用直接调用API的方法
+    const response = await callDirectApi('/api/user/service/faq/list', 'post', params)
+    console.log('完整API响应:', response)
+    
+    // 检查响应格式，适当处理
+    if (response && response.list) {
+      faqList.value = response.list
+      total.value = response.total || 0
+    } else {
+      console.error('响应格式不符合预期:', response)
+      ElMessage.warning('获取FAQ列表成功，但数据格式有问题')
+      faqList.value = []
+      total.value = 0
+    }
   } catch (error) {
     console.error('获取FAQ列表失败', error)
-    ElMessage.error('获取FAQ列表失败')
+    // 增加更详细的错误信息
+    if (error.response) {
+      console.error('错误状态码:', error.response.status)
+      console.error('错误详情:', error.response.data)
+    }
+    ElMessage.error('获取FAQ列表失败: ' + (error.message || '未知错误'))
   } finally {
     loading.value = false
   }

@@ -31,6 +31,28 @@ const createService = (baseURL) => {
       const res = response.data
       console.log('API响应数据:', res)
       
+      // 针对FAQ列表API的特殊处理
+      if (response.config.url.includes('/api/user/service/faq/list')) {
+        console.log('检测到FAQ列表API，返回完整响应:', response)
+        // 如果响应没有code字段或code为0，则视为成功
+        if (!res.code || res.code === 0) {
+          return res
+        }
+        // 有code且不为0，表示有错误
+        return Promise.reject(new Error(res.msg || '请求失败'))
+      }
+      
+      // 针对问题详情API的特殊处理
+      if (response.config.url.includes('/api/admin/service/detail')) {
+        console.log('检测到问题详情API，返回完整响应:', response)
+        // 如果响应没有code字段或code为0，则视为成功
+        if (!res.code || res.code === 0) {
+          return res
+        }
+        // 有code且不为0，表示有错误
+        return Promise.reject(new Error(res.msg || '请求失败'))
+      }
+      
       // 如果响应中包含 accessToken，说明是登录接口，直接返回数据
       if (res.accessToken !== undefined) {
         return res
@@ -100,4 +122,5 @@ export const adminService = createService('http://localhost:8000')
 export const productService = createService('http://localhost:8001')
 export const orderService = createService('http://localhost:8002')
 export const paymentService = createService('http://localhost:8003')
+export const statisticsService = createService('http://localhost:8006')
 export const filmService = createService('http://localhost:8007') 

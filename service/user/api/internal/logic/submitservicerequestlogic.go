@@ -60,7 +60,7 @@ func (l *SubmitServiceRequestLogic) SubmitServiceRequest(req *types.SubmitServic
 	}
 
 	// 插入数据库
-	result, err := l.svcCtx.CustomerServiceModel.Insert(l.ctx, customerService)
+	result, err := l.svcCtx.GormCustomerServiceModel.Insert(l.ctx, customerService)
 	if err != nil {
 		l.Logger.Errorf("插入客服问题失败: %v", err)
 		return nil, errorx.NewDefaultError("提交问题失败，请稍后重试")

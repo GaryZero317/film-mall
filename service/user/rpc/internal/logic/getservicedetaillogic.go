@@ -35,7 +35,7 @@ func (l *GetServiceDetailLogic) GetServiceDetail(in *user.ServiceDetailRequest) 
 	}
 
 	// 查询问题详情
-	service, err := l.svcCtx.CustomerServiceModel.FindOne(l.ctx, in.Id)
+	service, err := l.svcCtx.GormCustomerServiceModel.FindOne(l.ctx, in.Id)
 	if err != nil {
 		if err == model.ErrNotFound {
 			return nil, status.Error(100, "问题不存在")
@@ -51,7 +51,7 @@ func (l *GetServiceDetailLogic) GetServiceDetail(in *user.ServiceDetailRequest) 
 
 	// 组装响应
 	replyTime := int64(0)
-	if !service.ReplyTime.IsZero() {
+	if service.ReplyTime != nil && !service.ReplyTime.IsZero() {
 		replyTime = service.ReplyTime.Unix()
 	}
 

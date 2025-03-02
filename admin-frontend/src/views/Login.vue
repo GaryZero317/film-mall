@@ -88,10 +88,13 @@ const handleLogin = async () => {
     const res = await login(loginForm)
     console.log('登录响应:', res)
     
-    if (res && res.code === 0) {
-      userStore.token = res.data.token
-      localStorage.setItem('token', res.data.token)
-      localStorage.setItem('adminInfo', JSON.stringify(res.data))
+    if (res && (res.code === 0 || res.accessToken)) {
+      const token = res.data?.token || res.accessToken
+      const adminInfo = res.data || { accessToken: res.accessToken, accessExpire: res.accessExpire }
+      
+      userStore.token = token
+      localStorage.setItem('token', token)
+      localStorage.setItem('adminInfo', JSON.stringify(adminInfo))
       localStorage.setItem('username', loginForm.username)
       ElMessage.success('登录成功')
       await router.push('/')

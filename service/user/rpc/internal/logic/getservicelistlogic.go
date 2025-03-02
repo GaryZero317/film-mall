@@ -41,7 +41,7 @@ func (l *GetServiceListLogic) GetServiceList(in *user.ServiceListRequest) (*user
 	}
 
 	// 查询数据
-	list, total, err := l.svcCtx.CustomerServiceModel.FindByUserId(l.ctx, in.UserId, page, pageSize, in.Status)
+	list, total, err := l.svcCtx.GormCustomerServiceModel.FindByUserId(l.ctx, in.UserId, page, pageSize, in.Status)
 	if err != nil {
 		l.Logger.Errorf("查询客服问题列表失败: %v", err)
 		return nil, status.Error(500, "查询客服问题列表失败")

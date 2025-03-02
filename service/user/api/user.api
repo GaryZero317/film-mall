@@ -232,6 +232,85 @@ type (
 		Content    string `json:"content"`    // 消息内容
 		CreateTime int64  `json:"createTime"` // 发送时间
 	}
+
+	// 管理员客服功能 - 问题列表
+	AdminServiceListRequest {
+		Page     int64 `json:"page,optional"`      // 页码
+		PageSize int64 `json:"page_size,optional"` // 每页数量
+		Status   int64 `json:"status,optional"`    // 状态筛选：0-全部，1-待处理，2-处理中，3-已解决
+		Type     int64 `json:"type,optional"`      // 问题类型筛选
+	}
+
+	AdminServiceListResponse {
+		Total int64                 `json:"total"` // 总数
+		List  []ServiceItemResponse `json:"list"`  // 列表数据
+	}
+
+	// 管理员客服功能 - 问题详情
+	AdminServiceDetailRequest {
+		Id int64 `json:"id"` // 问题ID
+	}
+
+	AdminServiceDetailResponse {
+		Id         int64  `json:"id"`         // 问题ID
+		UserId     int64  `json:"userId"`     // 用户ID
+		Title      string `json:"title"`      // 问题标题
+		Content    string `json:"content"`    // 问题内容
+		Type       int64  `json:"type"`       // 问题类型
+		Status     int64  `json:"status"`     // 状态
+		Reply      string `json:"reply"`      // 回复内容
+		ReplyTime  int64  `json:"replyTime"`  // 回复时间
+		ContactWay string `json:"contactWay"` // 联系方式
+		CreateTime int64  `json:"createTime"` // 创建时间
+		UpdateTime int64  `json:"updateTime"` // 更新时间
+	}
+
+	// 管理员客服功能 - 回复问题
+	AdminServiceUpdateRequest {
+		Id     int64  `json:"id"`              // 问题ID
+		Reply  string `json:"reply"`           // 回复内容
+		Status int64  `json:"status,optional"` // 状态，可选，默认为1(已回复)
+	}
+
+	AdminServiceUpdateResponse {
+		Code int64  `json:"code"` // 状态码，0为成功
+		Msg  string `json:"msg"`  // 返回消息
+	}
+
+	// 管理员FAQ管理相关
+	AdminFaqAddRequest {
+		Question string `json:"question"` // FAQ问题
+		Answer   string `json:"answer"`   // FAQ答案
+		Type     int64  `json:"type"`     // FAQ类型
+		Sort     int64  `json:"sort"`     // 排序
+	}
+
+	AdminFaqAddResponse {
+		Code int64  `json:"code"` // 状态码，0为成功
+		Msg  string `json:"msg"`  // 返回消息
+	}
+
+	AdminFaqUpdateRequest {
+		Id       int64  `json:"id"`       // FAQ ID
+		Question string `json:"question"` // FAQ问题
+		Answer   string `json:"answer"`   // FAQ答案
+		Type     int64  `json:"type"`     // FAQ类型
+		Sort     int64  `json:"sort"`     // 排序
+	}
+
+	AdminFaqUpdateResponse {
+		Code int64  `json:"code"` // 状态码，0为成功
+		Msg  string `json:"msg"`  // 返回消息
+	}
+
+	AdminFaqDeleteRequest {
+		Id int64 `json:"id"` // FAQ ID
+	}
+
+	AdminFaqDeleteResponse {
+		Code int64  `json:"code"` // 状态码，0为成功
+		Msg  string `json:"msg"`  // 返回消息
+	}
 )
 
 service User {
@@ -309,4 +388,24 @@ service User {
 	// 管理员WebSocket端点
 	@handler AdminChatConnect
 	get /api/admin/chat/connect
+	
+	// 管理员客服问题管理
+	@handler AdminServiceList
+	post /api/admin/service/list (AdminServiceListRequest) returns (AdminServiceListResponse)
+	
+	@handler AdminServiceDetail
+	post /api/admin/service/detail (AdminServiceDetailRequest) returns (AdminServiceDetailResponse)
+	
+	@handler AdminServiceUpdate
+	post /api/admin/service/update (AdminServiceUpdateRequest) returns (AdminServiceUpdateResponse)
+	
+	// 管理员FAQ管理
+	@handler AdminFaqAdd
+	post /api/admin/service/faq/add (AdminFaqAddRequest) returns (AdminFaqAddResponse)
+	
+	@handler AdminFaqUpdate
+	post /api/admin/service/faq/update (AdminFaqUpdateRequest) returns (AdminFaqUpdateResponse)
+	
+	@handler AdminFaqDelete
+	post /api/admin/service/faq/delete (AdminFaqDeleteRequest) returns (AdminFaqDeleteResponse)
 }

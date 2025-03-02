@@ -219,3 +219,78 @@ type AdminSendChatMessageResponse struct {
 	Content    string `json:"content"`    // 消息内容
 	CreateTime int64  `json:"createTime"` // 发送时间
 }
+
+type AdminServiceListRequest struct {
+	Page     int64 `json:"page,optional"`      // 页码
+	PageSize int64 `json:"page_size,optional"` // 每页数量
+	Status   int64 `json:"status,optional"`    // 状态筛选：0-全部，1-待处理，2-处理中，3-已解决
+	Type     int64 `json:"type,optional"`      // 问题类型筛选
+}
+
+type AdminServiceListResponse struct {
+	Total int64                 `json:"total"` // 总数
+	List  []ServiceItemResponse `json:"list"`  // 列表数据
+}
+
+type AdminServiceDetailRequest struct {
+	Id int64 `json:"id"` // 问题ID
+}
+
+type AdminServiceDetailResponse struct {
+	Id         int64  `json:"id"`         // 问题ID
+	UserId     int64  `json:"userId"`     // 用户ID
+	Title      string `json:"title"`      // 问题标题
+	Content    string `json:"content"`    // 问题内容
+	Type       int64  `json:"type"`       // 问题类型
+	Status     int64  `json:"status"`     // 状态
+	Reply      string `json:"reply"`      // 回复内容
+	ReplyTime  int64  `json:"replyTime"`  // 回复时间
+	ContactWay string `json:"contactWay"` // 联系方式
+	CreateTime int64  `json:"createTime"` // 创建时间
+	UpdateTime int64  `json:"updateTime"` // 更新时间
+}
+
+type AdminServiceUpdateRequest struct {
+	Id     int64  `json:"id"`              // 问题ID
+	Reply  string `json:"reply"`           // 回复内容
+	Status int64  `json:"status,optional"` // 状态，可选，默认为1(已回复)
+}
+
+type AdminServiceUpdateResponse struct {
+	Code int64  `json:"code"` // 状态码，0为成功
+	Msg  string `json:"msg"`  // 返回消息
+}
+
+type AdminFaqAddRequest struct {
+	Question string `json:"question"` // FAQ问题
+	Answer   string `json:"answer"`   // FAQ答案
+	Type     int64  `json:"type"`     // FAQ类型
+	Sort     int64  `json:"sort"`     // 排序
+}
+
+type AdminFaqAddResponse struct {
+	Code int64  `json:"code"` // 状态码，0为成功
+	Msg  string `json:"msg"`  // 返回消息
+}
+
+type AdminFaqUpdateRequest struct {
+	Id       int64  `json:"id"`       // FAQ ID
+	Question string `json:"question"` // FAQ问题
+	Answer   string `json:"answer"`   // FAQ答案
+	Type     int64  `json:"type"`     // FAQ类型
+	Sort     int64  `json:"sort"`     // 排序
+}
+
+type AdminFaqUpdateResponse struct {
+	Code int64  `json:"code"` // 状态码，0为成功
+	Msg  string `json:"msg"`  // 返回消息
+}
+
+type AdminFaqDeleteRequest struct {
+	Id int64 `json:"id"` // FAQ ID
+}
+
+type AdminFaqDeleteResponse struct {
+	Code int64  `json:"code"` // 状态码，0为成功
+	Msg  string `json:"msg"`  // 返回消息
+}

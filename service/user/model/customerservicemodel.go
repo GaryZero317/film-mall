@@ -20,21 +20,22 @@ type (
 		Update(ctx context.Context, data *CustomerService) error
 		Delete(ctx context.Context, id int64) error
 		FindByUserId(ctx context.Context, userId int64, page, pageSize int64, status int64) ([]*CustomerService, int64, error)
+		FindAll(ctx context.Context, page, pageSize int64, status int64, serviceType int64) ([]*CustomerService, int64, error)
 	}
 
 	// CustomerService 客服问题
 	CustomerService struct {
-		Id         int64     `db:"id"`
-		UserId     int64     `db:"user_id"`
-		Title      string    `db:"title"`
-		Content    string    `db:"content"`
-		Type       int64     `db:"type"`
-		Status     int64     `db:"status"`
-		Reply      string    `db:"reply"`
-		ReplyTime  time.Time `db:"reply_time"`
-		ContactWay string    `db:"contact_way"`
-		CreateTime time.Time `db:"create_time"`
-		UpdateTime time.Time `db:"update_time"`
+		Id         int64      `db:"id"`
+		UserId     int64      `db:"user_id"`
+		Title      string     `db:"title"`
+		Content    string     `db:"content"`
+		Type       int64      `db:"type"`
+		Status     int64      `db:"status"`
+		Reply      string     `db:"reply"`
+		ReplyTime  *time.Time `db:"reply_time"`
+		ContactWay string     `db:"contact_way"`
+		CreateTime time.Time  `db:"create_time"`
+		UpdateTime time.Time  `db:"update_time"`
 	}
 
 	customDefaultCustomerServiceModel struct {
@@ -87,7 +88,7 @@ func createPlaceholders(count int) string {
 
 // FindOne 根据id查询记录
 func (m *customDefaultCustomerServiceModel) FindOne(ctx context.Context, id int64) (*CustomerService, error) {
-	query := fmt.Sprintf("select %s from %s where `id` = ? limit 1", "id, user_id, title, content, type, status, reply, reply_time, contact_way, create_time, update_time", m.table)
+	query := fmt.Sprintf("select %s from %s where `id` = ? limit 1", "id, user_id, title, content, type, status, reply, IFNULL(reply_time, '1970-01-01') as reply_time, contact_way, create_time, update_time", m.table)
 	var resp CustomerService
 	err := m.conn.QueryRowCtx(ctx, &resp, query, id)
 	switch err {
@@ -142,7 +143,7 @@ func (m *customDefaultCustomerServiceModel) FindByUserId(ctx context.Context, us
 
 	// 查询列表
 	query := fmt.Sprintf("select %s from %s %s order by create_time desc limit ? offset ?",
-		"id, user_id, title, content, type, status, reply, reply_time, contact_way, create_time, update_time",
+		"id, user_id, title, content, type, status, reply, IFNULL(reply_time, '1970-01-01') as reply_time, contact_way, create_time, update_time",
 		m.table, whereClause)
 	args = append(args, pageSize, offset)
 
@@ -153,4 +154,43 @@ func (m *customDefaultCustomerServiceModel) FindByUserId(ctx context.Context, us
 	}
 
 	return resp, total, nil
+}
+
+// FindAll 管理员查询所有客服问题
+func (m *customDefaultCustomerServiceModel) FindAll(ctx context.Context, page, pageSize int64, status int64, serviceType int64) ([]*CustomerService, int64, error) {
+	// 构建查询条件
+	where := "1=1"
+	if status > 0 {
+		where = fmt.Sprintf("%s AND status = %d", where, status)
+	}
+	if serviceType > 0 {
+		where = fmt.Sprintf("%s AND type = %d", where, serviceType)
+	}
+
+	// 查询总数
+	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE %s", m.table, where)
+	var count int64
+	err := m.conn.QueryRowCtx(ctx, &count, countQuery)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// 如果没有记录，直接返回
+	if count == 0 {
+		return []*CustomerService{}, count, nil
+	}
+
+	// 查询记录
+	query := fmt.Sprintf("SELECT id, user_id, title, content, type, status, reply, IFNULL(reply_time, '1970-01-01') as reply_time, contact_way, create_time, update_time FROM %s WHERE %s ORDER BY create_time DESC LIMIT %d, %d",
+		m.table, where, (page-1)*pageSize, pageSize)
+	var resp []*CustomerService
+	err = m.conn.QueryRowsCtx(ctx, &resp, query)
+	switch err {
+	case nil:
+		return resp, count, nil
+	case sqlc.ErrNotFound:
+		return []*CustomerService{}, 0, nil
+	default:
+		return nil, 0, err
+	}
 }

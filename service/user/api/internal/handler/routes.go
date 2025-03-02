@@ -123,6 +123,36 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Path:    "/api/admin/chat/connect",
 				Handler: AdminChatConnectHandler(serverCtx),
 			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/api/admin/service/list",
+				Handler: AdminServiceListHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/api/admin/service/detail",
+				Handler: AdminServiceDetailHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/api/admin/service/update",
+				Handler: AdminServiceUpdateHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/api/admin/service/faq/add",
+				Handler: AdminFaqAddHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/api/admin/service/faq/update",
+				Handler: AdminFaqUpdateHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/api/admin/service/faq/delete",
+				Handler: AdminFaqDeleteHandler(serverCtx),
+			},
 		},
 		rest.WithJwt(serverCtx.Config.AdminAuth.AccessSecret),
 	)

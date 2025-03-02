@@ -171,7 +171,13 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getQuestionList, getQuestionDetail, replyQuestion } from '../../api/customer-service'
+import { 
+  getQuestionList, 
+  getQuestionListSafe,
+  getQuestionDetail,
+  replyQuestion 
+} from '@/api/customer-service'
+import { adminService } from '@/api/request'
 
 // 问题列表数据
 const questionList = ref([])
@@ -204,22 +210,79 @@ const closing = ref(false)
 const fetchQuestionList = async () => {
   loading.value = true
   try {
+    // 确保所有参数都是数字类型，并设置合理的默认值
     const params = {
-      page: page.value,
-      page_size: pageSize.value
+      page: Number(page.value) || 1,
+      page_size: Number(pageSize.value) || 10
     }
-    if (status.value !== -1) {
-      params.status = status.value
+    
+    // 仅当状态不为-1时添加状态筛选
+    if (status.value !== -1 && status.value !== undefined && status.value !== null) {
+      params.status = Number(status.value)
     }
-    if (type.value !== -1) {
-      params.type = type.value
+    
+    // 仅当类型不为-1时添加类型筛选
+    if (type.value !== -1 && type.value !== undefined && type.value !== null) {
+      params.type = Number(type.value)
     }
-    const res = await getQuestionList(params)
-    questionList.value = res.data.list
-    total.value = res.data.total
+    
+    // 添加调试日志，查看实际发送的参数
+    console.log('发送参数:', JSON.stringify(params))
+    
+    const res = await getQuestionListSafe(params)
+    console.log('API响应:', res)
+    
+    questionList.value = res.list || []
+    total.value = res.total || 0
   } catch (error) {
     console.error('获取问题列表失败', error)
-    ElMessage.error('获取问题列表失败')
+    // 添加更详细的错误信息
+    if (error.response) {
+      console.error('错误状态码:', error.response.status)
+      console.error('错误详情:', error.response.data)
+      
+      // 检测时间字段错误，尝试使用备用方案
+      if (error.response.data && error.response.data.includes && 
+          error.response.data.includes('time') && 
+          error.response.data.includes('nil')) {
+        
+        ElMessage.warning('数据格式问题，正在尝试替代方案获取数据...')
+        
+        try {
+          // 重新构建参数
+          const fallbackParams = {
+            page: Number(page.value) || 1,
+            page_size: Number(pageSize.value) || 10
+          }
+          
+          // 添加筛选条件
+          if (status.value !== -1 && status.value !== undefined && status.value !== null) {
+            fallbackParams.status = Number(status.value)
+          }
+          
+          if (type.value !== -1 && type.value !== undefined && type.value !== null) {
+            fallbackParams.type = Number(type.value)
+          }
+          
+          // 添加忽略空时间字段标记
+          fallbackParams.ignore_null_time = true
+          
+          // 使用原始方法再次尝试
+          const res = await getQuestionList(fallbackParams)
+          if (res && res.data) {
+            questionList.value = res.data.list || []
+            total.value = res.data.total || 0
+            ElMessage.success('成功获取部分数据')
+            return
+          }
+        } catch (fallbackError) {
+          console.error('替代方案也失败了', fallbackError)
+          // 继续显示原始错误
+        }
+      }
+    }
+    
+    ElMessage.error('获取问题列表失败：' + (error.message || '未知错误'))
   } finally {
     loading.value = false
   }
@@ -229,12 +292,25 @@ const fetchQuestionList = async () => {
 const fetchQuestionDetail = async (id) => {
   detailLoading.value = true
   try {
-    const res = await getQuestionDetail(id)
-    currentQuestion.value = res.data
+    console.log('获取问题详情，ID:', id)
+    const res = await adminService({
+      url: '/api/admin/service/detail',
+      method: 'post',
+      data: { id }
+    })
+    console.log('问题详情响应:', res)
+    
+    // 直接使用响应对象，不需要通过data属性访问
+    currentQuestion.value = res
     replyForm.reply = ''
   } catch (error) {
     console.error('获取问题详情失败', error)
-    ElMessage.error('获取问题详情失败')
+    // 增加更详细的错误信息
+    if (error.response) {
+      console.error('错误状态码:', error.response.status)
+      console.error('错误详情:', error.response.data)
+    }
+    ElMessage.error('获取问题详情失败: ' + (error.message || '未知错误'))
   } finally {
     detailLoading.value = false
   }
@@ -345,7 +421,8 @@ const getQuestionTypeTag = (type) => {
     3: 'info',
     4: 'danger'
   }
-  return typeMap[type] || ''
+  // 确保返回有效的标签类型，默认为 info
+  return typeMap[type] || 'info'
 }
 
 // 获取状态文本
@@ -365,7 +442,8 @@ const getStatusType = (status) => {
     2: 'success',
     3: 'info'
   }
-  return statusMap[status] || ''
+  // 确保返回有效的标签类型，默认为 info
+  return statusMap[status] || 'info'
 }
 
 onMounted(() => {

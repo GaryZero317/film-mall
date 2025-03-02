@@ -56,7 +56,7 @@ func (l *SubmitCustomerServiceLogic) SubmitCustomerService(in *user.CustomerServ
 	}
 
 	// 插入数据库
-	result, err := l.svcCtx.CustomerServiceModel.Insert(l.ctx, customerService)
+	result, err := l.svcCtx.GormCustomerServiceModel.Insert(l.ctx, customerService)
 	if err != nil {
 		l.Logger.Errorf("创建客服问题失败：%v", err)
 		return nil, status.Error(500, "创建客服问题失败")

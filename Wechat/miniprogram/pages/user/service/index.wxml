@@ -94,15 +94,19 @@
       </view>
     </view>
 
+    <!-- 在线客服入口 -->
+    <view class="action-buttons">
+      <button class="contact-btn chat-btn ripple" bindtap="goToChat">
+        <text class="btn-icon">💬</text>
+        <text>在线客服</text>
+      </button>
+    </view>
+
     <!-- 问题提交入口 -->
     <view class="action-buttons">
       <button class="contact-btn ripple" bindtap="showSubmitForm">
         <text class="btn-icon">✍️</text>
         <text>提交问题</text>
-      </button>
-      <button class="contact-btn chat-btn ripple" bindtap="goToChat">
-        <text class="btn-icon">💬</text>
-        <text>在线客服</text>
       </button>
     </view>
 

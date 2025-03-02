@@ -3,21 +3,42 @@
  * @param {number} timestamp - 时间戳（秒）
  * @return {string} 格式化后的时间字符串
  */
-var formatTime = function(timestamp) {
+function formatTime(timestamp) {
   if (!timestamp) return '';
   
-  // WXS中的日期处理
+  // 创建日期对象
   var date = getDate(timestamp * 1000);
+  
+  // 获取小时和分钟，并补零
   var hours = date.getHours();
   var minutes = date.getMinutes();
   
-  // 确保小时和分钟是两位数
   hours = hours < 10 ? '0' + hours : hours;
   minutes = minutes < 10 ? '0' + minutes : minutes;
   
   return hours + ':' + minutes;
-};
+}
 
+// 格式化日期为年-月-日
+function formatDate(timestamp) {
+  if (!timestamp) return '';
+  
+  // 创建日期对象
+  var date = getDate(timestamp * 1000);
+  
+  // 获取年月日
+  var year = date.getFullYear();
+  var month = date.getMonth() + 1;
+  var day = date.getDate();
+  
+  month = month < 10 ? '0' + month : month;
+  day = day < 10 ? '0' + day : day;
+  
+  return year + '-' + month + '-' + day;
+}
+
+// 导出函数
 module.exports = {
-  formatTime: formatTime
+  formatTime: formatTime,
+  formatDate: formatDate
 }; 

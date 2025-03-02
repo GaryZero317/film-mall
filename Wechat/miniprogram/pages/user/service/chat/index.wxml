@@ -22,7 +22,7 @@
     show-scrollbar="false"
   >
     <!-- 调试信息 -->
-    <view class="debug-info" style="padding: 10rpx; font-size: 24rpx; color: #999;">
+    <view class="debug-info" style="display:none;">
       <text>页面已加载 | 消息数: {{messages.length}}</text>
     </view>
   
@@ -42,7 +42,7 @@
       <!-- 客服消息 -->
       <view class="message-item service-message" wx:if="{{item.senderType === 2}}" id="msg-{{item.id}}">
         <view class="message-avatar">
-          <image class="avatar-img" src="/assets/images/service-avatar.png" mode="aspectFill"></image>
+          <image class="avatar-img" src="/images/placeholder.png" mode="aspectFill"></image>
         </view>
         <view class="message-content">
           <view class="message-bubble">{{item.content}}</view>
@@ -66,14 +66,14 @@
           <view class="message-time">{{format.formatTime(item.createTime)}}</view>
         </view>
         <view class="message-avatar">
-          <image class="avatar-img" src="/assets/images/user-avatar.png" mode="aspectFill"></image>
+          <image class="avatar-img" src="/images/placeholder.png" mode="aspectFill"></image>
         </view>
       </view>
     </block>
     
     <!-- 无消息状态 -->
     <view class="empty-messages" wx:if="{{!loading && messages.length === 0}}">
-      <image class="empty-icon" src="/assets/images/chat-empty.png" mode="aspectFit"></image>
+      <image class="empty-icon" src="/images/placeholder.png" mode="aspectFit"></image>
       <text class="empty-text">暂无消息，发送一条消息开始聊天吧</text>
     </view>
     

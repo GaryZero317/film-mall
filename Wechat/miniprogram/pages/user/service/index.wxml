@@ -3,27 +3,38 @@
   <view class="header">
     <image class="logo" src="/assets/images/logo.png" mode="aspectFit"></image>
     <text class="title">客服中心</text>
+    <view class="header-subtitle">随时为您服务</view>
   </view>
 
   <view class="content">
     <view class="service-card">
-      <view class="card-title">联系我们</view>
-      <view class="contact-item" bindtap="callService">
-        <view class="icon">📞</view>
+      <view class="card-title">
+        <text class="icon-contact">📞</text>
+        <text>联系我们</text>
+      </view>
+      <view class="contact-item" bindtap="callService" hover-class="item-hover">
+        <view class="icon phone-icon">
+          <image class="icon-image" src="/assets/images/phone-icon.png" mode="aspectFit"></image>
+        </view>
         <view class="info">
           <text class="label">客服电话</text>
           <text class="value">400-123-4567</text>
         </view>
+        <view class="arrow-right">〉</view>
       </view>
-      <view class="contact-item">
-        <view class="icon">📧</view>
+      <view class="contact-item" hover-class="item-hover">
+        <view class="icon email-icon">
+          <image class="icon-image" src="/assets/images/email-icon.png" mode="aspectFit"></image>
+        </view>
         <view class="info">
           <text class="label">客服邮箱</text>
           <text class="value">service@filmmall.com</text>
         </view>
       </view>
-      <view class="contact-item">
-        <view class="icon">🕙</view>
+      <view class="contact-item" hover-class="item-hover">
+        <view class="icon time-icon">
+          <image class="icon-image" src="/assets/images/time-icon.png" mode="aspectFit"></image>
+        </view>
         <view class="info">
           <text class="label">服务时间</text>
           <text class="value">周一至周日 9:00-18:00</text>
@@ -32,28 +43,67 @@
     </view>
 
     <view class="service-card">
-      <view class="card-title">常见问题</view>
+      <view class="card-title">
+        <text class="icon-faq">❓</text>
+        <text>常见问题</text>
+      </view>
+      
+      <!-- 添加控制台日志输出，帮助调试 -->
+      <view style="display:none;">
+        调试信息: {{faqList.length}} 个问题, showAllFaq={{showAllFaq}}
+      </view>
+      
       <view class="faq-list" wx:if="{{!loading}}">
         <block wx:if="{{faqList.length > 0}}">
-          <view class="faq-item" wx:for="{{faqList}}" wx:key="id" bindtap="toggleFaq" data-index="{{index}}">
-            <view class="faq-question">
-              <text>{{item.question}}</text>
-              <text class="arrow {{faqOpen[index] ? 'open' : ''}}">〉</text>
+          <!-- 根据索引显示问题，确保只显示三个或全部 -->
+          <block wx:for="{{faqList}}" wx:key="id">
+            <!-- 仅当showAllFaq为true或索引小于3时显示 -->
+            <view class="faq-item" 
+              wx:if="{{showAllFaq || index < 3}}"
+              bindtap="toggleFaq" 
+              hover-class="item-hover"
+              data-index="{{index}}"
+              data-item-id="{{item.id}}">
+              <view class="faq-question">
+                <text class="question-text">{{item.question}}</text>
+                <text class="arrow {{faqOpen[item.id] ? 'open' : ''}}">〉</text>
+              </view>
+              <view class="faq-answer {{faqOpen[item.id] ? 'show' : ''}}">
+                {{item.answer}}
+              </view>
             </view>
-            <view class="faq-answer {{faqOpen[index] ? 'show' : ''}}">
-              {{item.answer}}
-            </view>
-          </view>
+          </block>
         </block>
-        <view wx:else class="empty-tip">暂无常见问题</view>
+        <view wx:else class="empty-tip">
+          <image class="empty-icon" src="/assets/images/empty-icon.png" mode="aspectFit"></image>
+          <text>暂无常见问题</text>
+        </view>
       </view>
-      <view class="loading" wx:else>加载中...</view>
+      
+      <!-- 仅当问题数量大于3时显示"查看更多"按钮 -->
+      <view class="view-more-container" wx:if="{{faqList.length > 3}}">
+        <view class="view-more-btn ripple" bindtap="toggleShowAllFaq">
+          <text>{{showAllFaq ? '收起' : '查看更多'}}</text>
+          <text class="arrow-down" style="{{showAllFaq ? 'transform: rotate(180deg);' : ''}}">▼</text>
+        </view>
+      </view>
+      
+      <view class="loading" wx:if="{{loading}}">
+        <view class="loading-spinner"></view>
+        <text>加载中...</text>
+      </view>
     </view>
 
     <!-- 问题提交入口 -->
-    <view class="question-entry">
-      <button class="contact-btn" bindtap="showSubmitForm">提交问题</button>
-      <button class="contact-btn chat-btn" bindtap="goToChat">在线聊天</button>
+    <view class="action-buttons">
+      <button class="contact-btn ripple" bindtap="showSubmitForm">
+        <text class="btn-icon">✍️</text>
+        <text>提交问题</text>
+      </button>
+      <button class="contact-btn chat-btn ripple" bindtap="goToChat">
+        <text class="btn-icon">💬</text>
+        <text>在线聊天</text>
+      </button>
     </view>
 
     <!-- 问题提交弹窗 -->
@@ -94,7 +144,7 @@
         </view>
         <view class="modal-footer">
           <button class="cancel-btn" bindtap="hideSubmitForm">取消</button>
-          <button class="submit-btn" bindtap="submitQuestion">提交</button>
+          <button class="submit-btn ripple" bindtap="submitQuestion">提交</button>
         </view>
       </view>
     </view>

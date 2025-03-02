@@ -2,12 +2,13 @@ import { getFaqList, createQuestion } from '../../../api/service';
 
 Page({
   data: {
-    faqOpen: [],
+    faqOpen: {}, // 使用对象来存储FAQ的展开状态，键为问题ID
     faqList: [],
     loading: false,
     questionType: 1, // 默认问题类型
     questionContent: '', // 问题内容
     showSubmitForm: false, // 是否显示提交表单
+    showAllFaq: false, // 是否显示所有FAQ问题，默认不显示全部
   },
 
   onLoad: function (options) {
@@ -37,13 +38,25 @@ Page({
             faqList = [res.data];
           }
           
-          // 初始化展开状态数组
-          const faqOpen = new Array(faqList.length).fill(false);
+          // 确保每个问题都有一个唯一的id
+          faqList = faqList.map((item, index) => {
+            if (!item.id) {
+              item.id = String(index + 1);
+            }
+            return item;
+          });
+          
+          // 初始化展开状态对象
+          const faqOpen = {};
+          faqList.forEach(item => {
+            faqOpen[item.id] = false;
+          });
           
           this.setData({
             faqList,
             faqOpen,
-            loading: false
+            loading: false,
+            showAllFaq: false // 确保初始状态是不显示全部
           });
           
           console.log('FAQ列表加载成功', faqList);
@@ -70,9 +83,9 @@ Page({
 
   // 切换FAQ问题的展开状态
   toggleFaq: function (e) {
-    const index = e.currentTarget.dataset.index;
-    const faqOpen = [...this.data.faqOpen];
-    faqOpen[index] = !faqOpen[index];
+    const itemId = e.currentTarget.dataset.itemId;
+    const faqOpen = { ...this.data.faqOpen };
+    faqOpen[itemId] = !faqOpen[itemId];
     this.setData({ faqOpen });
   },
 
@@ -185,5 +198,22 @@ Page({
         });
       }
     });
-  }
+  },
+
+  // 切换显示所有FAQ问题
+  toggleShowAllFaq: function() {
+    const currentState = this.data.showAllFaq;
+    const newState = !currentState;
+    
+    console.log('切换FAQ显示状态:', {
+      当前状态: currentState ? '显示全部' : '显示部分',
+      新状态: newState ? '显示全部' : '显示部分',
+      问题总数: this.data.faqList.length,
+      显示数量: newState ? this.data.faqList.length : Math.min(3, this.data.faqList.length)
+    });
+    
+    this.setData({
+      showAllFaq: newState
+    });
+  },
 }); 

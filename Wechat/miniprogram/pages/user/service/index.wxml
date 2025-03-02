@@ -33,37 +33,70 @@
 
     <view class="service-card">
       <view class="card-title">常见问题</view>
-      <view class="faq-list">
-        <view class="faq-item" bindtap="toggleFaq" data-index="0">
-          <view class="faq-question">
-            <text>如何查询订单状态？</text>
-            <text class="arrow {{faqOpen[0] ? 'open' : ''}}">〉</text>
+      <view class="faq-list" wx:if="{{!loading}}">
+        <block wx:if="{{faqList.length > 0}}">
+          <view class="faq-item" wx:for="{{faqList}}" wx:key="id" bindtap="toggleFaq" data-index="{{index}}">
+            <view class="faq-question">
+              <text>{{item.question}}</text>
+              <text class="arrow {{faqOpen[index] ? 'open' : ''}}">〉</text>
+            </view>
+            <view class="faq-answer {{faqOpen[index] ? 'show' : ''}}">
+              {{item.answer}}
+            </view>
           </view>
-          <view class="faq-answer {{faqOpen[0] ? 'show' : ''}}">
-            您可以在"我的订单"页面查看所有订单的状态，包括待付款、待发货、待收货和已完成等状态。
+        </block>
+        <view wx:else class="empty-tip">暂无常见问题</view>
+      </view>
+      <view class="loading" wx:else>加载中...</view>
+    </view>
+
+    <!-- 问题提交入口 -->
+    <view class="question-entry">
+      <button class="contact-btn" bindtap="showSubmitForm">提交问题</button>
+      <button class="contact-btn chat-btn" bindtap="goToChat">在线聊天</button>
+    </view>
+
+    <!-- 问题提交弹窗 -->
+    <view class="question-modal" wx:if="{{showSubmitForm}}">
+      <view class="modal-mask" bindtap="hideSubmitForm"></view>
+      <view class="modal-content">
+        <view class="modal-header">
+          <text class="modal-title">提交问题</text>
+          <text class="modal-close" bindtap="hideSubmitForm">×</text>
+        </view>
+        <view class="modal-body">
+          <view class="form-item">
+            <text class="form-label">问题类型</text>
+            <radio-group class="type-group" bindchange="onTypeChange">
+              <label class="type-item">
+                <radio value="1" checked="{{questionType === 1}}" />产品咨询
+              </label>
+              <label class="type-item">
+                <radio value="2" checked="{{questionType === 2}}" />订单问题
+              </label>
+              <label class="type-item">
+                <radio value="3" checked="{{questionType === 3}}" />售后服务
+              </label>
+              <label class="type-item">
+                <radio value="4" checked="{{questionType === 4}}" />其他问题
+              </label>
+            </radio-group>
+          </view>
+          <view class="form-item">
+            <text class="form-label">问题描述</text>
+            <textarea 
+              class="question-textarea" 
+              placeholder="请详细描述您的问题..." 
+              value="{{questionContent}}"
+              bindinput="onContentInput"
+            ></textarea>
           </view>
         </view>
-        <view class="faq-item" bindtap="toggleFaq" data-index="1">
-          <view class="faq-question">
-            <text>如何修改收货地址？</text>
-            <text class="arrow {{faqOpen[1] ? 'open' : ''}}">〉</text>
-          </view>
-          <view class="faq-answer {{faqOpen[1] ? 'show' : ''}}">
-            您可以在个人中心页面点击"收货地址"选项，进入地址管理页面添加、编辑或删除收货地址。
-          </view>
-        </view>
-        <view class="faq-item" bindtap="toggleFaq" data-index="2">
-          <view class="faq-question">
-            <text>胶片冲洗服务流程是什么？</text>
-            <text class="arrow {{faqOpen[2] ? 'open' : ''}}">〉</text>
-          </view>
-          <view class="faq-answer {{faqOpen[2] ? 'show' : ''}}">
-            胶片冲洗流程：1. 在小程序提交冲洗订单；2. 将胶卷寄送至指定地址；3. 我们进行专业冲洗；4. 冲洗完成后将照片和胶片原件寄回您的收货地址。
-          </view>
+        <view class="modal-footer">
+          <button class="cancel-btn" bindtap="hideSubmitForm">取消</button>
+          <button class="submit-btn" bindtap="submitQuestion">提交</button>
         </view>
       </view>
     </view>
-
-    <button class="contact-btn" open-type="contact">在线客服</button>
   </view>
 </view> 

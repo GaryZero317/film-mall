@@ -1,0 +1,23 @@
+/**
+ * 时间格式化函数
+ * @param {number} timestamp - 时间戳（秒）
+ * @return {string} 格式化后的时间字符串
+ */
+var formatTime = function(timestamp) {
+  if (!timestamp) return '';
+  
+  // WXS中的日期处理
+  var date = getDate(timestamp * 1000);
+  var hours = date.getHours();
+  var minutes = date.getMinutes();
+  
+  // 确保小时和分钟是两位数
+  hours = hours < 10 ? '0' + hours : hours;
+  minutes = minutes < 10 ? '0' + minutes : minutes;
+  
+  return hours + ':' + minutes;
+};
+
+module.exports = {
+  formatTime: formatTime
+}; 

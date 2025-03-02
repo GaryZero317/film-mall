@@ -1,0 +1,104 @@
+<!--pages/user/service/chat.wxml-->
+<wxs src="./format.wxs" module="format" />
+
+<view class="chat-container">
+  <!-- 头部 -->
+  <view class="chat-header">
+    <view class="header-back" bindtap="navigateBack">
+      <text class="back-icon">←</text>
+    </view>
+    <view class="header-title">客服聊天</view>
+  </view>
+
+  <!-- 消息列表 -->
+  <scroll-view 
+    class="chat-messages" 
+    scroll-y 
+    id="message-container" 
+    enable-flex
+    scroll-into-view="{{scrollIntoView}}"
+    bindscrolltoupper="loadMoreHistory"
+    enhanced
+    show-scrollbar="false"
+  >
+    <!-- 调试信息 -->
+    <view class="debug-info" style="padding: 10rpx; font-size: 24rpx; color: #999;">
+      <text>页面已加载 | 消息数: {{messages.length}}</text>
+    </view>
+  
+    <!-- 加载更多 -->
+    <view class="load-more" wx:if="{{loadingMore}}">
+      <view class="loading-icon"></view>
+      <text>加载更多...</text>
+    </view>
+    
+    <!-- 无更多消息 -->
+    <view class="no-more" wx:if="{{!hasMore && messages.length > 0 && !loadingMore}}">
+      没有更多消息了
+    </view>
+    
+    <!-- 消息列表 -->
+    <block wx:for="{{messages}}" wx:key="id">
+      <!-- 客服消息 -->
+      <view class="message-item service-message" wx:if="{{item.senderType === 2}}" id="msg-{{item.id}}">
+        <view class="message-avatar">
+          <image class="avatar-img" src="/assets/images/service-avatar.png" mode="aspectFill"></image>
+        </view>
+        <view class="message-content">
+          <view class="message-bubble">{{item.content}}</view>
+          <view class="message-time">{{format.formatTime(item.createTime)}}</view>
+        </view>
+      </view>
+      
+      <!-- 用户消息 -->
+      <view class="message-item user-message" wx:else id="msg-{{item.id}}">
+        <view class="message-content">
+          <view class="message-bubble {{item.isTemp ? 'sending' : ''}} {{item.isFailed ? 'failed' : ''}}">
+            {{item.content}}
+            <view class="sending-status" wx:if="{{item.isTemp}}">
+              <view class="sending-icon"></view>
+            </view>
+            <view class="failed-status" wx:if="{{item.isFailed}}" bindtap="resendMessage" data-index="{{index}}">
+              <text class="failed-icon">!</text>
+              <text class="failed-text">发送失败，点击重试</text>
+            </view>
+          </view>
+          <view class="message-time">{{format.formatTime(item.createTime)}}</view>
+        </view>
+        <view class="message-avatar">
+          <image class="avatar-img" src="/assets/images/user-avatar.png" mode="aspectFill"></image>
+        </view>
+      </view>
+    </block>
+    
+    <!-- 无消息状态 -->
+    <view class="empty-messages" wx:if="{{!loading && messages.length === 0}}">
+      <image class="empty-icon" src="/assets/images/chat-empty.png" mode="aspectFit"></image>
+      <text class="empty-text">暂无消息，发送一条消息开始聊天吧</text>
+    </view>
+    
+    <!-- 加载中 -->
+    <view class="loading-container" wx:if="{{loading}}">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">正在连接...</text>
+    </view>
+  </scroll-view>
+
+  <!-- 输入框 -->
+  <view class="chat-input-container">
+    <input 
+      class="chat-input" 
+      placeholder="请输入消息..." 
+      value="{{inputValue}}"
+      bindinput="onInputChange"
+      confirm-type="send"
+      bindconfirm="sendMessage"
+      adjust-position="{{true}}"
+      cursor-spacing="20"
+      hold-keyboard="{{true}}"
+    />
+    <view class="send-btn {{!inputValue.trim() ? 'disabled' : ''}}" bindtap="sendMessage">
+      发送
+    </view>
+  </view>
+</view> 

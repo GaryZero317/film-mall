@@ -40,11 +40,11 @@ func (l *AdminServiceUpdateLogic) AdminServiceUpdate(req *types.AdminServiceUpda
 	now := time.Now()
 	serviceQuestion.ReplyTime = &now
 
-	// 更新状态，如果未指定则默认为已回复(1)
+	// 更新状态，如果未指定则默认为已回复(2)
 	if req.Status > 0 {
 		serviceQuestion.Status = req.Status
 	} else {
-		serviceQuestion.Status = 1 // 默认已回复状态
+		serviceQuestion.Status = 2 // 已回复状态为2，不是1
 	}
 
 	// 更新时间

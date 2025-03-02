@@ -3,6 +3,7 @@ package model
 import (
 	"context"
 	"database/sql"
+	"strings"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
@@ -30,6 +31,7 @@ type ChatMessageModel interface {
 	Insert(context.Context, *ChatMessage) (sql.Result, error)
 	FindBySession(context.Context, int64, int, int) ([]*ChatMessage, int64, error)
 	FindByUserAndAdmin(context.Context, int64, int64, int, int) ([]*ChatMessage, int64, error)
+	UpdateReadStatus(context.Context, []int64, int64) error
 }
 
 type defaultChatMessageModel struct {
@@ -77,4 +79,26 @@ func (m *defaultChatMessageModel) FindByUserAndAdmin(ctx context.Context, userId
 	_ = m.conn.QueryRowCtx(ctx, &count, countQuery, userId)
 
 	return messages, count, err
+}
+
+// UpdateReadStatus 批量更新消息读取状态
+func (m *defaultChatMessageModel) UpdateReadStatus(ctx context.Context, messageIds []int64, status int64) error {
+	if len(messageIds) == 0 {
+		return nil
+	}
+
+	// 构建问号占位符
+	placeholders := make([]string, len(messageIds))
+	args := make([]interface{}, len(messageIds)+1)
+	args[0] = status
+
+	for i := range messageIds {
+		placeholders[i] = "?"
+		args[i+1] = messageIds[i]
+	}
+
+	// 使用IN子句批量更新
+	query := `update chat_message set read_status = ? where id in (` + strings.Join(placeholders, ",") + `)`
+	_, err := m.conn.ExecCtx(ctx, query, args...)
+	return err
 }

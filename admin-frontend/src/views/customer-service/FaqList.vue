@@ -78,6 +78,12 @@
             <el-option label="其他问题" :value="4" />
           </el-select>
         </el-form-item>
+        <el-form-item label="类型" prop="type">
+          <el-select v-model="faqForm.type" placeholder="请选择类型">
+            <el-option label="普通" :value="1" />
+            <el-option label="重要" :value="2" />
+          </el-select>
+        </el-form-item>
         <el-form-item label="优先级" prop="priority">
           <el-input-number v-model="faqForm.priority" :min="0" :max="100" />
         </el-form-item>
@@ -125,12 +131,14 @@ const faqForm = reactive({
   question: '',
   answer: '',
   category: 1,
+  type: 1,     // 添加type字段，默认为普通类型
   priority: 0
 })
 const faqRules = {
   question: [{ required: true, message: '请输入问题', trigger: 'blur' }],
   answer: [{ required: true, message: '请输入答案', trigger: 'blur' }],
-  category: [{ required: true, message: '请选择分类', trigger: 'change' }]
+  category: [{ required: true, message: '请选择分类', trigger: 'change' }],
+  type: [{ required: true, message: '请选择类型', trigger: 'change' }]
 }
 const faqFormRef = ref(null)
 const submitting = ref(false)
@@ -183,6 +191,7 @@ const handleAdd = () => {
   faqForm.question = ''
   faqForm.answer = ''
   faqForm.category = 1
+  faqForm.type = 1
   faqForm.priority = 0
   dialogVisible.value = true
 }
@@ -194,6 +203,7 @@ const handleEdit = (row) => {
   faqForm.question = row.question
   faqForm.answer = row.answer
   faqForm.category = row.category
+  faqForm.type = row.type
   faqForm.priority = row.priority
   dialogVisible.value = true
 }
@@ -207,18 +217,34 @@ const handleSubmit = async () => {
     
     submitting.value = true
     try {
+      // 确保字段是正确的数据类型并映射字段名称
+      const formData = {
+        ...faqForm,
+        category: Number(faqForm.category),
+        type: Number(faqForm.type),
+        priority: Number(faqForm.priority),
+        sort: Number(faqForm.priority),  // 添加sort字段，值同priority
+        order: Number(faqForm.priority)  // 添加order字段，以防API也检查这个
+      }
+      
       if (isEdit.value) {
-        await updateFaq(faqForm.id, faqForm)
+        console.log('更新FAQ数据:', formData)
+        await updateFaq(faqForm.id, formData)
         ElMessage.success('更新成功')
       } else {
-        await addFaq(faqForm)
+        console.log('添加FAQ数据:', formData)
+        await addFaq(formData)
         ElMessage.success('添加成功')
       }
       dialogVisible.value = false
       fetchFaqList()
     } catch (error) {
       console.error(isEdit.value ? '更新失败' : '添加失败', error)
-      ElMessage.error(isEdit.value ? '更新失败' : '添加失败')
+      if (error.response) {
+        console.error('错误状态码:', error.response.status)
+        console.error('错误详情:', error.response.data)
+      }
+      ElMessage.error(isEdit.value ? '更新失败' : '添加失败: ' + (error.message || '未知错误'))
     } finally {
       submitting.value = false
     }

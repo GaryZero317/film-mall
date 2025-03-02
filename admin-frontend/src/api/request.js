@@ -31,6 +31,25 @@ const createService = (baseURL) => {
       const res = response.data
       console.log('API响应数据:', res)
       
+      // 处理聊天相关API
+      if (response.config.url.includes('/api/admin/chat/')) {
+        console.log('检测到聊天API调用:', response.config.url)
+        
+        // 如果响应体中包含list字段，这是典型的列表响应
+        if (res.list !== undefined || (res.data && res.data.list !== undefined)) {
+          return res
+        }
+        
+        // 对于其他聊天响应，检查是否有错误码
+        if (res.code !== undefined && res.code !== 0) {
+          console.error('聊天API错误:', res.msg || '请求失败')
+          return Promise.reject(new Error(res.msg || '请求失败'))
+        }
+        
+        // 没有明确的错误，返回
+        return res
+      }
+      
       // 针对FAQ列表API的特殊处理
       if (response.config.url.includes('/api/user/service/faq/list')) {
         console.log('检测到FAQ列表API，返回完整响应:', response)

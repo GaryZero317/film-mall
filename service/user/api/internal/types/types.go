@@ -175,7 +175,8 @@ type SendChatMessageResponse struct {
 }
 
 type ChatHistoryRequest struct {
-	AdminId  int64 `form:"adminId"`           // 管理员ID
+	UserId   int64 `form:"userId"`            // 用户ID
+	AdminId  int64 `form:"adminId,optional"`  // 管理员ID (可选)
 	Page     int64 `form:"page,optional"`     // 页码
 	PageSize int64 `form:"pageSize,optional"` // 页大小
 }

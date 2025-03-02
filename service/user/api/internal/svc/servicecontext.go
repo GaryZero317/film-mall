@@ -138,3 +138,20 @@ func (s *ServiceContext) GetChatHistory(ctx context.Context, userId, adminId int
 	logx.Infof("成功获取聊天历史，消息数: %d, 总记录数: %d", len(messages), total)
 	return messages, total, nil
 }
+
+func (s *ServiceContext) MarkMessagesAsRead(ctx context.Context, messageIds []int64) error {
+	logx.Infof("标记消息为已读: messageIds=%v", messageIds)
+	if len(messageIds) == 0 {
+		logx.Info("没有需要标记的消息，操作跳过")
+		return nil
+	}
+
+	err := s.ChatMessageModel.UpdateReadStatus(ctx, messageIds, 1) // 1表示已读
+	if err != nil {
+		logx.Errorf("标记消息为已读失败: %v", err)
+		return err
+	}
+
+	logx.Infof("成功标记 %d 条消息为已读", len(messageIds))
+	return nil
+}

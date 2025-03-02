@@ -331,13 +331,22 @@ const handleSubmitReply = async () => {
   
   submitting.value = true
   try {
-    await replyQuestion(currentQuestion.value.id, replyForm)
+    console.log('提交回复，问题ID:', currentQuestion.value.id)
+    console.log('回复内容:', replyForm)
+    const result = await replyQuestion(currentQuestion.value.id, replyForm)
+    console.log('回复结果:', result)
     ElMessage.success('回复成功')
     dialogVisible.value = false
-    fetchQuestionList()
+    // 强制刷新问题列表以更新状态
+    await fetchQuestionList()
   } catch (error) {
     console.error('回复失败', error)
-    ElMessage.error('回复失败')
+    // 增加更详细的错误信息
+    if (error.response) {
+      console.error('错误状态码:', error.response.status)
+      console.error('错误详情:', error.response.data)
+    }
+    ElMessage.error('回复失败: ' + (error.message || '未知错误'))
   } finally {
     submitting.value = false
   }
@@ -355,16 +364,24 @@ const confirmClose = async () => {
   
   closing.value = true
   try {
-    await replyQuestion(questionToClose.value.id, { 
+    console.log('关闭问题，ID:', questionToClose.value.id)
+    const result = await replyQuestion(questionToClose.value.id, { 
       status: 3,
       reply: '该问题已关闭'
     })
+    console.log('关闭结果:', result)
     ElMessage.success('问题已关闭')
     closeDialogVisible.value = false
-    fetchQuestionList()
+    // 强制刷新问题列表以更新状态
+    await fetchQuestionList()
   } catch (error) {
     console.error('关闭问题失败', error)
-    ElMessage.error('关闭问题失败')
+    // 增加更详细的错误信息
+    if (error.response) {
+      console.error('错误状态码:', error.response.status)
+      console.error('错误详情:', error.response.data)
+    }
+    ElMessage.error('关闭问题失败: ' + (error.message || '未知错误'))
   } finally {
     closing.value = false
   }

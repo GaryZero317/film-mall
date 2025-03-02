@@ -102,7 +102,7 @@
       </button>
       <button class="contact-btn chat-btn ripple" bindtap="goToChat">
         <text class="btn-icon">💬</text>
-        <text>在线聊天</text>
+        <text>在线客服</text>
       </button>
     </view>
 

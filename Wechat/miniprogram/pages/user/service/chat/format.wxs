@@ -19,26 +19,69 @@ function formatTime(timestamp) {
   return hours + ':' + minutes;
 }
 
-// 格式化日期为年-月-日
+/**
+ * 格式化日期为更友好的格式
+ * @param {number} timestamp - 时间戳（秒）
+ * @return {string} 格式化后的日期字符串
+ */
 function formatDate(timestamp) {
   if (!timestamp) return '';
   
   // 创建日期对象
   var date = getDate(timestamp * 1000);
+  var now = getDate();
   
   // 获取年月日
   var year = date.getFullYear();
   var month = date.getMonth() + 1;
   var day = date.getDate();
   
+  // 当天显示"今天"
+  if (year === now.getFullYear() && month === (now.getMonth() + 1) && day === now.getDate()) {
+    return '今天';
+  }
+  
+  // 昨天显示"昨天"
+  var yesterday = getDate(now.getTime() - 86400000); // 减去一天的毫秒数
+  if (year === yesterday.getFullYear() && month === (yesterday.getMonth() + 1) && day === yesterday.getDate()) {
+    return '昨天';
+  }
+  
+  // 判断是否是今年
+  if (year === now.getFullYear()) {
+    month = month < 10 ? '0' + month : month;
+    day = day < 10 ? '0' + day : day;
+    return month + '月' + day + '日';
+  }
+  
+  // 不是今年，显示完整日期
   month = month < 10 ? '0' + month : month;
   day = day < 10 ? '0' + day : day;
   
-  return year + '-' + month + '-' + day;
+  return year + '年' + month + '月' + day + '日';
+}
+
+/**
+ * 判断两个时间戳是否应该显示日期分割线
+ * @param {number} current - 当前消息的时间戳
+ * @param {number} previous - 前一条消息的时间戳
+ * @return {boolean} 是否应该显示日期分割线
+ */
+function shouldShowDate(current, previous) {
+  if (!current || !previous) return true;
+  
+  var currentDate = getDate(current * 1000);
+  var previousDate = getDate(previous * 1000);
+  
+  // 如果日期不同，则显示分割线
+  return currentDate.getFullYear() !== previousDate.getFullYear() || 
+         currentDate.getMonth() !== previousDate.getMonth() || 
+         currentDate.getDate() !== previousDate.getDate();
 }
 
 // 导出函数
 module.exports = {
   formatTime: formatTime,
-  formatDate: formatDate
+  formatDate: formatDate,
+  shouldShowDate: shouldShowDate
 }; 

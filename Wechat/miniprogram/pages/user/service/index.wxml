@@ -94,16 +94,12 @@
       </view>
     </view>
 
-    <!-- 在线客服入口 -->
-    <view class="action-buttons">
+    <!-- 将两个按钮放在同一个 view 中，使用 flex 布局横向排列 -->
+    <view class="bottom-actions">
       <button class="contact-btn chat-btn ripple" bindtap="goToChat">
         <text class="btn-icon">💬</text>
         <text>在线客服</text>
       </button>
-    </view>
-
-    <!-- 问题提交入口 -->
-    <view class="action-buttons">
       <button class="contact-btn ripple" bindtap="showSubmitForm">
         <text class="btn-icon">✍️</text>
         <text>提交问题</text>

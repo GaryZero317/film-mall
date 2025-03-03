@@ -14,7 +14,10 @@ Page({
     page: 1,
     pageSize: 20,
     hasMore: true,
-    loadingMore: false
+    loadingMore: false,
+    
+    // 添加焦点控制
+    inputFocus: false
   },
 
   // 页面加载
@@ -185,6 +188,11 @@ Page({
       });
     }).finally(() => {
       this.setData({ sendingMessage: false });
+      
+      // 发送消息后重新聚焦到输入框
+      this.setData({
+        inputFocus: true
+      });
     });
   },
   

@@ -333,6 +333,20 @@ page {
   gap: 20rpx;
 }
 
+/* 底部按钮并排样式 */
+.bottom-actions {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.bottom-actions .contact-btn {
+  width: 48%; /* 设置按钮宽度，留出间距 */
+  flex: 1;    /* 使按钮平均分配空间 */
+}
+
 .chat-btn {
   background-color: var(--accent-color);
   box-shadow: 0 6rpx 16rpx rgba(76, 217, 100, 0.3);

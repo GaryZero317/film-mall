@@ -8,6 +8,9 @@
       <text class="back-icon">←</text>
     </view>
     <view class="header-title">客服聊天</view>
+    <view class="header-right">
+      <!-- 预留位置，可以放置其他功能按钮 -->
+    </view>
   </view>
 
   <!-- 消息列表 -->
@@ -19,7 +22,8 @@
     scroll-into-view="{{scrollIntoView}}"
     bindscrolltoupper="loadMoreHistory"
     enhanced
-    show-scrollbar="false"
+    show-scrollbar="{{false}}"
+    bounces="{{true}}"
   >
     <!-- 调试信息 -->
     <view class="debug-info" style="display:none;">
@@ -34,11 +38,16 @@
     
     <!-- 无更多消息 -->
     <view class="no-more" wx:if="{{!hasMore && messages.length > 0 && !loadingMore}}">
-      没有更多消息了
+      <text>没有更多消息了</text>
     </view>
     
     <!-- 消息列表 -->
     <block wx:for="{{messages}}" wx:key="id">
+      <!-- 日期分割线 - 可按需添加 -->
+      <view class="date-divider" wx:if="{{index === 0 || format.shouldShowDate(item.createTime, messages[index-1].createTime)}}">
+        <text>{{format.formatDate(item.createTime)}}</text>
+      </view>
+      
       <!-- 客服消息 -->
       <view class="message-item service-message" wx:if="{{item.senderType === 2}}" id="msg-{{item.id}}">
         <view class="message-avatar">
@@ -96,8 +105,9 @@
       adjust-position="{{true}}"
       cursor-spacing="20"
       hold-keyboard="{{true}}"
+      focus="{{inputFocus}}"
     />
-    <view class="send-btn {{!inputValue.trim() ? 'disabled' : ''}}" bindtap="sendMessage">
+    <view class="send-btn {{!inputValue.trim() ? 'disabled' : ''}}" hover-class="{{inputValue.trim() ? 'btn-hover' : ''}}" bindtap="sendMessage">
       发送
     </view>
   </view>

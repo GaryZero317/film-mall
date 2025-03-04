@@ -97,6 +97,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 			},
 			{
 				Method:  http.MethodDelete,
+				Path:    "/admin/work/:id",
+				Handler: adminDeleteWorkHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodDelete,
 				Path:    "/admin/comment/:id",
 				Handler: adminDeleteCommentHandler(serverCtx),
 			},

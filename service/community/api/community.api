@@ -194,10 +194,17 @@ type (
 		Action int64 `json:"action"`  // 动作:1点赞,0取消点赞
 	}
 
+	// 点赞数据
+	LikeWorkData {
+		IsLiked bool  `json:"is_liked"` // 是否已点赞
+		Count   int64 `json:"count"`    // 点赞数量
+	}
+
 	// 点赞/取消点赞响应
 	LikeWorkResp {
-		Code int64  `json:"code"`
-		Msg  string `json:"msg"`
+		Code int64        `json:"code"`
+		Msg  string       `json:"msg"`
+		Data LikeWorkData `json:"data"`
 	}
 
 	// 创建评论请求
@@ -253,6 +260,17 @@ type (
 
 	// 删除评论响应
 	DeleteCommentResp {
+		Code int64  `json:"code"`
+		Msg  string `json:"msg"`
+	}
+
+	// 删除作品请求
+	DeleteWorkReq {
+		Id int64 `path:"id"` // 作品ID
+	}
+
+	// 删除作品响应
+	DeleteWorkResp {
 		Code int64  `json:"code"`
 		Msg  string `json:"msg"`
 	}
@@ -332,6 +350,10 @@ service community {
 	@doc "管理员更新任意作品"
 	@handler adminUpdateWork
 	put /admin/work/:id (UpdateWorkReq) returns (UpdateWorkResp)
+	
+	@doc "管理员删除任意作品"
+	@handler adminDeleteWork
+	delete /admin/work/:id (DeleteWorkReq) returns (DeleteWorkResp)
 	
 	@doc "管理员删除任意评论"
 	@handler adminDeleteComment

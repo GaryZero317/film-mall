@@ -160,19 +160,19 @@ type DeleteWorkImageResp struct {
 }
 
 type LikeWorkReq struct {
-	Uid    int64 `json:"uid"`    // 用户ID
-	WorkId int64 `json:"workId"` // 作品ID
-}
-
-type LikeWorkResp struct {
-	Code int          `json:"code"` // 状态码
-	Msg  string       `json:"msg"`  // 状态描述
-	Data LikeWorkData `json:"data"` // 响应数据
+	WorkId int64 `json:"work_id"` // 作品ID
+	Action int64 `json:"action"`  // 动作:1点赞,0取消点赞
 }
 
 type LikeWorkData struct {
-	IsLiked bool  `json:"isLiked"` // 是否已点赞
-	Count   int64 `json:"count"`   // 点赞数量
+	IsLiked bool  `json:"is_liked"` // 是否已点赞
+	Count   int64 `json:"count"`    // 点赞数量
+}
+
+type LikeWorkResp struct {
+	Code int64        `json:"code"`
+	Msg  string       `json:"msg"`
+	Data LikeWorkData `json:"data"`
 }
 
 type CreateCommentReq struct {
@@ -219,6 +219,15 @@ type DeleteCommentReq struct {
 }
 
 type DeleteCommentResp struct {
+	Code int64  `json:"code"`
+	Msg  string `json:"msg"`
+}
+
+type DeleteWorkReq struct {
+	Id int64 `path:"id"` // 作品ID
+}
+
+type DeleteWorkResp struct {
 	Code int64  `json:"code"`
 	Msg  string `json:"msg"`
 }

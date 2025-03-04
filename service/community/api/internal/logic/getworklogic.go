@@ -85,17 +85,17 @@ func (l *GetWorkLogic) GetWork(req *types.GetWorkReq) (resp *types.GetWorkResp, 
 	authorInfo := types.UserSimple{
 		Uid:      work.Uid,
 		Nickname: "未知用户",
-		Avatar:   "",
+		Avatar:   "/static/images/default_avatar.png",
 	}
 
 	// 获取作者信息
 	author, err := l.svcCtx.UserModel.FindOne(l.ctx, work.Uid)
 	if err == nil {
-		// 只在获取成功时更新作者信息
+		// 只在获取成功时更新作者信息，但保留默认头像
 		authorInfo = types.UserSimple{
 			Uid:      author.Id,
 			Nickname: author.Nickname,
-			Avatar:   author.Avatar,
+			Avatar:   "/static/images/default_avatar.png",
 		}
 	}
 

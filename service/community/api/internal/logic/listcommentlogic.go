@@ -58,13 +58,12 @@ func (l *ListCommentLogic) ListComment(req *types.ListCommentReq) (resp *types.L
 		userInfo := types.UserSimple{
 			Uid:      comment.Uid,
 			Nickname: "未知用户",
-			Avatar:   "",
+			Avatar:   "/static/images/default_avatar.png",
 		}
 
 		// 如果能找到用户信息，则使用实际用户信息
 		if user, ok := userMap[comment.Uid]; ok {
 			userInfo.Nickname = user.Nickname
-			userInfo.Avatar = user.Avatar
 		}
 
 		// 获取回复列表
@@ -132,13 +131,12 @@ func (l *ListCommentLogic) getCommentReplies(commentId int64) ([]types.CommentDe
 		userInfo := types.UserSimple{
 			Uid:      reply.Uid,
 			Nickname: "未知用户",
-			Avatar:   "",
+			Avatar:   "/static/images/default_avatar.png",
 		}
 
 		// 如果能找到用户信息，则使用实际用户信息
 		if user, ok := userMap[reply.Uid]; ok {
 			userInfo.Nickname = user.Nickname
-			userInfo.Avatar = user.Avatar
 		}
 
 		// 构建回复详情

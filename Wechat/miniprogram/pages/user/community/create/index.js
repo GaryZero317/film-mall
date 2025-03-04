@@ -247,6 +247,18 @@ Page({
     this.setData({ loading: true })
     
     try {
+      // 获取用户信息
+      const userInfo = wx.getStorageSync('userInfo')
+      if (!userInfo) {
+        throw new Error('获取用户信息失败，请重新登录')
+      }
+
+      // 使用显示名称作为作者名
+      const authorName = userInfo.name || userInfo.nickName || userInfo.mobile
+      if (!authorName) {
+        throw new Error('获取用户名失败，请重新登录')
+      }
+      
       // 先创建作品
       const workData = {
         title: this.data.title,
@@ -258,7 +270,8 @@ Page({
         exif_info: this.data.exifData,
         status: 1,
         cover_url: '',
-        images: []
+        images: [],
+        name: authorName
       }
       
       let workRes

@@ -20,9 +20,9 @@ type (
 
 	// 用户信息
 	User struct {
-		Id       int64  `db:"id"`       // 用户ID
-		Nickname string `db:"nickname"` // 昵称
-		Avatar   string `db:"avatar"`   // 头像
+		Id       int64  `db:"id"`   // 用户ID
+		Nickname string `db:"name"` // 昵称 (从name字段映射)
+		// Avatar字段已删除，前端将使用静态头像
 	}
 
 	customUserModel struct {
@@ -42,10 +42,11 @@ func NewUserModel(conn sqlx.SqlConn) UserModel {
 // FindOne 查询单个用户信息
 func (m *customUserModel) FindOne(ctx context.Context, id int64) (*User, error) {
 	var resp User
-	query := fmt.Sprintf("SELECT id, nickname, avatar FROM %s WHERE id = ? LIMIT 1", m.table)
+	query := fmt.Sprintf("SELECT id, name FROM %s WHERE id = ? LIMIT 1", m.table)
 	err := m.conn.QueryRowCtx(ctx, &resp, query, id)
 	switch err {
 	case nil:
+		// 头像已移除，前端将使用静态头像
 		return &resp, nil
 	case sqlc.ErrNotFound:
 		return nil, ErrNotFound
@@ -68,7 +69,7 @@ func (m *customUserModel) FindBatch(ctx context.Context, ids []int64) (map[int64
 		args[i] = id
 	}
 
-	query := fmt.Sprintf("SELECT id, nickname, avatar FROM %s WHERE id IN (%s)",
+	query := fmt.Sprintf("SELECT id, name FROM %s WHERE id IN (%s)",
 		m.table, strings.Join(placeholders, ","))
 
 	var users []*User
@@ -80,6 +81,7 @@ func (m *customUserModel) FindBatch(ctx context.Context, ids []int64) (map[int64
 	// 转换为map方便查找
 	userMap := make(map[int64]*User)
 	for _, user := range users {
+		// 头像已移除，前端将使用静态头像
 		userMap[user.Id] = user
 	}
 

@@ -36,3 +36,12 @@ func GetUserIdFromCtx(ctx context.Context) (int64, bool) {
 
 	return 0, false
 }
+
+// GetNameFromCtx 从上下文获取用户名
+func GetNameFromCtx(ctx context.Context) (string, bool) {
+	// 尝试获取string类型
+	if name, ok := ctx.Value("name").(string); ok {
+		return name, true
+	}
+	return "", false
+}

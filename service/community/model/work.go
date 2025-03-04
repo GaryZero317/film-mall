@@ -31,6 +31,7 @@ type (
 	Work struct {
 		Id           int64     `db:"id"`            // 作品ID
 		Uid          int64     `db:"uid"`           // 用户ID
+		Name         *string   `db:"name"`          // 用户昵称
 		Title        string    `db:"title"`         // 作品标题
 		Description  string    `db:"description"`   // 作品描述
 		CoverUrl     string    `db:"cover_url"`     // 封面图URL
@@ -65,20 +66,69 @@ func NewWorkModel(conn sqlx.SqlConn) WorkModel {
 func (m *customWorkModel) Insert(ctx context.Context, data *Work) (sql.Result, error) {
 	data.CreateTime = time.Now()
 	data.UpdateTime = time.Now()
-	query := fmt.Sprintf("INSERT INTO %s (uid, title, description, cover_url, film_type, film_brand, camera, lens, exif_info, view_count, like_count, comment_count, status, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", m.table)
-	return m.conn.ExecCtx(ctx, query, data.Uid, data.Title, data.Description, data.CoverUrl, data.FilmType,
+	query := fmt.Sprintf("INSERT INTO %s (uid, name, title, description, cover_url, film_type, film_brand, camera, lens, exif_info, view_count, like_count, comment_count, status, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", m.table)
+	return m.conn.ExecCtx(ctx, query, data.Uid, data.Name, data.Title, data.Description, data.CoverUrl, data.FilmType,
 		data.FilmBrand, data.Camera, data.Lens, data.ExifInfo, data.ViewCount, data.LikeCount,
 		data.CommentCount, data.Status, data.CreateTime, data.UpdateTime)
 }
 
 // FindOne 查询单个作品
 func (m *customWorkModel) FindOne(ctx context.Context, id int64) (*Work, error) {
-	var resp Work
+	// 使用临时结构接收查询结果
+	type WorkRow struct {
+		Id           int64     `db:"id"`
+		Uid          int64     `db:"uid"`
+		Name         *string   `db:"name"` // 使用指针类型处理NULL
+		Title        string    `db:"title"`
+		Description  string    `db:"description"`
+		CoverUrl     string    `db:"cover_url"`
+		FilmType     string    `db:"film_type"`
+		FilmBrand    string    `db:"film_brand"`
+		Camera       string    `db:"camera"`
+		Lens         string    `db:"lens"`
+		ExifInfo     string    `db:"exif_info"`
+		ViewCount    int64     `db:"view_count"`
+		LikeCount    int64     `db:"like_count"`
+		CommentCount int64     `db:"comment_count"`
+		Status       int64     `db:"status"`
+		CreateTime   time.Time `db:"create_time"`
+		UpdateTime   time.Time `db:"update_time"`
+	}
+
+	var row WorkRow
 	query := fmt.Sprintf("SELECT * FROM %s WHERE id = ? LIMIT 1", m.table)
-	err := m.conn.QueryRowCtx(ctx, &resp, query, id)
+	err := m.conn.QueryRowCtx(ctx, &row, query, id)
 	switch err {
 	case nil:
-		return &resp, nil
+		// 转换为Work结构
+		var name *string
+		if row.Name != nil {
+			name = row.Name
+		} else {
+			// 如果name为NULL，设置一个默认名字
+			defaultName := fmt.Sprintf("用户%d", row.Uid)
+			name = &defaultName
+		}
+
+		return &Work{
+			Id:           row.Id,
+			Uid:          row.Uid,
+			Name:         name,
+			Title:        row.Title,
+			Description:  row.Description,
+			CoverUrl:     row.CoverUrl,
+			FilmType:     row.FilmType,
+			FilmBrand:    row.FilmBrand,
+			Camera:       row.Camera,
+			Lens:         row.Lens,
+			ExifInfo:     row.ExifInfo,
+			ViewCount:    row.ViewCount,
+			LikeCount:    row.LikeCount,
+			CommentCount: row.CommentCount,
+			Status:       row.Status,
+			CreateTime:   row.CreateTime,
+			UpdateTime:   row.UpdateTime,
+		}, nil
 	case sqlc.ErrNotFound:
 		return nil, ErrNotFound
 	default:
@@ -88,12 +138,61 @@ func (m *customWorkModel) FindOne(ctx context.Context, id int64) (*Work, error) 
 
 // FindOneByUid 查询指定用户的作品
 func (m *customWorkModel) FindOneByUid(ctx context.Context, uid, id int64) (*Work, error) {
-	var resp Work
+	// 使用临时结构接收查询结果
+	type WorkRow struct {
+		Id           int64     `db:"id"`
+		Uid          int64     `db:"uid"`
+		Name         *string   `db:"name"` // 使用指针类型处理NULL
+		Title        string    `db:"title"`
+		Description  string    `db:"description"`
+		CoverUrl     string    `db:"cover_url"`
+		FilmType     string    `db:"film_type"`
+		FilmBrand    string    `db:"film_brand"`
+		Camera       string    `db:"camera"`
+		Lens         string    `db:"lens"`
+		ExifInfo     string    `db:"exif_info"`
+		ViewCount    int64     `db:"view_count"`
+		LikeCount    int64     `db:"like_count"`
+		CommentCount int64     `db:"comment_count"`
+		Status       int64     `db:"status"`
+		CreateTime   time.Time `db:"create_time"`
+		UpdateTime   time.Time `db:"update_time"`
+	}
+
+	var row WorkRow
 	query := fmt.Sprintf("SELECT * FROM %s WHERE id = ? AND uid = ? LIMIT 1", m.table)
-	err := m.conn.QueryRowCtx(ctx, &resp, query, id, uid)
+	err := m.conn.QueryRowCtx(ctx, &row, query, id, uid)
 	switch err {
 	case nil:
-		return &resp, nil
+		// 转换为Work结构
+		var name *string
+		if row.Name != nil {
+			name = row.Name
+		} else {
+			// 如果name为NULL，设置一个默认名字
+			defaultName := fmt.Sprintf("用户%d", row.Uid)
+			name = &defaultName
+		}
+
+		return &Work{
+			Id:           row.Id,
+			Uid:          row.Uid,
+			Name:         name,
+			Title:        row.Title,
+			Description:  row.Description,
+			CoverUrl:     row.CoverUrl,
+			FilmType:     row.FilmType,
+			FilmBrand:    row.FilmBrand,
+			Camera:       row.Camera,
+			Lens:         row.Lens,
+			ExifInfo:     row.ExifInfo,
+			ViewCount:    row.ViewCount,
+			LikeCount:    row.LikeCount,
+			CommentCount: row.CommentCount,
+			Status:       row.Status,
+			CreateTime:   row.CreateTime,
+			UpdateTime:   row.UpdateTime,
+		}, nil
 	case sqlc.ErrNotFound:
 		return nil, ErrNotFound
 	default:
@@ -104,8 +203,8 @@ func (m *customWorkModel) FindOneByUid(ctx context.Context, uid, id int64) (*Wor
 // Update 更新作品
 func (m *customWorkModel) Update(ctx context.Context, data *Work) error {
 	data.UpdateTime = time.Now()
-	query := fmt.Sprintf("UPDATE %s SET title = ?, description = ?, cover_url = ?, film_type = ?, film_brand = ?, camera = ?, lens = ?, exif_info = ?, status = ?, update_time = ? WHERE id = ?", m.table)
-	_, err := m.conn.ExecCtx(ctx, query, data.Title, data.Description, data.CoverUrl, data.FilmType,
+	query := fmt.Sprintf("UPDATE %s SET name = ?, title = ?, description = ?, cover_url = ?, film_type = ?, film_brand = ?, camera = ?, lens = ?, exif_info = ?, status = ?, update_time = ? WHERE id = ?", m.table)
+	_, err := m.conn.ExecCtx(ctx, query, data.Name, data.Title, data.Description, data.CoverUrl, data.FilmType,
 		data.FilmBrand, data.Camera, data.Lens, data.ExifInfo, data.Status, data.UpdateTime, data.Id)
 	return err
 }
@@ -163,19 +262,77 @@ func (m *customWorkModel) List(ctx context.Context, uid int64, keyword, filmType
 		return nil, 0, err
 	}
 
-	// 查询列表
-	offset := (page - 1) * pageSize
-	query := fmt.Sprintf("SELECT * FROM %s %s ORDER BY create_time DESC LIMIT ?, ?",
-		m.table, conditionStr)
-	args = append(args, offset, pageSize)
+	if count == 0 {
+		return []*Work{}, 0, nil
+	}
 
-	var resp []*Work
-	err = m.conn.QueryRowsCtx(ctx, &resp, query, args...)
+	// 构建查询
+	offset := (page - 1) * pageSize
+	query := fmt.Sprintf("SELECT * FROM %s %s ORDER BY create_time DESC LIMIT ?, ?", m.table, conditionStr)
+	queryArgs := append(args, offset, pageSize)
+
+	// 使用自定义结构查询
+	type WorkRow struct {
+		Id           int64     `db:"id"`
+		Uid          int64     `db:"uid"`
+		Name         *string   `db:"name"` // 使用指针类型处理NULL
+		Title        string    `db:"title"`
+		Description  string    `db:"description"`
+		CoverUrl     string    `db:"cover_url"`
+		FilmType     string    `db:"film_type"`
+		FilmBrand    string    `db:"film_brand"`
+		Camera       string    `db:"camera"`
+		Lens         string    `db:"lens"`
+		ExifInfo     string    `db:"exif_info"`
+		ViewCount    int64     `db:"view_count"`
+		LikeCount    int64     `db:"like_count"`
+		CommentCount int64     `db:"comment_count"`
+		Status       int64     `db:"status"`
+		CreateTime   time.Time `db:"create_time"`
+		UpdateTime   time.Time `db:"update_time"`
+	}
+
+	var workRows []*WorkRow
+	err = m.conn.QueryRowsCtx(ctx, &workRows, query, queryArgs...)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	return resp, count, nil
+	// 转换为Work结构
+	result := make([]*Work, 0, len(workRows))
+	for _, row := range workRows {
+		var name *string
+		if row.Name != nil {
+			name = row.Name
+		} else {
+			// 如果name为NULL，设置一个默认名字
+			defaultName := fmt.Sprintf("用户%d", row.Uid)
+			name = &defaultName
+		}
+
+		work := &Work{
+			Id:           row.Id,
+			Uid:          row.Uid,
+			Name:         name,
+			Title:        row.Title,
+			Description:  row.Description,
+			CoverUrl:     row.CoverUrl,
+			FilmType:     row.FilmType,
+			FilmBrand:    row.FilmBrand,
+			Camera:       row.Camera,
+			Lens:         row.Lens,
+			ExifInfo:     row.ExifInfo,
+			ViewCount:    row.ViewCount,
+			LikeCount:    row.LikeCount,
+			CommentCount: row.CommentCount,
+			Status:       row.Status,
+			CreateTime:   row.CreateTime,
+			UpdateTime:   row.UpdateTime,
+		}
+		result = append(result, work)
+	}
+
+	return result, count, nil
 }
 
 // IncrViewCount 增加浏览次数

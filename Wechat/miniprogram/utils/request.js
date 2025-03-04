@@ -116,6 +116,23 @@ const request = (options) => {
                 // 用户相关错误码
                 case 30001:
                   errorMsg = '用户不存在'
+                  // 如果是获取用户信息接口，自动跳转到登录页
+                  if (url.includes('/api/user/userinfo')) {
+                    wx.removeStorageSync('token')
+                    wx.removeStorageSync('userInfo')
+                    wx.showToast({
+                      title: '请重新登录',
+                      icon: 'none',
+                      duration: 2000,
+                      complete: () => {
+                        setTimeout(() => {
+                          wx.redirectTo({
+                            url: '/pages/login/index'
+                          })
+                        }, 1000)
+                      }
+                    })
+                  }
                   break
                 case 30002:
                   errorMsg = '密码错误'
@@ -128,9 +145,39 @@ const request = (options) => {
                   break
                 case 30005:
                   errorMsg = '登录已过期'
+                  // 清除本地存储并跳转到登录页
+                  wx.removeStorageSync('token')
+                  wx.removeStorageSync('userInfo')
+                  wx.showToast({
+                    title: '登录已过期，请重新登录',
+                    icon: 'none',
+                    duration: 2000,
+                    complete: () => {
+                      setTimeout(() => {
+                        wx.redirectTo({
+                          url: '/pages/login/index'
+                        })
+                      }, 1000)
+                    }
+                  })
                   break
                 case 30006:
                   errorMsg = '无效的登录凭证'
+                  // 清除本地存储并跳转到登录页
+                  wx.removeStorageSync('token')
+                  wx.removeStorageSync('userInfo')
+                  wx.showToast({
+                    title: '登录已失效，请重新登录',
+                    icon: 'none',
+                    duration: 2000,
+                    complete: () => {
+                      setTimeout(() => {
+                        wx.redirectTo({
+                          url: '/pages/login/index'
+                        })
+                      }, 1000)
+                    }
+                  })
                   break
                 
                 // 订单相关错误码

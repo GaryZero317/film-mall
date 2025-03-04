@@ -73,13 +73,12 @@ func (l *ListWorkLogic) ListWork(req *types.ListWorkReq) (resp *types.ListWorkRe
 		authorInfo := types.UserSimple{
 			Uid:      work.Uid,
 			Nickname: "未知用户",
-			Avatar:   "",
+			Avatar:   "/static/images/default_avatar.png",
 		}
 
 		// 如果能找到用户信息，则使用实际用户信息
 		if user, ok := userMap[work.Uid]; ok {
 			authorInfo.Nickname = user.Nickname
-			authorInfo.Avatar = user.Avatar
 		}
 
 		// 构建作品详情

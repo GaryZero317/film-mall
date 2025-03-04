@@ -66,7 +66,6 @@ func (l *GetUserWorksLogic) GetUserWorks(req *types.ListWorkReq) (resp *types.Li
 		user = &model.User{
 			Id:       uid,
 			Nickname: "未知用户",
-			Avatar:   "",
 		}
 	}
 
@@ -77,7 +76,7 @@ func (l *GetUserWorksLogic) GetUserWorks(req *types.ListWorkReq) (resp *types.Li
 		authorInfo := types.UserSimple{
 			Uid:      user.Id,
 			Nickname: user.Nickname,
-			Avatar:   user.Avatar,
+			Avatar:   "/static/images/default_avatar.png",
 		}
 
 		// 构建作品详情

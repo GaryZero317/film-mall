@@ -39,8 +39,8 @@
         <template #default="scope">
           <el-image 
             v-if="scope.row.cover_url" 
-            :src="scope.row.cover_url" 
-            :preview-src-list="[scope.row.cover_url]"
+            :src="getImageUrl(scope.row.cover_url)" 
+            :preview-src-list="[getImageUrl(scope.row.cover_url)]"
             fit="contain"
             style="width: 80px; height: 80px">
           </el-image>
@@ -276,6 +276,13 @@ const handleDelete = (row) => {
   }).catch(() => {
     // 取消删除
   })
+}
+
+// 获取完整的图片URL
+const getImageUrl = (url) => {
+  if (!url) return ''
+  if (url.startsWith('http')) return url
+  return `http://localhost:8008${url}`
 }
 
 // 页面加载时获取数据

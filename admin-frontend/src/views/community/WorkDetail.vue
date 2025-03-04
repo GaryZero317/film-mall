@@ -30,7 +30,7 @@
       <div class="card-content">
         <p><strong>作品ID:</strong> {{ workData.id || '无' }}</p>
         <p><strong>用户ID:</strong> {{ workData.uid || '无' }}</p>
-        <p><strong>用户名:</strong> {{ workData.author?.nickname || '未知用户' }}</p>
+        <p><strong>用户名:</strong> {{ workData.name || workData.author?.nickname || '未知用户' }}</p>
         <p><strong>创建时间:</strong> {{ workData.create_time || '无' }}</p>
         <p><strong>描述:</strong> {{ workData.description || '无描述' }}</p>
         <p v-if="workData.film_type"><strong>胶片类型:</strong> {{ workData.film_type }}</p>
@@ -40,9 +40,9 @@
         <div v-if="workData.cover_url" class="cover-image">
           <p><strong>封面图:</strong></p>
           <el-image 
-            :src="workData.cover_url" 
+            :src="getImageUrl(workData.cover_url)" 
             fit="contain"
-            :preview-src-list="[workData.cover_url]"
+            :preview-src-list="[getImageUrl(workData.cover_url)]"
             style="max-width: 300px; max-height: 300px">
           </el-image>
         </div>
@@ -51,6 +51,23 @@
         <div class="interaction-data">
           <p><strong>互动数据:</strong></p>
           <p>浏览: {{ workData.view_count || 0 }} | 点赞: {{ workData.like_count || 0 }} | 评论: {{ workData.comment_count || 0 }}</p>
+        </div>
+
+        <!-- 评论列表 -->
+        <div class="comments-section">
+          <h3>评论列表</h3>
+          <div v-loading="commentsLoading">
+            <div v-if="comments.length > 0" class="comment-list">
+              <div v-for="comment in comments" :key="comment.id" class="comment-item">
+                <div class="comment-header">
+                  <span class="comment-user">{{ comment.user?.nickname || '未知用户' }}</span>
+                  <span class="comment-time">{{ comment.create_time }}</span>
+                </div>
+                <div class="comment-content">{{ comment.content }}</div>
+              </div>
+            </div>
+            <el-empty v-else description="暂无评论"></el-empty>
+          </div>
         </div>
       </div>
     </el-card>
@@ -64,7 +81,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { getWorkDetail } from '../../api/community'
+import { getWorkDetail, getCommentList } from '../../api/community'
 
 const route = useRoute()
 const router = useRouter()
@@ -73,6 +90,8 @@ const loading = ref(false)
 const workData = ref(null)
 const debugMode = ref(false) // 关闭调试模式
 const rawResponse = ref(null)
+const commentsLoading = ref(false)
+const comments = ref([])
 
 // 获取状态标签类型
 const getStatusTagType = (status) => {
@@ -88,6 +107,13 @@ const getStatusText = (status) => {
   if (status === 1) return '已发布'
   if (status === 2) return '已删除'
   return '未知'
+}
+
+// 获取完整的图片URL
+const getImageUrl = (url) => {
+  if (!url) return ''
+  if (url.startsWith('http')) return url
+  return `http://localhost:8008${url}`
 }
 
 // 加载作品详情
@@ -134,6 +160,22 @@ const loadWorkDetail = () => {
   })
 }
 
+// 加载评论列表
+const loadComments = async () => {
+  if (!workId.value) return
+  
+  commentsLoading.value = true
+  try {
+    const res = await getCommentList(workId.value)
+    comments.value = res.data.list || []
+  } catch (err) {
+    console.error('加载评论失败:', err)
+    ElMessage.error('加载评论失败')
+  } finally {
+    commentsLoading.value = false
+  }
+}
+
 // 返回列表页
 const goBack = () => {
   router.push('/community/works')
@@ -142,6 +184,7 @@ const goBack = () => {
 // 页面加载时获取数据
 onMounted(() => {
   loadWorkDetail()
+  loadComments() // 加载评论列表
 })
 </script>
 
@@ -175,5 +218,38 @@ onMounted(() => {
 
 .no-data {
   padding: 40px 0;
+}
+
+.comments-section {
+  margin-top: 20px;
+}
+
+.comment-list {
+  margin-top: 10px;
+}
+
+.comment-item {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  color: #666;
+  font-size: 14px;
+}
+
+.comment-content {
+  color: #333;
+}
+
+.comment-user {
+  font-weight: bold;
+}
+
+.comment-time {
+  color: #999;
 }
 </style> 

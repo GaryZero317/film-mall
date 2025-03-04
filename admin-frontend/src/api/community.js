@@ -68,4 +68,19 @@ export function deleteComment(id) {
     url: `/api/community/admin/comment/${id}`,
     method: 'delete'
   })
+}
+
+/**
+ * 获取作品评论列表
+ * @param {number} workId 作品ID
+ * @returns {Promise}
+ */
+export function getCommentList(workId) {
+  return communityService({
+    url: '/api/community/comment/list',
+    method: 'get',
+    params: {
+      work_id: workId // 使用work_id作为参数名
+    }
+  })
 } 

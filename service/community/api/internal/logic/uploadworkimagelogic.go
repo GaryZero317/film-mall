@@ -83,7 +83,7 @@ func (l *UploadWorkImageLogic) UploadWorkImage(req *types.UploadWorkImageReq) (r
 	}
 
 	// 确保上传目录存在
-	uploadPath := filepath.Join("D:", "graduation", "FilmMall", "service", "community", "uploads", "works")
+	uploadPath := filepath.Join("api", "uploads", "works")
 	if err := os.MkdirAll(uploadPath, 0755); err != nil {
 		resp.Code = 500
 		resp.Msg = "创建上传目录失败: " + err.Error()

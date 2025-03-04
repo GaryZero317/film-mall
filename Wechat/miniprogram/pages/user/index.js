@@ -200,6 +200,17 @@ Page({
     })
   },
 
+  // 查看社区
+  onViewCommunity() {
+    if (!this.data.isLogin) {
+      this.showLoginTip()
+      return
+    }
+    wx.navigateTo({
+      url: '/pages/user/community/index'
+    })
+  },
+
   // 显示登录提示
   showLoginTip() {
     wx.showToast({

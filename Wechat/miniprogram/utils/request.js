@@ -27,6 +27,8 @@ const request = (options) => {
       baseUrl = 'http://localhost:8003'
     } else if (url.startsWith('/api/film')) {
       baseUrl = 'http://localhost:8007'
+    } else if (url.startsWith('/api/community')) {
+      baseUrl = 'http://localhost:8008'  // 添加社区服务地址
     }
 
     console.log('选择的baseUrl:', baseUrl, '请求路径:', url)

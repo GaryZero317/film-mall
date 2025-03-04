@@ -40,7 +40,7 @@ func (l *AdminListWorkLogic) AdminListWork(req *types.ListWorkReq) (resp *types.
 	}
 
 	// 管理员可以查看所有状态的作品，如果未指定状态则不过滤
-	var status int64 = 0
+	var status int64 = -1
 	if req.Status > 0 {
 		status = req.Status
 	}

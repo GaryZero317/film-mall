@@ -1,0 +1,296 @@
+/* pages/user/community/detail/index.wxss */
+.container {
+  padding: 0;
+  background-color: #f8f8f8;
+  min-height: 100vh;
+}
+
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 90rpx;
+  background-color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 30rpx;
+  z-index: 100;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.back-btn, .action-btn {
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.back-btn image, .action-btn image {
+  width: 40rpx;
+  height: 40rpx;
+}
+
+.title {
+  font-size: 32rpx;
+  font-weight: bold;
+}
+
+.work-info {
+  margin-top: 110rpx;
+  padding: 30rpx;
+  background-color: #fff;
+}
+
+.work-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  margin-bottom: 20rpx;
+}
+
+.work-author {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10rpx;
+}
+
+.author-avatar {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 50%;
+  margin-right: 16rpx;
+}
+
+.work-time {
+  font-size: 24rpx;
+  color: #999;
+  margin-bottom: 20rpx;
+}
+
+.work-desc {
+  font-size: 28rpx;
+  line-height: 1.6;
+  margin-bottom: 30rpx;
+}
+
+.work-meta {
+  background-color: #f9f9f9;
+  padding: 20rpx;
+  border-radius: 8rpx;
+}
+
+.meta-item {
+  display: flex;
+  margin-bottom: 10rpx;
+  font-size: 26rpx;
+}
+
+.meta-item .label {
+  color: #666;
+  width: 160rpx;
+}
+
+.meta-item .value {
+  color: #333;
+  flex: 1;
+}
+
+.work-images {
+  margin-top: 20rpx;
+  padding: 20rpx;
+  background-color: #fff;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.image-item {
+  width: 31%;
+  height: 220rpx;
+  margin-right: 2%;
+  margin-bottom: 20rpx;
+  border-radius: 8rpx;
+  overflow: hidden;
+}
+
+.image-item:nth-child(3n) {
+  margin-right: 0;
+}
+
+.image-item image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.work-actions {
+  margin-top: 20rpx;
+  padding: 20rpx 30rpx;
+  background-color: #fff;
+  display: flex;
+  justify-content: space-around;
+  border-bottom: 1rpx solid #eee;
+}
+
+.action-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10rpx 20rpx;
+}
+
+.action-item.active {
+  color: #1989fa;
+}
+
+.action-item image {
+  width: 48rpx;
+  height: 48rpx;
+  margin-bottom: 8rpx;
+}
+
+.action-item text {
+  font-size: 24rpx;
+  color: #666;
+}
+
+.action-item.active text {
+  color: #1989fa;
+}
+
+.share-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 10rpx 20rpx;
+  line-height: normal;
+  font-size: 24rpx;
+  color: #666;
+}
+
+.share-btn::after {
+  border: none;
+}
+
+.share-btn image {
+  width: 48rpx;
+  height: 48rpx;
+  margin-bottom: 8rpx;
+}
+
+.comment-section {
+  margin-top: 20rpx;
+  padding: 30rpx;
+  background-color: #fff;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  margin-bottom: 30rpx;
+}
+
+.comment-list {
+  margin-bottom: 30rpx;
+}
+
+.comment-item {
+  display: flex;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #eee;
+}
+
+.comment-avatar {
+  width: 70rpx;
+  height: 70rpx;
+  border-radius: 50%;
+  margin-right: 20rpx;
+}
+
+.comment-content {
+  flex: 1;
+}
+
+.comment-user {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10rpx;
+}
+
+.comment-username {
+  font-size: 28rpx;
+  font-weight: bold;
+}
+
+.comment-time {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.comment-text {
+  font-size: 28rpx;
+  line-height: 1.5;
+}
+
+.comment-delete {
+  padding: 0 10rpx;
+}
+
+.comment-delete image {
+  width: 36rpx;
+  height: 36rpx;
+}
+
+.empty-comment {
+  text-align: center;
+  padding: 40rpx 0;
+  color: #999;
+  font-size: 28rpx;
+}
+
+.comment-input {
+  display: flex;
+  align-items: center;
+  margin-top: 30rpx;
+  border-top: 1rpx solid #eee;
+  padding-top: 30rpx;
+}
+
+.comment-input input {
+  flex: 1;
+  height: 80rpx;
+  background-color: #f5f5f5;
+  border-radius: 40rpx;
+  padding: 0 30rpx;
+  font-size: 28rpx;
+}
+
+.send-btn {
+  width: 120rpx;
+  height: 80rpx;
+  background-color: #1989fa;
+  color: #fff;
+  border-radius: 40rpx;
+  margin-left: 20rpx;
+  font-size: 28rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.loading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+} 

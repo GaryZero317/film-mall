@@ -1,0 +1,97 @@
+<!-- pages/user/community/edit/index.wxml -->
+<view class="container">
+  <view class="header">
+    <view class="title">{{isEdit ? '编辑作品' : '发布作品'}}</view>
+  </view>
+
+  <view class="form-container">
+    <view class="form-item">
+      <view class="form-label">标题 <text class="required">*</text></view>
+      <input class="form-input" placeholder="请输入作品标题" value="{{title}}" bindinput="onTitleInput" maxlength="50" />
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">描述 <text class="required">*</text></view>
+      <textarea class="form-textarea" placeholder="请输入作品描述" value="{{description}}" bindinput="onDescriptionInput" maxlength="500" />
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">胶片类型</view>
+      <picker bindchange="onFilmTypeChange" value="{{filmTypes.indexOf(filmType)}}" range="{{filmTypes}}">
+        <view class="picker {{filmType ? '' : 'placeholder'}}">
+          {{filmType || '请选择胶片类型'}}
+        </view>
+      </picker>
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">胶片品牌</view>
+      <picker bindchange="onFilmBrandChange" value="{{filmBrands.indexOf(filmBrand)}}" range="{{filmBrands}}">
+        <view class="picker {{filmBrand ? '' : 'placeholder'}}">
+          {{filmBrand || '请选择胶片品牌'}}
+        </view>
+      </picker>
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">相机型号</view>
+      <input class="form-input" placeholder="请输入相机型号" value="{{cameraModel}}" bindinput="onCameraModelInput" maxlength="50" />
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">镜头信息</view>
+      <input class="form-input" placeholder="请输入镜头信息" value="{{lensInfo}}" bindinput="onLensInfoInput" maxlength="50" />
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">EXIF信息</view>
+      <input class="form-input" placeholder="请输入EXIF信息" value="{{exifData}}" bindinput="onExifDataInput" maxlength="100" />
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">作品图片 <text class="required">*</text></view>
+      <view class="image-uploader">
+        <view class="image-list">
+          <!-- 已上传的图片 -->
+          <block wx:for="{{images}}" wx:key="index">
+            <view class="image-item">
+              <image src="{{item}}" mode="aspectFill" bindtap="onPreviewImage" data-current="{{item}}"></image>
+              <view class="image-delete" bindtap="onRemoveImage" data-index="{{index}}" data-type="image">
+                <image src="/assets/images/icon-delete.png" mode="aspectFit"></image>
+              </view>
+            </view>
+          </block>
+          
+          <!-- 临时图片 -->
+          <block wx:for="{{tempImages}}" wx:key="index">
+            <view class="image-item">
+              <image src="{{item}}" mode="aspectFill" bindtap="onPreviewImage" data-current="{{item}}"></image>
+              <view class="image-delete" bindtap="onRemoveImage" data-index="{{index}}" data-type="temp">
+                <image src="/assets/images/icon-delete.png" mode="aspectFit"></image>
+              </view>
+            </view>
+          </block>
+          
+          <!-- 添加图片按钮 -->
+          <view class="image-item add-image" bindtap="onChooseImage" wx:if="{{images.length + tempImages.length < maxImageCount}}">
+            <image src="/assets/images/icon-add.png" mode="aspectFit"></image>
+            <text>添加图片</text>
+          </view>
+        </view>
+        <view class="image-tip">最多上传{{maxImageCount}}张图片</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="footer">
+    <button class="btn btn-cancel" bindtap="onCancel">取消</button>
+    <button class="btn btn-submit" bindtap="onSubmit" loading="{{loading}}">{{isEdit ? '保存' : '发布'}}</button>
+  </view>
+
+  <view class="loading-mask" wx:if="{{loading}}">
+    <view class="loading-content">
+      <image class="loading-icon" src="/assets/images/loading.gif" mode="aspectFit"></image>
+      <text>{{isEdit ? '正在保存...' : '正在发布...'}}</text>
+    </view>
+  </view>
+</view> 

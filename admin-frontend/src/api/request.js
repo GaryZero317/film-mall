@@ -142,4 +142,11 @@ export const productService = createService('http://localhost:8001')
 export const orderService = createService('http://localhost:8002')
 export const paymentService = createService('http://localhost:8003')
 export const statisticsService = createService('http://localhost:8006')
-export const filmService = createService('http://localhost:8007') 
+export const filmService = createService('http://localhost:8007')
+export const communityService = createService('http://localhost:8008')
+
+// 仅供调试使用的日志功能
+export const logAPIResponse = (message, data) => {
+  console.log(`[API] ${message}:`, data)
+  return data
+} 

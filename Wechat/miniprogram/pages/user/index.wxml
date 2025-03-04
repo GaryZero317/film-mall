@@ -72,6 +72,13 @@
       <text>胶片冲洗</text>
       <image class="arrow" src="/assets/images/arrow-right.png"></image>
     </view>
+    <view class="menu-item" bindtap="onViewCommunity">
+      <view class="menu-icon community-icon">
+        <image src="/assets/images/community.png"></image>
+      </view>
+      <text>社区</text>
+      <image class="arrow" src="/assets/images/arrow-right.png"></image>
+    </view>
     <view class="menu-item" bindtap="onViewSettings">
       <view class="menu-icon settings-icon">
         <image src="/assets/images/settings.png"></image>

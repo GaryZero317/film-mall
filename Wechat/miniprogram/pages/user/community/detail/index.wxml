@@ -1,0 +1,118 @@
+<!--pages/user/community/detail/index.wxml-->
+<view class="container" wx:if="{{ work }}" wx:key="id">
+  <view class="header">
+    <view class="back-btn" bindtap="onBack">
+      <image src="/assets/images/back.png"></image>
+    </view>
+    <view class="title">作品详情</view>
+    <view class="action-btn" bindtap="onShowActions" wx:if="{{ isOwner }}">
+      <image src="/assets/images/more.png"></image>
+    </view>
+  </view>
+
+  <view class="work-info">
+    <view class="work-title">{{ work.title }}</view>
+    <view class="work-author">
+      <image class="author-avatar" src="{{ work.author.avatar || '/assets/images/default-avatar.png' }}"></image>
+      <text>{{ work.author.nickname }}</text>
+    </view>
+    <view class="work-time">{{ work.create_time }}</view>
+    <view class="work-desc">{{ work.description }}</view>
+    
+    <view class="work-meta">
+      <view class="meta-item">
+        <text class="label">胶片类型：</text>
+        <text class="value">{{ work.film_type || '未知' }}</text>
+      </view>
+      <view class="meta-item">
+        <text class="label">胶片品牌：</text>
+        <text class="value">{{ work.film_brand || '未知' }}</text>
+      </view>
+      <view class="meta-item" wx:if="{{ work.camera }}">
+        <text class="label">相机型号：</text>
+        <text class="value">{{ work.camera }}</text>
+      </view>
+      <view class="meta-item" wx:if="{{ work.lens }}">
+        <text class="label">镜头信息：</text>
+        <text class="value">{{ work.lens }}</text>
+      </view>
+      <view class="meta-item" wx:if="{{ work.exif_info }}">
+        <text class="label">EXIF信息：</text>
+        <text class="value">{{ work.exif_info }}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="work-images" wx:if="{{ work.images && work.images.length > 0 }}">
+    <view class="image-item" wx:for="{{ work.images }}" wx:key="id" bindtap="onPreviewImage" data-src="{{ item.url }}">
+      <image src="{{ item.url }}" mode="aspectFill"></image>
+    </view>
+  </view>
+
+  <view class="work-actions">
+    <view class="action-item {{ work.like_status ? 'active' : '' }}" bindtap="onLike">
+      <image src="{{ work.like_status ? '/assets/images/like-active.png' : '/assets/images/like.png' }}"></image>
+      <text>{{ work.like_count || 0 }}</text>
+    </view>
+    <view class="action-item">
+      <image src="/assets/images/comment.png"></image>
+      <text>{{ work.comment_count || 0 }}</text>
+    </view>
+    <view class="action-item">
+      <image src="/assets/images/view.png"></image>
+      <text>{{ work.view_count || 0 }}</text>
+    </view>
+    <button class="share-btn" open-type="share">
+      <image src="/assets/images/share.png"></image>
+      <text>分享</text>
+    </button>
+  </view>
+
+  <view class="comment-section">
+    <view class="section-title">评论 ({{ work.comment_count || 0 }})</view>
+    
+    <view class="comment-list" wx:if="{{ comments.length > 0 }}">
+      <view class="comment-item" wx:for="{{ comments }}" wx:key="id">
+        <image class="comment-avatar" src="{{ item.user.avatar || '/assets/images/default-avatar.png' }}"></image>
+        <view class="comment-content">
+          <view class="comment-user">
+            <text class="comment-username">{{ item.user.nickname }}</text>
+            <text class="comment-time">{{ item.create_time }}</text>
+          </view>
+          <view class="comment-text">{{ item.content }}</view>
+        </view>
+        <view class="comment-delete" wx:if="{{ isOwner || item.user.id === userInfo.id }}" bindtap="onDeleteComment" data-id="{{ item.id }}">
+          <image src="/assets/images/delete.png"></image>
+        </view>
+      </view>
+    </view>
+    
+    <view class="empty-comment" wx:else>
+      <text>暂无评论，快来发表第一条评论吧</text>
+    </view>
+    
+    <view class="comment-input">
+      <input 
+        type="text" 
+        placeholder="写下你的评论..." 
+        value="{{ commentContent }}"
+        bindinput="onInputComment"
+        confirm-type="send"
+      />
+      <button class="send-btn" bindtap="onSubmitComment">发送</button>
+    </view>
+  </view>
+</view>
+
+<view class="loading" wx:if="{{ loading }}">
+  <van-loading size="24px" color="#1989fa">加载中...</van-loading>
+</view>
+
+<van-action-sheet
+  show="{{ showActionSheet }}"
+  actions="{{ actions }}"
+  bind:close="onCloseActions"
+  bind:select="onSelectAction"
+  cancel-text="取消"
+  bind:cancel="onCloseActions"
+/> 

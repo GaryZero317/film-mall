@@ -52,6 +52,17 @@ const routes = [
         component: () => import('../views/film/FilmDetail.vue')
       },
       {
+        path: 'community/works',
+        name: 'CommunityWorkList',
+        component: () => import('../views/community/WorkList.vue')
+      },
+      {
+        path: 'community/work/:id',
+        name: 'CommunityWorkDetail',
+        component: () => import('../views/community/WorkDetail.vue'),
+        props: true
+      },
+      {
         path: 'customer-service/questions',
         name: 'CustomerServiceQuestions',
         component: () => import('../views/customer-service/QuestionList.vue')

@@ -43,6 +43,11 @@
             <template #title>支付管理</template>
           </el-menu-item>
           
+          <el-menu-item index="/community/works">
+            <el-icon><Connection /></el-icon>
+            <template #title>社区管理</template>
+          </el-menu-item>
+          
           <el-sub-menu index="/customer-service">
             <template #title>
               <el-icon><Service /></el-icon>
@@ -152,7 +157,8 @@ import {
   Service,
   Tickets,
   ChatDotRound,
-  QuestionFilled
+  QuestionFilled,
+  Connection
 } from '@element-plus/icons-vue'
 import Breadcrumb from './components/Breadcrumb.vue'
 

@@ -22,7 +22,10 @@
     "pages/user/film/index",
     "pages/user/film/detail/index",
     "pages/user/film/photos/index",
-    "pages/film/create/index"
+    "pages/film/create/index",
+    "pages/user/community/index",
+    "pages/user/community/detail/index",
+    "pages/user/community/edit/index"
   ],
   "window": {
     "backgroundTextStyle": "light",

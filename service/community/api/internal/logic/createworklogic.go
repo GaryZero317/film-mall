@@ -28,9 +28,11 @@ func NewCreateWorkLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Create
 }
 
 func (l *CreateWorkLogic) CreateWork(req *types.CreateWorkReq) (resp *types.CreateWorkResp, err error) {
+	// 初始化默认响应（失败状态）
 	resp = &types.CreateWorkResp{
-		Code: 0,
-		Msg:  "创建成功",
+		Code: 500,
+		Msg:  "创建失败",
+		Data: types.CreateWorkData{},
 	}
 
 	// 获取用户ID
@@ -108,10 +110,13 @@ func (l *CreateWorkLogic) CreateWork(req *types.CreateWorkReq) (resp *types.Crea
 		Status:       req.Status,
 	}
 
+	// 执行数据库插入操作
+	logx.Infof("开始插入作品: %+v", work)
 	result, err := l.svcCtx.WorkModel.Insert(l.ctx, work)
 	if err != nil {
 		resp.Code = 500
 		resp.Msg = "创建作品失败: " + err.Error()
+		logx.Errorf("插入作品失败: %v", err)
 		return resp, nil
 	}
 
@@ -119,11 +124,26 @@ func (l *CreateWorkLogic) CreateWork(req *types.CreateWorkReq) (resp *types.Crea
 	if err != nil {
 		resp.Code = 500
 		resp.Msg = "获取作品ID失败: " + err.Error()
+		logx.Errorf("获取插入ID失败: %v", err)
 		return resp, nil
 	}
 
+	// 验证插入是否成功
+	logx.Infof("作品创建成功，ID: %d", insertId)
+
+	// 设置成功响应
+	resp.Code = 0
+	resp.Msg = "创建成功"
 	resp.Data = types.CreateWorkData{
 		Id: insertId,
+	}
+
+	// 作为额外验证，尝试查询刚刚创建的作品
+	createdWork, findErr := l.svcCtx.WorkModel.FindOne(l.ctx, insertId)
+	if findErr != nil {
+		logx.Errorf("创建后无法查询到作品(ID=%d): %v", insertId, findErr)
+	} else {
+		logx.Infof("验证创建: 成功查询到新作品: ID=%d, 标题=%s", createdWork.Id, createdWork.Title)
 	}
 
 	return resp, nil

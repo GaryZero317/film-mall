@@ -35,7 +35,7 @@ type (
 func NewUserModel(conn sqlx.SqlConn) UserModel {
 	return &customUserModel{
 		conn:  conn,
-		table: "users",
+		table: "user",
 	}
 }
 

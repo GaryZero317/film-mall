@@ -12,7 +12,7 @@
     <view class="works-grid">
       <view class="work-item" wx:for="{{ communityWorks }}" wx:key="id" bindtap="onViewWorkDetail" data-id="{{ item.id }}">
         <view class="work-cover">
-          <image src="{{ item.cover_url || '/assets/images/default-cover.png' }}" mode="aspectFill"></image>
+          <image src="{{ item.cover_url || '/assets/images/placeholder.png' }}" mode="aspectFill"></image>
         </view>
         <view class="work-info">
           <view class="work-title">{{ item.title }}</view>
@@ -41,7 +41,7 @@
       <text>没有更多了</text>
     </view>
     <view class="empty" wx:if="{{ !loading && communityWorks.length === 0 }}">
-      <image src="/assets/images/empty.png"></image>
+      <image src="/assets/images/empty-icon.png"></image>
       <text>暂无作品</text>
     </view>
   </view>
@@ -51,7 +51,7 @@
     <view class="works-grid">
       <view class="work-item" wx:for="{{ myWorks }}" wx:key="id" bindtap="onViewWorkDetail" data-id="{{ item.id }}">
         <view class="work-cover">
-          <image src="{{ item.cover_url || '/assets/images/default-cover.png' }}" mode="aspectFill"></image>
+          <image src="{{ item.cover_url || '/assets/images/placeholder.png' }}" mode="aspectFill"></image>
         </view>
         <view class="work-info">
           <view class="work-title">{{ item.title }}</view>
@@ -74,7 +74,7 @@
       </view>
     </view>
     <view class="empty" wx:if="{{ !loading && myWorks.length === 0 }}">
-      <image src="/assets/images/empty.png"></image>
+      <image src="/assets/images/empty-icon.png"></image>
       <text>暂无作品，快去创建吧</text>
     </view>
   </view>

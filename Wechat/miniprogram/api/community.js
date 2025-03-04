@@ -127,13 +127,17 @@ export function deleteWork(id) {
 /**
  * 上传作品图片
  * @param {string} filePath 图片文件路径
+ * @param {number} workId 作品ID
  */
-export function uploadWorkImage(filePath) {
+export function uploadWorkImage(filePath, workId) {
   return new Promise((resolve, reject) => {
     wx.uploadFile({
-      url: `${getApp().globalData.baseUrl}/api/community/user/work/image/upload`,
+      url: `${getApp().globalData.baseUrl.community}/api/community/user/work/image/upload`,
       filePath,
       name: 'file',
+      formData: {
+        work_id: workId
+      },
       header: {
         'Authorization': `Bearer ${wx.getStorageSync('token')}`
       },

@@ -21,7 +21,7 @@ CacheRedis:
 
 # 静态文件服务配置
 FileUpload:
-  UploadPath: ./uploads
+  UploadPath: D:/graduation/FilmMall/service/community/uploads
   UrlPrefix: /uploads/
   AllowedExts:
     - .jpg

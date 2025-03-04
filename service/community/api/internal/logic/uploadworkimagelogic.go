@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -82,7 +83,7 @@ func (l *UploadWorkImageLogic) UploadWorkImage(req *types.UploadWorkImageReq) (r
 	}
 
 	// 确保上传目录存在
-	uploadPath := l.svcCtx.Config.FileUpload.UploadPath + "/works"
+	uploadPath := filepath.Join("D:", "graduation", "FilmMall", "service", "community", "uploads", "works")
 	if err := os.MkdirAll(uploadPath, 0755); err != nil {
 		resp.Code = 500
 		resp.Msg = "创建上传目录失败: " + err.Error()
@@ -91,7 +92,7 @@ func (l *UploadWorkImageLogic) UploadWorkImage(req *types.UploadWorkImageReq) (r
 
 	// 生成文件名
 	fileName := generateFileName(fileExt)
-	filePath := path.Join(uploadPath, fileName)
+	filePath := filepath.Join(uploadPath, fileName)
 
 	// 保存文件
 	dst, err := os.Create(filePath)
@@ -109,7 +110,7 @@ func (l *UploadWorkImageLogic) UploadWorkImage(req *types.UploadWorkImageReq) (r
 	}
 
 	// 构建文件URL
-	fileUrl := l.svcCtx.Config.FileUpload.UrlPrefix + "works/" + fileName
+	fileUrl := "/uploads/works/" + fileName
 
 	// 设置排序值
 	sort := req.Sort
@@ -157,6 +158,7 @@ func (l *UploadWorkImageLogic) UploadWorkImage(req *types.UploadWorkImageReq) (r
 		Url: fileUrl,
 	}
 
+	l.Logger.Infof("用户[%d]为作品[%d]上传了图片[%s]", uid, req.WorkId, fileUrl)
 	return resp, nil
 }
 
@@ -175,6 +177,6 @@ func isAllowedFileType(fileExt string) bool {
 func generateFileName(fileExt string) string {
 	// 生成UUID
 	u := uuid.New()
-	// 时间戳 + UUID + 扩展名
-	return strconv.FormatInt(time.Now().UnixNano(), 10) + "-" + u.String() + fileExt
+	// 使用毫秒级时间戳 + UUID + 扩展名
+	return strconv.FormatInt(time.Now().UnixMilli(), 10) + "-" + u.String() + fileExt
 }

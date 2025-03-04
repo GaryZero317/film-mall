@@ -6,7 +6,8 @@ App({
       address: 'http://localhost:8005',   // 地址服务
       order: 'http://localhost:8002',
       pay: 'http://localhost:8003',
-      product: 'http://localhost:8001'
+      product: 'http://localhost:8001',
+      community: 'http://localhost:8008'  // 社区服务
     },
     token: ''
   },

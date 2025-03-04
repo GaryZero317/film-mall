@@ -91,9 +91,9 @@ Page({
           description: work.description || '',
           filmType: work.film_type || '',
           filmBrand: work.film_brand || '',
-          cameraModel: work.camera_model || '',
-          lensInfo: work.lens_info || '',
-          exifData: work.exif_data || '',
+          cameraModel: work.camera || '',
+          lensInfo: work.lens || '',
+          exifData: work.exif_info || '',
           images: work.images || []
         })
       } else {
@@ -239,43 +239,6 @@ Page({
     return true
   },
 
-  async uploadImages() {
-    const { tempImages } = this.data
-    const uploadedImages = []
-    
-    if (tempImages.length === 0) {
-      return []
-    }
-    
-    for (let i = 0; i < tempImages.length; i++) {
-      const filePath = tempImages[i]
-      try {
-        wx.showLoading({
-          title: `上传图片 ${i + 1}/${tempImages.length}`,
-          mask: true
-        })
-        
-        const res = await uploadWorkImage(filePath)
-        if (res.code === 0 || res.code === 200) {
-          uploadedImages.push(res.data.url)
-        } else {
-          throw new Error(res.msg || '上传失败')
-        }
-      } catch (error) {
-        console.error('上传图片失败:', error)
-        wx.hideLoading()
-        wx.showToast({
-          title: error.message || '上传图片失败',
-          icon: 'none'
-        })
-        return null
-      }
-    }
-    
-    wx.hideLoading()
-    return uploadedImages
-  },
-
   async onSubmit() {
     if (!this.validateForm()) {
       return
@@ -284,54 +247,97 @@ Page({
     this.setData({ loading: true })
     
     try {
-      // 上传新图片
-      const uploadedImages = await this.uploadImages()
-      if (uploadedImages === null) {
-        this.setData({ loading: false })
-        return
-      }
-      
-      // 合并已有图片和新上传的图片
-      const allImages = [...this.data.images, ...uploadedImages]
-      
+      // 先创建作品
       const workData = {
         title: this.data.title,
         description: this.data.description,
         film_type: this.data.filmType,
         film_brand: this.data.filmBrand,
-        camera_model: this.data.cameraModel,
-        lens_info: this.data.lensInfo,
-        exif_data: this.data.exifData,
-        images: allImages
+        camera: this.data.cameraModel,
+        lens: this.data.lensInfo,
+        exif_info: this.data.exifData,
+        status: 1,
+        cover_url: '',
+        images: []
       }
       
-      let res
+      let workRes
       if (this.data.isEdit) {
         // 更新作品
-        res = await updateWork(this.data.id, workData)
+        workRes = await updateWork(this.data.id, workData)
       } else {
         // 创建新作品
-        res = await uploadWork(workData)
+        workRes = await uploadWork(workData)
       }
 
-      if (res.code === 0 || res.code === 200) {
-        wx.showToast({
-          title: this.data.isEdit ? '更新成功' : '发布成功',
-          icon: 'success'
-        })
-        
-        // 返回上一页并刷新列表
-        setTimeout(() => {
-          const pages = getCurrentPages()
-          const prevPage = pages[pages.length - 2]
-          if (prevPage) {
-            prevPage.onRefresh()
-          }
-          wx.navigateBack()
-        }, 1500)
-      } else {
-        throw new Error(res.msg || '操作失败')
+      if (workRes.code !== 0 && workRes.code !== 200) {
+        throw new Error(workRes.msg || '操作失败')
       }
+
+      const workId = this.data.isEdit ? this.data.id : workRes.data.id
+
+      // 上传新图片
+      const { tempImages } = this.data
+      const uploadedImages = []
+      let coverUrl = ''  // 用于存储第一张图片的URL作为封面
+      
+      if (tempImages.length > 0) {
+        for (let i = 0; i < tempImages.length; i++) {
+          const filePath = tempImages[i]
+          try {
+            wx.showLoading({
+              title: `上传图片 ${i + 1}/${tempImages.length}`,
+              mask: true
+            })
+            
+            const res = await uploadWorkImage(filePath, workId)
+            if (res.code === 0 || res.code === 200) {
+              uploadedImages.push(res.data.url)
+              // 将第一张上传的图片设为封面
+              if (i === 0) {
+                coverUrl = res.data.url
+              }
+            } else {
+              throw new Error(res.msg || '上传失败')
+            }
+          } catch (error) {
+            console.error('上传图片失败:', error)
+            wx.hideLoading()
+            wx.showToast({
+              title: error.message || '上传图片失败',
+              icon: 'none'
+            })
+            return
+          }
+        }
+        
+        wx.hideLoading()
+      }
+      
+      // 更新作品的图片列表和封面
+      if (uploadedImages.length > 0) {
+        const allImages = [...this.data.images, ...uploadedImages]
+        await updateWork(workId, { 
+          ...workData, 
+          images: allImages,
+          cover_url: coverUrl || this.data.images[0]?.url || ''  // 使用第一张图片作为封面
+        })
+      }
+
+      wx.showToast({
+        title: this.data.isEdit ? '更新成功' : '发布成功',
+        icon: 'success'
+      })
+      
+      // 返回上一页并刷新列表
+      setTimeout(() => {
+        const pages = getCurrentPages()
+        const prevPage = pages[pages.length - 2]
+        if (prevPage) {
+          prevPage.onRefresh()
+        }
+        wx.navigateBack()
+      }, 1500)
     } catch (error) {
       console.error('提交失败:', error)
       wx.showToast({

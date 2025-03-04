@@ -1,0 +1,31 @@
+Name: community-api
+Host: 0.0.0.0
+Port: 8008
+Timeout: 30000
+
+Auth:
+  AccessSecret: uOvKLmVfztaXGpNYd4Z0I1SiT7MweJhl
+  AccessExpire: 86400
+
+AdminAuth:
+  AccessSecret: uOvKLmVfztaXGpNYd4Z0I1SiT7MweJhl
+  AccessExpire: 86400
+
+Mysql:
+  DataSource: root:200317@tcp(localhost:3306)/mall?charset=utf8mb4&parseTime=true&loc=Asia%2FShanghai
+
+CacheRedis:
+  - Host: localhost:6379
+    Pass: "123456"
+    Type: node
+
+# 静态文件服务配置
+FileUpload:
+  UploadPath: ./uploads
+  UrlPrefix: /uploads/
+  AllowedExts:
+    - .jpg
+    - .jpeg
+    - .png
+    - .gif
+  MaxSizeBytes: 10485760 # 10MB

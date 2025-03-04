@@ -1,0 +1,339 @@
+syntax = "v1"
+
+info (
+	title: "社区与社交服务"
+	desc: "社区与社交服务API，支持作品展示、分享、点赞和评论"
+	author: "filmall"
+	version: "v1"
+)
+
+type (
+	// 作品
+	Work {
+		Id           int64  `json:"id"`            // 作品ID
+		Uid          int64  `json:"uid"`           // 用户ID
+		Title        string `json:"title"`         // 作品标题
+		Description  string `json:"description"`   // 作品描述
+		CoverUrl     string `json:"cover_url"`     // 封面图URL
+		FilmType     string `json:"film_type"`     // 胶片类型
+		FilmBrand    string `json:"film_brand"`    // 胶片品牌
+		Camera       string `json:"camera"`        // 相机型号
+		Lens         string `json:"lens"`          // 镜头型号
+		ExifInfo     string `json:"exif_info"`     // EXIF信息(JSON格式)
+		ViewCount    int64  `json:"view_count"`    // 浏览次数
+		LikeCount    int64  `json:"like_count"`    // 点赞数
+		CommentCount int64  `json:"comment_count"` // 评论数
+		Status       int64  `json:"status"`        // 状态:0草稿,1已发布,2已删除
+		CreateTime   string `json:"create_time"`   // 创建时间
+		UpdateTime   string `json:"update_time"`   // 更新时间
+	}
+
+	// 作品图片
+	WorkImage {
+		Id         int64  `json:"id"`          // 图片ID
+		WorkId     int64  `json:"work_id"`     // 作品ID
+		Url        string `json:"url"`         // 图片URL
+		Sort       int64  `json:"sort"`        // 排序
+		CreateTime string `json:"create_time"` // 创建时间
+	}
+
+	// 点赞
+	Like {
+		Id         int64  `json:"id"`          // 点赞ID
+		Uid        int64  `json:"uid"`         // 用户ID
+		WorkId     int64  `json:"work_id"`     // 作品ID
+		CreateTime string `json:"create_time"` // 创建时间
+	}
+
+	// 评论
+	Comment {
+		Id         int64  `json:"id"`          // 评论ID
+		Uid        int64  `json:"uid"`         // 用户ID
+		WorkId     int64  `json:"work_id"`     // 作品ID
+		Content    string `json:"content"`     // 评论内容
+		ReplyId    int64  `json:"reply_id"`    // 回复的评论ID(为0表示顶级评论)
+		Status     int64  `json:"status"`      // 状态:0正常,1已删除
+		CreateTime string `json:"create_time"` // 创建时间
+	}
+
+	// 创建作品请求
+	CreateWorkReq {
+		Title       string `json:"title"`       // 作品标题
+		Description string `json:"description"` // 作品描述
+		CoverUrl    string `json:"cover_url"`   // 封面图URL
+		FilmType    string `json:"film_type"`   // 胶片类型
+		FilmBrand   string `json:"film_brand"`  // 胶片品牌
+		Camera      string `json:"camera"`      // 相机型号
+		Lens        string `json:"lens"`        // 镜头型号
+		ExifInfo    string `json:"exif_info"`   // EXIF信息(JSON格式)
+		Status      int64  `json:"status"`      // 状态:0草稿,1已发布
+	}
+
+	// 创建作品返回数据
+	CreateWorkData {
+		Id int64 `json:"id"` // 作品ID
+	}
+
+	// 创建作品响应
+	CreateWorkResp {
+		Code int64          `json:"code"`
+		Msg  string         `json:"msg"`
+		Data CreateWorkData `json:"data"`
+	}
+
+	// 更新作品请求
+	UpdateWorkReq {
+		Id          int64  `path:"id"`                   // 作品ID
+		Title       string `json:"title,optional"`       // 作品标题
+		Description string `json:"description,optional"` // 作品描述
+		CoverUrl    string `json:"cover_url,optional"`   // 封面图URL
+		FilmType    string `json:"film_type,optional"`   // 胶片类型
+		FilmBrand   string `json:"film_brand,optional"`  // 胶片品牌
+		Camera      string `json:"camera,optional"`      // 相机型号
+		Lens        string `json:"lens,optional"`        // 镜头型号
+		ExifInfo    string `json:"exif_info,optional"`   // EXIF信息(JSON格式)
+		Status      int64  `json:"status,optional"`      // 状态:0草稿,1已发布,2已删除
+	}
+
+	// 更新作品响应
+	UpdateWorkResp {
+		Code int64  `json:"code"`
+		Msg  string `json:"msg"`
+	}
+
+	// 获取作品请求
+	GetWorkReq {
+		Id int64 `path:"id"` // 作品ID
+	}
+
+	// 获取作品返回数据
+	GetWorkData {
+		Work       Work        `json:"work"`        // 作品信息
+		Images     []WorkImage `json:"images"`      // 作品图片
+		LikeStatus bool        `json:"like_status"` // 当前用户是否点赞
+		Author     UserSimple  `json:"author"`      // 作者信息
+	}
+
+	// 用户简要信息
+	UserSimple {
+		Uid      int64  `json:"uid"`      // 用户ID
+		Nickname string `json:"nickname"` // 昵称
+		Avatar   string `json:"avatar"`   // 头像
+	}
+
+	// 获取作品响应
+	GetWorkResp {
+		Code int64       `json:"code"`
+		Msg  string      `json:"msg"`
+		Data GetWorkData `json:"data"`
+	}
+
+	// 作品列表请求
+	ListWorkReq {
+		Uid       int64  `form:"uid,optional"`         // 用户ID(查询指定用户的作品)
+		Keyword   string `form:"keyword,optional"`     // 关键词(标题或描述)
+		FilmType  string `form:"film_type,optional"`   // 胶片类型
+		FilmBrand string `form:"film_brand,optional"`  // 胶片品牌
+		Status    int64  `form:"status,optional"`      // 状态
+		Page      int64  `form:"page,default=1"`       // 页码
+		PageSize  int64  `form:"page_size,default=10"` // 每页数量
+	}
+
+	// 作品列表返回数据
+	ListWorkData {
+		Total int64        `json:"total"` // 总数
+		List  []WorkDetail `json:"list"`  // 作品列表
+	}
+
+	// 作品详情(列表展示用)
+	WorkDetail {
+		Work   Work       `json:"work"`   // 作品信息
+		Author UserSimple `json:"author"` // 作者信息
+	}
+
+	// 作品列表响应
+	ListWorkResp {
+		Code int64        `json:"code"`
+		Msg  string       `json:"msg"`
+		Data ListWorkData `json:"data"`
+	}
+
+	// 上传作品图片请求
+	UploadWorkImageReq {
+		WorkId int64 `form:"work_id"`       // 作品ID
+		Sort   int64 `form:"sort,optional"` // 排序
+	}
+
+	// 上传作品图片返回数据
+	UploadWorkImageData {
+		Id  int64  `json:"id"`  // 图片ID
+		Url string `json:"url"` // 图片URL
+	}
+
+	// 上传作品图片响应
+	UploadWorkImageResp {
+		Code int64               `json:"code"`
+		Msg  string              `json:"msg"`
+		Data UploadWorkImageData `json:"data"`
+	}
+
+	// 删除作品图片请求
+	DeleteWorkImageReq {
+		Id int64 `path:"id"` // 图片ID
+	}
+
+	// 删除作品图片响应
+	DeleteWorkImageResp {
+		Code int64  `json:"code"`
+		Msg  string `json:"msg"`
+	}
+
+	// 点赞/取消点赞请求
+	LikeWorkReq {
+		WorkId int64 `json:"work_id"` // 作品ID
+		Action int64 `json:"action"`  // 动作:1点赞,0取消点赞
+	}
+
+	// 点赞/取消点赞响应
+	LikeWorkResp {
+		Code int64  `json:"code"`
+		Msg  string `json:"msg"`
+	}
+
+	// 创建评论请求
+	CreateCommentReq {
+		WorkId  int64  `json:"work_id"`           // 作品ID
+		Content string `json:"content"`           // 评论内容
+		ReplyId int64  `json:"reply_id,optional"` // 回复的评论ID(为0表示顶级评论)
+	}
+
+	// 创建评论返回数据
+	CreateCommentData {
+		Id int64 `json:"id"` // 评论ID
+	}
+
+	// 创建评论响应
+	CreateCommentResp {
+		Code int64             `json:"code"`
+		Msg  string            `json:"msg"`
+		Data CreateCommentData `json:"data"`
+	}
+
+	// 评论列表请求
+	ListCommentReq {
+		WorkId   int64 `form:"work_id"`              // 作品ID
+		Page     int64 `form:"page,default=1"`       // 页码
+		PageSize int64 `form:"page_size,default=20"` // 每页数量
+	}
+
+	// 评论列表返回数据
+	ListCommentData {
+		Total int64           `json:"total"` // 总数
+		List  []CommentDetail `json:"list"`  // 评论列表
+	}
+
+	// 评论详情
+	CommentDetail {
+		Comment Comment         `json:"comment"`          // 评论信息
+		User    UserSimple      `json:"user"`             // 评论者信息
+		Replies []CommentDetail `json:"replies,optional"` // 回复列表(仅顶级评论有此字段)
+	}
+
+	// 评论列表响应
+	ListCommentResp {
+		Code int64           `json:"code"`
+		Msg  string          `json:"msg"`
+		Data ListCommentData `json:"data"`
+	}
+
+	// 删除评论请求
+	DeleteCommentReq {
+		Id int64 `path:"id"` // 评论ID
+	}
+
+	// 删除评论响应
+	DeleteCommentResp {
+		Code int64  `json:"code"`
+		Msg  string `json:"msg"`
+	}
+)
+
+// 公共接口，不需要认证
+@server(
+	prefix: /api/community
+)
+service community {
+	@doc "获取作品详情(公开)"
+	@handler getWork
+	get /work/:id (GetWorkReq) returns (GetWorkResp)
+	
+	@doc "获取作品列表(公开)"
+	@handler listWork
+	get /work/list (ListWorkReq) returns (ListWorkResp)
+	
+	@doc "获取作品评论列表(公开)"
+	@handler listComment
+	get /comment/list (ListCommentReq) returns (ListCommentResp)
+}
+
+// 用户接口，需要用户JWT认证
+@server(
+	jwt: Auth
+	prefix: /api/community
+)
+service community {
+	@doc "创建作品"
+	@handler createWork
+	post /user/work (CreateWorkReq) returns (CreateWorkResp)
+	
+	@doc "更新自己的作品"
+	@handler updateWork
+	put /user/work/:id (UpdateWorkReq) returns (UpdateWorkResp)
+	
+	@doc "获取自己的作品列表"
+	@handler getUserWorks
+	get /user/work/list (ListWorkReq) returns (ListWorkResp)
+	
+	@doc "上传作品图片"
+	@handler uploadWorkImage
+	post /user/work/image/upload (UploadWorkImageReq) returns (UploadWorkImageResp)
+	
+	@doc "删除作品图片"
+	@handler deleteWorkImage
+	delete /user/work/image/:id (DeleteWorkImageReq) returns (DeleteWorkImageResp)
+	
+	@doc "点赞/取消点赞作品"
+	@handler likeWork
+	post /user/like (LikeWorkReq) returns (LikeWorkResp)
+	
+	@doc "创建评论"
+	@handler createComment
+	post /user/comment (CreateCommentReq) returns (CreateCommentResp)
+	
+	@doc "删除自己的评论"
+	@handler deleteComment
+	delete /user/comment/:id (DeleteCommentReq) returns (DeleteCommentResp)
+}
+
+// 管理员接口，需要管理员JWT认证
+@server(
+	jwt: AdminAuth
+	prefix: /api/community
+)
+service community {
+	@doc "管理员获取任意作品详情"
+	@handler adminGetWork
+	get /admin/work/:id (GetWorkReq) returns (GetWorkResp)
+	
+	@doc "管理员获取作品列表"
+	@handler adminListWork
+	get /admin/work/list (ListWorkReq) returns (ListWorkResp)
+	
+	@doc "管理员更新任意作品"
+	@handler adminUpdateWork
+	put /admin/work/:id (UpdateWorkReq) returns (UpdateWorkResp)
+	
+	@doc "管理员删除任意评论"
+	@handler adminDeleteComment
+	delete /admin/comment/:id (DeleteCommentReq) returns (DeleteCommentResp)
+}

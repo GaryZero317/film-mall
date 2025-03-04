@@ -18,7 +18,7 @@ Page({
 
   // 切换标签
   onTabChange(e) {
-    const index = e.detail.index
+    const index = parseInt(e.currentTarget.dataset.index)
     this.setData({ activeTab: index })
     
     if (index === 0 && this.data.communityWorks.length === 0) {
@@ -130,14 +130,29 @@ Page({
 
   // 创建新作品
   onCreateWork() {
+    console.log('点击发布按钮')
     wx.navigateTo({
-      url: '/pages/user/community/create/index'
+      url: '/pages/user/community/create/index',
+      fail: (err) => {
+        console.error('跳转失败:', err)
+        wx.showToast({
+          title: '跳转失败',
+          icon: 'none'
+        })
+      }
     })
   },
 
   // 查看作品详情
   onViewWorkDetail(e) {
     const id = e.currentTarget.dataset.id
+    if (!id) {
+      wx.showToast({
+        title: '无效的作品ID',
+        icon: 'none'
+      })
+      return
+    }
     wx.navigateTo({
       url: `/pages/user/community/detail/index?id=${id}`
     })

@@ -17,6 +17,9 @@ export function getWorkList(params = {}) {
  * @param {number} id 作品ID
  */
 export function getWorkDetail(id) {
+  if (!id) {
+    return Promise.reject(new Error('作品ID不能为空'))
+  }
   return request({
     url: `/api/community/work/${id}`,
     method: 'GET'
@@ -51,6 +54,9 @@ export function likeWork(id, isLike) {
  * @param {number} workId 作品ID
  */
 export function getComments(workId) {
+  if (!workId) {
+    return Promise.reject(new Error('作品ID不能为空'))
+  }
   return request({
     url: '/api/community/comment/list',
     method: 'GET',

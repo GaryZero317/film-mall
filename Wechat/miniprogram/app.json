@@ -25,6 +25,7 @@
     "pages/film/create/index",
     "pages/user/community/index",
     "pages/user/community/detail/index",
+    "pages/user/community/create/index",
     "pages/user/community/edit/index"
   ],
   "window": {

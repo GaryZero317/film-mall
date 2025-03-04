@@ -3,6 +3,9 @@
   padding: 0;
   background-color: #f8f8f8;
   min-height: 100vh;
+  padding-bottom: 120rpx;
+  box-sizing: border-box;
+  position: relative;
 }
 
 .header {
@@ -17,23 +20,86 @@
 
 .tabs {
   width: 80%;
+  display: flex;
+  justify-content: space-around;
+  background: #fff;
+  padding: 20rpx 0;
+}
+
+.tab-item {
+  font-size: 28rpx;
+  color: #666;
+  position: relative;
+  padding: 0 20rpx;
+}
+
+.tab-item.active {
+  color: #1989fa;
+  font-weight: bold;
+}
+
+.tab-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: -10rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40rpx;
+  height: 4rpx;
+  background: #1989fa;
+  border-radius: 2rpx;
 }
 
 .create-btn {
-  position: absolute;
-  right: 30rpx;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 60rpx;
-  height: 60rpx;
+  position: fixed;
+  left: 50%;
+  bottom: 40rpx;
+  transform: translateX(-50%);
+  width: 100rpx;
+  height: 100rpx;
+  background-color: #1989fa;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 4rpx 16rpx rgba(25, 137, 250, 0.2);
+  z-index: 9999;
 }
 
-.create-btn image {
+.create-btn::after {
+  content: '';
+  position: absolute;
+  top: -20rpx;
+  left: -20rpx;
+  right: -20rpx;
+  bottom: -20rpx;
+}
+
+.plus-icon {
+  position: relative;
   width: 40rpx;
   height: 40rpx;
+}
+
+.plus-icon::before,
+.plus-icon::after {
+  content: '';
+  position: absolute;
+  background-color: #fff;
+}
+
+.plus-icon::before {
+  width: 40rpx;
+  height: 3rpx;
+  top: 18.5rpx;
+  left: 0;
+}
+
+.plus-icon::after {
+  width: 3rpx;
+  height: 40rpx;
+  left: 18.5rpx;
+  top: 0;
 }
 
 .works-list {

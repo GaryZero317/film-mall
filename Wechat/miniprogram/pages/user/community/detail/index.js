@@ -17,12 +17,7 @@ Page({
   },
 
   onLoad(options) {
-    const id = options.id
-    if (id) {
-      this.setData({ id })
-      this.loadWorkDetail()
-      this.loadComments()
-    } else {
+    if (!options || !options.id) {
       wx.showToast({
         title: '参数错误',
         icon: 'none'
@@ -30,24 +25,43 @@ Page({
       setTimeout(() => {
         wx.navigateBack()
       }, 1500)
+      return
     }
+
+    const id = parseInt(options.id)
+    if (isNaN(id)) {
+      wx.showToast({
+        title: '无效的作品ID',
+        icon: 'none'
+      })
+      setTimeout(() => {
+        wx.navigateBack()
+      }, 1500)
+      return
+    }
+
+    this.setData({ id })
+    this.loadWorkDetail()
+    this.loadComments()
   },
 
   // 加载作品详情
   async loadWorkDetail() {
+    if (!this.data.id) return
     this.setData({ loading: true })
     
     try {
       const res = await getWorkDetail(this.data.id)
       console.log('作品详情:', res)
       
-      if (res.code === 0) {
+      if (res.code === 0 || res.code === 200) {  // 兼容两种成功状态码
         // 检查是否是作品所有者
         const userInfo = wx.getStorageSync('userInfo')
-        const isOwner = userInfo && userInfo.id === res.data.work.uid
+        const work = res.data.work || res.data
+        const isOwner = userInfo && userInfo.id === work.uid
         
         this.setData({
-          work: res.data.work,
+          work,
           isOwner
         })
       } else {
@@ -59,7 +73,7 @@ Page({
     } catch (error) {
       console.error('加载作品详情失败:', error)
       wx.showToast({
-        title: '网络错误，请重试',
+        title: error.message || '网络错误，请重试',
         icon: 'none'
       })
     } finally {
@@ -69,15 +83,16 @@ Page({
 
   // 加载评论
   async loadComments() {
+    if (!this.data.id) return
     this.setData({ commentLoading: true })
     
     try {
       const res = await getComments(this.data.id)
       console.log('评论列表:', res)
       
-      if (res.code === 0) {
+      if (res.code === 0 || res.code === 200) {  // 兼容两种成功状态码
         this.setData({
-          comments: res.data
+          comments: res.data.list || res.data || []
         })
       } else {
         wx.showToast({
@@ -87,6 +102,10 @@ Page({
       }
     } catch (error) {
       console.error('加载评论失败:', error)
+      wx.showToast({
+        title: error.message || '加载评论失败',
+        icon: 'none'
+      })
     } finally {
       this.setData({ commentLoading: false })
     }

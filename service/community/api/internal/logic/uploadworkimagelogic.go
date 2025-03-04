@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"mall/common/ctxdata"
 	"mall/service/community/api/internal/svc"
 	"mall/service/community/api/internal/types"
 	"mall/service/community/model"
@@ -41,7 +42,7 @@ func (l *UploadWorkImageLogic) UploadWorkImage(req *types.UploadWorkImageReq) (r
 	}
 
 	// 获取用户ID
-	uid, ok := l.ctx.Value("uid").(int64)
+	uid, ok := ctxdata.GetUserIdFromCtx(l.ctx)
 	if !ok || uid <= 0 {
 		resp.Code = 401
 		resp.Msg = "未登录或登录已过期"

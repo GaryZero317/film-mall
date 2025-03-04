@@ -3,6 +3,7 @@ package logic
 import (
 	"context"
 
+	"mall/common/ctxdata"
 	"mall/service/community/api/internal/svc"
 	"mall/service/community/api/internal/types"
 	"mall/service/community/model"
@@ -100,9 +101,9 @@ func (l *GetWorkLogic) GetWork(req *types.GetWorkReq) (resp *types.GetWorkResp, 
 
 	// 检查当前用户是否点赞
 	likeStatus := false
-	uidVal, exists := l.ctx.Value("uid").(int64)
-	if exists && uidVal > 0 {
-		status, _ := l.svcCtx.LikeModel.IsLiked(l.ctx, uidVal, req.Id)
+	uid, exists := ctxdata.GetUserIdFromCtx(l.ctx)
+	if exists && uid > 0 {
+		status, _ := l.svcCtx.LikeModel.IsLiked(l.ctx, uid, req.Id)
 		likeStatus = status
 	}
 

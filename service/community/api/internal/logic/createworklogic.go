@@ -3,6 +3,7 @@ package logic
 import (
 	"context"
 
+	"mall/common/ctxdata"
 	"mall/service/community/api/internal/svc"
 	"mall/service/community/api/internal/types"
 	"mall/service/community/model"
@@ -31,7 +32,7 @@ func (l *CreateWorkLogic) CreateWork(req *types.CreateWorkReq) (resp *types.Crea
 	}
 
 	// 获取用户ID
-	uid, ok := l.ctx.Value("uid").(int64)
+	uid, ok := ctxdata.GetUserIdFromCtx(l.ctx)
 	if !ok || uid <= 0 {
 		resp.Code = 401
 		resp.Msg = "未登录或登录已过期"

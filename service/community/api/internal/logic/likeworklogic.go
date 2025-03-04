@@ -3,6 +3,7 @@ package logic
 import (
 	"context"
 
+	"mall/common/ctxdata"
 	"mall/service/community/api/internal/svc"
 	"mall/service/community/api/internal/types"
 	"mall/service/community/model"
@@ -30,6 +31,14 @@ func (l *LikeWorkLogic) LikeWork(req *types.LikeWorkReq) (resp *types.LikeWorkRe
 		Msg:  "操作成功",
 	}
 
+	// 获取用户ID
+	uid, ok := ctxdata.GetUserIdFromCtx(l.ctx)
+	if !ok || uid <= 0 {
+		resp.Code = 401
+		resp.Msg = "未登录或登录已过期"
+		return resp, nil
+	}
+
 	// 1. 检查作品是否存在
 	work, err := l.svcCtx.WorkModel.FindOne(l.ctx, req.WorkId)
 	if err != nil {
@@ -51,7 +60,7 @@ func (l *LikeWorkLogic) LikeWork(req *types.LikeWorkReq) (resp *types.LikeWorkRe
 	}
 
 	// 3. 检查是否已经点赞
-	isLiked, err := l.svcCtx.LikeModel.IsLiked(l.ctx, req.Uid, req.WorkId)
+	isLiked, err := l.svcCtx.LikeModel.IsLiked(l.ctx, uid, req.WorkId)
 	if err != nil {
 		resp.Code = 500
 		resp.Msg = "系统错误: " + err.Error()
@@ -61,7 +70,7 @@ func (l *LikeWorkLogic) LikeWork(req *types.LikeWorkReq) (resp *types.LikeWorkRe
 	if !isLiked {
 		// 未点赞，添加点赞记录
 		like := &model.Like{
-			Uid:    req.Uid,
+			Uid:    uid,
 			WorkId: req.WorkId,
 		}
 		_, err = l.svcCtx.LikeModel.Insert(l.ctx, like)
@@ -84,7 +93,7 @@ func (l *LikeWorkLogic) LikeWork(req *types.LikeWorkReq) (resp *types.LikeWorkRe
 		}
 	} else {
 		// 已点赞，取消点赞
-		err = l.svcCtx.LikeModel.Delete(l.ctx, req.Uid, req.WorkId)
+		err = l.svcCtx.LikeModel.Delete(l.ctx, uid, req.WorkId)
 		if err != nil {
 			resp.Code = 500
 			resp.Msg = "取消点赞失败: " + err.Error()

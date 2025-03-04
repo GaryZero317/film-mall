@@ -52,13 +52,80 @@ Page({
     
     try {
       const res = await getWorkDetail(this.data.id)
-      console.log('作品详情:', res)
+      console.log('作品详情原始响应:', res)
       
       if (res.code === 0 || res.code === 200) {  // 兼容两种成功状态码
         // 检查是否是作品所有者
         const userInfo = wx.getStorageSync('userInfo')
-        const work = res.data.work || res.data
-        const isOwner = userInfo && userInfo.id === work.uid
+        
+        // 获取work对象，兼容不同的返回结构
+        let work = null;
+        if (res.data && res.data.work) {
+          work = res.data.work;
+          console.log('从data.work获取作品数据');
+        } else {
+          work = res.data;
+          console.log('直接从data获取作品数据');
+        }
+        
+        // 确保images字段存在
+        if (!work.images && res.data && res.data.images) {
+          work.images = res.data.images;
+          console.log('从data.images获取图片数据:', work.images.length);
+        }
+        
+        if (!work.images) {
+          work.images = [];
+          console.warn('未找到图片数据');
+        }
+        
+        // 获取服务器基础URL
+        const baseUrl = getApp().globalData.baseUrl.community || "http://localhost:8008";
+        
+        // 处理图片URL，确保包含完整域名
+        work.images = work.images.map(img => {
+          if (img.url && img.url.startsWith('/')) {
+            // 如果是相对路径，添加域名
+            img.url = baseUrl + img.url;
+          }
+          return img;
+        });
+        
+        // 处理封面图片URL
+        if (work.cover_url && work.cover_url.startsWith('/')) {
+          work.cover_url = baseUrl + work.cover_url;
+        }
+        
+        // 确保作者信息存在
+        if (!work.author && res.data && res.data.author) {
+          work.author = res.data.author;
+          console.log('从data.author获取作者数据');
+        }
+        
+        if (!work.author) {
+          work.author = {
+            uid: work.uid,
+            nickname: '用户' + work.uid,
+            avatar: '/assets/images/default-avatar.png'
+          };
+          console.warn('未找到作者数据，使用默认值');
+        }
+        
+        // 处理作者头像URL
+        if (work.author && work.author.avatar && work.author.avatar.startsWith('/') && !work.author.avatar.startsWith('/assets/')) {
+          work.author.avatar = baseUrl + work.author.avatar;
+        }
+        
+        // 检查点赞状态
+        if (res.data && res.data.like_status !== undefined) {
+          work.like_status = res.data.like_status;
+        }
+        
+        // 记录图片URL列表用于预览
+        this.imageUrls = work.images.map(img => img.url);
+        console.log('图片URL列表:', this.imageUrls);
+        
+        const isOwner = userInfo && userInfo.id === work.uid;
         
         this.setData({
           work,
@@ -88,12 +155,66 @@ Page({
     
     try {
       const res = await getComments(this.data.id)
-      console.log('评论列表:', res)
+      console.log('评论列表原始响应:', res)
       
       if (res.code === 0 || res.code === 200) {  // 兼容两种成功状态码
+        // 更详细的数据检查
+        let commentList = [];
+        if (res.data && res.data.list && Array.isArray(res.data.list)) {
+          commentList = res.data.list;
+          console.log('找到评论列表数组:', commentList.length);
+        } else if (res.data && Array.isArray(res.data)) {
+          commentList = res.data;
+          console.log('直接使用data数组:', commentList.length);
+        } else {
+          console.warn('未找到评论列表数组:', res.data);
+          commentList = [];
+        }
+
+        // 获取服务器基础URL
+        const baseUrl = getApp().globalData.baseUrl.community || "http://localhost:8008";
+
+        // 确保每个评论对象都有必要的字段
+        commentList = commentList.map(item => {
+          // 确保comment字段存在
+          const comment = item.comment || item;
+          
+          // 确保user字段存在
+          const user = item.user || {
+            nickname: '用户' + (comment.uid || 'Unknown'),
+            avatar: '/assets/images/default-avatar.png'
+          };
+          
+          // 处理用户头像URL
+          if (user.avatar && user.avatar.startsWith('/') && !user.avatar.startsWith('/assets/')) {
+            user.avatar = baseUrl + user.avatar;
+          }
+          
+          // 处理回复评论
+          let replies = item.replies || [];
+          
+          // 处理每个回复的用户头像URL
+          replies = replies.map(reply => {
+            if (reply.user && reply.user.avatar && reply.user.avatar.startsWith('/') && !reply.user.avatar.startsWith('/assets/')) {
+              reply.user.avatar = baseUrl + reply.user.avatar;
+            }
+            return reply;
+          });
+          
+          return {
+            id: comment.id,
+            content: comment.content,
+            create_time: comment.create_time,
+            user: user,
+            replies: replies
+          };
+        });
+        
+        console.log('处理后的评论列表:', commentList);
+        
         this.setData({
-          comments: res.data.list || res.data || []
-        })
+          comments: commentList
+        });
       } else {
         wx.showToast({
           title: res.msg || '加载评论失败',
@@ -249,7 +370,7 @@ Page({
       })
     } else if (index === 1) {
       // 删除
-      this.onDeleteWork()
+      this.confirmDeleteWork()
     }
     
     this.setData({ showActionSheet: false })
@@ -301,13 +422,29 @@ Page({
 
   // 预览图片
   onPreviewImage(e) {
-    const current = e.currentTarget.dataset.src
-    const urls = this.data.work.images.map(img => img.url)
+    const current = e.currentTarget.dataset.src;
+    if (!current) return;
+    
+    // 使用保存的图片URL列表
+    const urls = this.imageUrls || [];
+    if (urls.length === 0) {
+      // 如果没有图片列表，只预览当前图片
+      urls.push(current);
+    }
+    
+    console.log('预览图片:', current, '图片列表:', urls);
     
     wx.previewImage({
-      current,
-      urls
-    })
+      current, // 当前显示图片的http链接
+      urls, // 需要预览的图片http链接列表
+      fail: (err) => {
+        console.error('预览图片失败:', err);
+        wx.showToast({
+          title: '预览图片失败',
+          icon: 'none'
+        });
+      }
+    });
   },
 
   // 返回

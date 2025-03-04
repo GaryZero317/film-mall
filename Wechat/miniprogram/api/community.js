@@ -45,7 +45,7 @@ export function likeWork(id, isLike) {
   return request({
     url: '/api/community/user/like',
     method: 'POST',
-    data: { workId: id }
+    data: { work_id: id, action: isLike ? 1 : 0 }
   })
 }
 
@@ -60,7 +60,7 @@ export function getComments(workId) {
   return request({
     url: '/api/community/comment/list',
     method: 'GET',
-    params: { workId }
+    params: { work_id: workId }
   })
 }
 
@@ -73,7 +73,7 @@ export function addComment(workId, content) {
   return request({
     url: '/api/community/user/comment',
     method: 'POST',
-    data: { workId, content }
+    data: { work_id: workId, content }
   })
 }
 

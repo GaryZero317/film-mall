@@ -135,16 +135,47 @@ Page({
     if (this.data.loading) return
     
     this.setData({ loading: true })
+    console.log('开始加载我的作品')
     
     try {
       const res = await getUserWorks()
-      console.log('加载我的作品结果:', res)
+      console.log('加载我的作品API响应:', res)
       
       if (res.code === 0) {
+        // 验证数据格式
+        if (!res.data) {
+          console.error('API响应数据为空')
+          throw new Error('返回数据为空')
+        }
+
+        // 确保 res.data 是数组
+        const worksList = Array.isArray(res.data) ? res.data : res.data.list || []
+        console.log('解析后的作品列表:', worksList)
+
+        // 处理作品数据，添加完整的图片URL
+        const works = worksList.map(work => {
+          // 确保work对象存在
+          if (!work) return null
+
+          // 如果work是嵌套的，提取work对象
+          const workData = work.work || work
+
+          if (workData.cover_url && !workData.cover_url.startsWith('http')) {
+            let url = workData.cover_url
+            if (!url.startsWith('/')) {
+              url = '/' + url
+            }
+            workData.cover_url = this.data.baseUrl + url
+          }
+          return workData
+        }).filter(work => work !== null) // 过滤掉无效的数据
+        
+        console.log('处理后的我的作品数据:', works)
         this.setData({
-          myWorks: res.data
+          myWorks: works
         })
       } else {
+        console.error('加载我的作品失败:', res.msg)
         wx.showToast({
           title: res.msg || '加载失败',
           icon: 'none'
@@ -153,7 +184,7 @@ Page({
     } catch (error) {
       console.error('加载我的作品失败:', error)
       wx.showToast({
-        title: '网络错误，请重试',
+        title: error.message || '网络错误，请重试',
         icon: 'none'
       })
     } finally {

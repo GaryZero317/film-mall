@@ -32,7 +32,8 @@ export function getWorkDetail(id) {
 export function getUserWorks() {
   return request({
     url: '/api/community/user/work/list',
-    method: 'GET'
+    method: 'GET',
+    data: { status: -1 }  // 获取所有非删除状态的作品
   })
 }
 
@@ -131,6 +132,7 @@ export function deleteWork(id) {
  */
 export function uploadWorkImage(filePath, workId) {
   return new Promise((resolve, reject) => {
+    // 直接上传文件，不检查大小
     wx.uploadFile({
       url: `${getApp().globalData.baseUrl.community}/api/community/user/work/image/upload`,
       filePath,

@@ -245,8 +245,8 @@ func (m *customWorkModel) List(ctx context.Context, uid int64, keyword, filmType
 		conditions = append(conditions, "status = ?")
 		args = append(args, status)
 	} else {
-		// 默认查询状态为已发布的作品
-		conditions = append(conditions, "status = 1")
+		// 查询非删除状态的作品（草稿和已发布）
+		conditions = append(conditions, "status < 2")
 	}
 
 	conditionStr := ""

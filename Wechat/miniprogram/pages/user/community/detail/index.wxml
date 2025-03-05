@@ -1,32 +1,26 @@
 <!--pages/user/community/detail/index.wxml-->
-<view class="container" wx:if="{{ work }}" wx:key="id">
-  <view class="header">
-    <view class="back-btn" bindtap="onBack">
-      <image src="/assets/images/back.png"></image>
-    </view>
-    <view class="title">作品详情</view>
-    <view class="action-btn" bindtap="onShowActions" wx:if="{{ isOwner }}">
-      <image src="/assets/images/more.png"></image>
-    </view>
-  </view>
+<view class="container" wx:if="{{ work }}">
 
   <view class="work-info">
-    <view class="work-title">{{ work.title }}</view>
     <view class="work-author">
-      <image class="author-avatar" src="{{ work.author.avatar || '/assets/images/default-avatar.png' }}"></image>
+      <image class="author-avatar" src="{{ work.author.avatar && work.author.avatar.startsWith('http') ? work.author.avatar : '/assets/images/default-avatar.png' }}"></image>
       <text>{{ work.author.nickname }}</text>
+      <text class="work-time">{{ work.create_time }}</text>
+      <view class="action-btn" bindtap="onShowActions" wx:if="{{ isOwner }}">
+        <image src="/assets/images/more.png"></image>
+      </view>
     </view>
-    <view class="work-time">{{ work.create_time }}</view>
-    <view class="work-desc">{{ work.description }}</view>
+    <view class="work-title">{{ work.title }}</view>
+    <view class="work-desc" wx:if="{{ work.description }}">{{ work.description }}</view>
     
     <view class="work-meta">
-      <view class="meta-item">
+      <view class="meta-item" wx:if="{{ work.film_type }}">
         <text class="label">胶片类型：</text>
-        <text class="value">{{ work.film_type || '未知' }}</text>
+        <text class="value">{{ work.film_type }}</text>
       </view>
-      <view class="meta-item">
+      <view class="meta-item" wx:if="{{ work.film_brand }}">
         <text class="label">胶片品牌：</text>
-        <text class="value">{{ work.film_brand || '未知' }}</text>
+        <text class="value">{{ work.film_brand }}</text>
       </view>
       <view class="meta-item" wx:if="{{ work.camera }}">
         <text class="label">相机型号：</text>
@@ -44,9 +38,15 @@
   </view>
 
   <view class="work-images" wx:if="{{ work.images && work.images.length > 0 }}">
-    <view class="image-item" wx:for="{{ work.images }}" wx:key="id" bindtap="onPreviewImage" data-src="{{ item.url }}">
-      <image src="{{ item.url }}" mode="aspectFill"></image>
-    </view>
+    <image 
+      wx:for="{{ work.images }}" 
+      wx:key="id" 
+      src="{{ item.url }}" 
+      mode="widthFix" 
+      bindtap="onPreviewImage" 
+      data-src="{{ item.url }}"
+      class="image-item"
+    ></image>
   </view>
 
   <view class="work-actions">
@@ -73,7 +73,7 @@
     
     <view class="comment-list" wx:if="{{ comments.length > 0 }}">
       <view class="comment-item" wx:for="{{ comments }}" wx:key="id">
-        <image class="comment-avatar" src="{{ item.user.avatar || '/assets/images/default-avatar.png' }}"></image>
+        <image class="comment-avatar" src="{{ item.user.avatar && item.user.avatar.startsWith('http') ? item.user.avatar : '/assets/images/default-avatar.png' }}"></image>
         <view class="comment-content">
           <view class="comment-user">
             <text class="comment-username">{{ item.user.nickname }}</text>
@@ -90,17 +90,17 @@
     <view class="empty-comment" wx:else>
       <text>暂无评论，快来发表第一条评论吧</text>
     </view>
-    
-    <view class="comment-input">
-      <input 
-        type="text" 
-        placeholder="写下你的评论..." 
-        value="{{ commentContent }}"
-        bindinput="onInputComment"
-        confirm-type="send"
-      />
-      <button class="send-btn" bindtap="onSubmitComment">发送</button>
-    </view>
+  </view>
+
+  <view class="comment-input">
+    <input 
+      type="text" 
+      placeholder="写下你的评论..." 
+      value="{{ commentContent }}"
+      bindinput="onInputComment"
+      confirm-type="send"
+    />
+    <button class="send-btn" bindtap="onSubmitComment">发送</button>
   </view>
 </view>
 

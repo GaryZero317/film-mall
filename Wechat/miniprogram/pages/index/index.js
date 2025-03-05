@@ -20,6 +20,7 @@ Page({
       }
     ],
     products: [],
+    shuffledProducts: [],
     loading: false,
     searchValue: '',
     page: 1,
@@ -86,15 +87,10 @@ Page({
         const page = refresh ? 2 : this.data.page + 1
         const hasMore = products.length < total
 
-        console.log('处理后的数据:', {
-          productsLength: products.length,
-          page,
-          hasMore,
-          products
-        })
-
+        // 随机打乱商品数组
         this.setData({
           products,
+          shuffledProducts: this.shuffleArray(products),
           page,
           hasMore,
           loading: false
@@ -115,6 +111,15 @@ Page({
       })
       this.setData({ loading: false })
     }
+  },
+
+  // 随机打乱数组的函数
+  shuffleArray: function(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
   },
 
   // 搜索输入

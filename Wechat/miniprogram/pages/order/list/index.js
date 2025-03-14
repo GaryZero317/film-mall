@@ -392,6 +392,7 @@ Page({
       case 2: return '待收货'
       case 3: return '已完成'
       case 4: return '已取消'
+      case 9: return '已取消'  // 添加状态码9为已取消
       default: return '未知状态'
     }
   },

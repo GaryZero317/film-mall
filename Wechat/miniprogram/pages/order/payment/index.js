@@ -20,12 +20,14 @@ Page({
     orderStatus: {
       0: '待支付',
       1: '已支付',
-      2: '已取消'
+      2: '待收货',
+      9: '已取消'
     },
     payStatus: {
       0: '未支付',
       1: '已支付',
-      2: '支付失败'
+      2: '支付失败',
+      9: '已取消'
     },
     countdown: '', // 倒计时显示
     countdownTimer: null, // 倒计时定时器ID
@@ -214,12 +216,66 @@ Page({
         this.clearCountdown()
         this.setData({ countdown: '00:00' })
         
-        // 提示用户订单已过期
-        wx.showToast({
-          title: '订单支付超时',
-          icon: 'none',
-          duration: 2000
-        })
+        // 更新订单状态为已取消（状态码9）
+        const order = this.data.order
+        if (order && order.status === 0) {
+          // 先更新UI显示
+          this.setData({
+            'order.status': 9,
+            'order.statusText': '已取消',
+            'order.pay_status': 9,
+            'order.payStatusText': '已取消'
+          })
+          
+          // 提示用户订单已过期
+          wx.showToast({
+            title: '订单支付超时已自动取消',
+            icon: 'none',
+            duration: 2000
+          })
+          
+          // 调用API更新数据库中的订单状态
+          if (this.data.isFilmOrder) {
+            // 胶片订单取消
+            const { updateFilmOrderStatus } = require('../../../api/film')
+            updateFilmOrderStatus(order.id, 9)
+              .then(res => {
+                console.log('[订单支付] 胶片订单已自动取消:', res)
+              })
+              .catch(err => {
+                console.error('[订单支付] 胶片订单取消失败:', err)
+              })
+          } else {
+            // 普通商品订单取消
+            const { updateOrderStatus } = require('../../../api/order')
+            updateOrderStatus(order.id, 9)
+              .then(res => {
+                console.log('[订单支付] 订单已自动取消:', res)
+              })
+              .catch(err => {
+                console.error('[订单支付] 订单取消失败:', err)
+              })
+            
+            // 如果存在支付记录，更新支付状态为已取消
+            if (this.data.payId) {
+              const { payCallback } = require('../../../api/order')
+              payCallback({
+                id: parseInt(this.data.payId),
+                uid: parseInt(order.uid) || 0,
+                oid: parseInt(order.id),
+                amount: parseInt(parseFloat(order.amount || 0) * 100),
+                source: 0,
+                status: 9  // 设置为已取消状态
+              })
+                .then(res => {
+                  console.log('[订单支付] 支付记录已更新为已取消:', res)
+                })
+                .catch(err => {
+                  console.error('[订单支付] 支付记录更新失败:', err)
+                })
+            }
+          }
+        }
         
         return
       }

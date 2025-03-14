@@ -8,7 +8,7 @@ option go_package = "./types";
 enum OrderStatus {
     UNPAID = 0;         // 待支付
     PAID = 1;           // 已支付
-    CANCELLED = 2;      // 已取消
+    CANCELLED = 9;      // 已取消
 }
 
 // 订单商品

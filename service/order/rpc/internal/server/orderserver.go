@@ -51,3 +51,8 @@ func (s *OrderServer) Paid(ctx context.Context, in *types.PaidRequest) (*types.P
 	l := logic.NewPaidLogic(ctx, s.svcCtx)
 	return l.Paid(in)
 }
+
+func (s *OrderServer) Cancel(ctx context.Context, in *types.CancelRequest) (*types.CancelResponse, error) {
+	l := logic.NewCancelLogic(ctx, s.svcCtx)
+	return l.Cancel(in)
+}

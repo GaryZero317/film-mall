@@ -14,6 +14,12 @@ CacheRedis:
     Type: node
     Pass: "123456"
 
+# 订单Redis配置
+OrderRedis:
+  Host: localhost:6379
+  Type: node
+  Pass: "123456"
+
 UserRpc:
   Etcd:
     Hosts:
@@ -25,3 +31,6 @@ ProductRpc:
     Hosts:
       - localhost:2379
     Key: product.rpc
+
+# 订单锁过期时间(秒)，15分钟
+OrderLockExpiry: 900

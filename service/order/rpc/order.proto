@@ -4,6 +4,13 @@ package order;
 
 option go_package = "./types";
 
+// 订单状态常量
+enum OrderStatus {
+    UNPAID = 0;         // 待支付
+    PAID = 1;           // 已支付
+    CANCELLED = 2;      // 已取消
+}
+
 // 订单商品
 message OrderItem {
     int64 id = 1;            // 订单商品ID
@@ -88,6 +95,13 @@ message PaidRequest {
 
 message PaidResponse {}
 
+// 取消订单
+message CancelRequest {
+    int64 id = 1;  // 订单ID
+}
+
+message CancelResponse {}
+
 service Order {
     rpc Create(CreateRequest) returns(CreateResponse);
     rpc Update(UpdateRequest) returns(UpdateResponse);
@@ -95,4 +109,5 @@ service Order {
     rpc Detail(DetailRequest) returns(DetailResponse);
     rpc List(ListRequest) returns(ListResponse);
     rpc Paid(PaidRequest) returns(PaidResponse);
+    rpc Cancel(CancelRequest) returns(CancelResponse);
 }

@@ -34,6 +34,13 @@
           <text class="order-status" data-status="{{item.status}}">{{item.status_text}}</text>
         </view>
         
+        <!-- 订单倒计时 - 只在待支付状态显示 -->
+        <view class="order-countdown" wx:if="{{item.status === 0 && item.countdown}}">
+          <text class="countdown-label">支付剩余时间：</text>
+          <text class="countdown-time">{{item.countdown}}</text>
+          <text class="countdown-tip">超时订单将自动取消</text>
+        </view>
+        
         <!-- 商品信息 -->
         <view class="product-info" bindtap="goToDetail" data-id="{{item.id}}">
           <block wx:for="{{item.items}}" wx:key="id" wx:for-item="product">
@@ -78,7 +85,7 @@
     </view>
     
     <!-- 空状态 -->
-    <view wx:elif="{{!loading}}" class="empty-state">
+    <view wx:elif="{{!loading && orders.length === 0}}" class="empty-state">
       <image src="/assets/images/empty-order.png" mode="aspectFit"></image>
       <text>暂无订单</text>
     </view>

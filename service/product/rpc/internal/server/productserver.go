@@ -56,3 +56,13 @@ func (s *ProductServer) SetMainImage(ctx context.Context, in *product.SetMainIma
 	l := logic.NewSetMainImageLogic(ctx, s.svcCtx)
 	return l.SetMainImage(in)
 }
+
+func (s *ProductServer) DecrStock(ctx context.Context, in *product.DecrStockRequest) (*product.DecrStockResponse, error) {
+	l := logic.NewDecrStockLogic(ctx, s.svcCtx)
+	return l.DecrStock(in)
+}
+
+func (s *ProductServer) RestoreStock(ctx context.Context, in *product.RestoreStockRequest) (*product.RestoreStockResponse, error) {
+	l := logic.NewRestoreStockLogic(ctx, s.svcCtx)
+	return l.RestoreStock(in)
+}

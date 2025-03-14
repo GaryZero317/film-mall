@@ -5,6 +5,15 @@
                               orderStatus === 1 ? '待发货' :
                               orderStatus === 2 ? '待收货' :
                               orderStatus === 3 ? '已完成' : '已取消'}}</view>
+    
+    <!-- 订单倒计时 - 只在待支付状态显示 -->
+    <view class="countdown-container" wx:if="{{orderStatus === 0 && countdown}}">
+      <view class="countdown-info">
+        <text class="countdown-label">支付剩余时间</text>
+        <text class="countdown-time">{{countdown}}</text>
+      </view>
+      <text class="countdown-tip">超时未支付，订单将自动取消</text>
+    </view>
   </view>
 
   <!-- 收货信息 -->

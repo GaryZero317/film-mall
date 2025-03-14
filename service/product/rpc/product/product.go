@@ -17,12 +17,16 @@ type (
 	AddProductImagesResponse    = product.AddProductImagesResponse
 	CreateRequest               = product.CreateRequest
 	CreateResponse              = product.CreateResponse
+	DecrStockRequest            = product.DecrStockRequest
+	DecrStockResponse           = product.DecrStockResponse
 	DetailRequest               = product.DetailRequest
 	DetailResponse              = product.DetailResponse
 	RemoveProductImagesRequest  = product.RemoveProductImagesRequest
 	RemoveProductImagesResponse = product.RemoveProductImagesResponse
 	RemoveRequest               = product.RemoveRequest
 	RemoveResponse              = product.RemoveResponse
+	RestoreStockRequest         = product.RestoreStockRequest
+	RestoreStockResponse        = product.RestoreStockResponse
 	SetMainImageRequest         = product.SetMainImageRequest
 	SetMainImageResponse        = product.SetMainImageResponse
 	UpdateRequest               = product.UpdateRequest
@@ -36,6 +40,8 @@ type (
 		AddProductImages(ctx context.Context, in *AddProductImagesRequest, opts ...grpc.CallOption) (*AddProductImagesResponse, error)
 		RemoveProductImages(ctx context.Context, in *RemoveProductImagesRequest, opts ...grpc.CallOption) (*RemoveProductImagesResponse, error)
 		SetMainImage(ctx context.Context, in *SetMainImageRequest, opts ...grpc.CallOption) (*SetMainImageResponse, error)
+		DecrStock(ctx context.Context, in *DecrStockRequest, opts ...grpc.CallOption) (*DecrStockResponse, error)
+		RestoreStock(ctx context.Context, in *RestoreStockRequest, opts ...grpc.CallOption) (*RestoreStockResponse, error)
 	}
 
 	defaultProduct struct {
@@ -82,4 +88,14 @@ func (m *defaultProduct) RemoveProductImages(ctx context.Context, in *RemoveProd
 func (m *defaultProduct) SetMainImage(ctx context.Context, in *SetMainImageRequest, opts ...grpc.CallOption) (*SetMainImageResponse, error) {
 	client := product.NewProductClient(m.cli.Conn())
 	return client.SetMainImage(ctx, in, opts...)
+}
+
+func (m *defaultProduct) DecrStock(ctx context.Context, in *DecrStockRequest, opts ...grpc.CallOption) (*DecrStockResponse, error) {
+	client := product.NewProductClient(m.cli.Conn())
+	return client.DecrStock(ctx, in, opts...)
+}
+
+func (m *defaultProduct) RestoreStock(ctx context.Context, in *RestoreStockRequest, opts ...grpc.CallOption) (*RestoreStockResponse, error) {
+	client := product.NewProductClient(m.cli.Conn())
+	return client.RestoreStock(ctx, in, opts...)
 }

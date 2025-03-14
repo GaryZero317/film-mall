@@ -312,10 +312,10 @@ func (m *defaultGormProductModel) FindPageListByPage(ctx context.Context, page, 
 	return products, total, nil
 }
 
-func (m *defaultGormProductModel) DecrStock(ctx context.Context, id int64) error {
+func (m *defaultGormProductModel) DecrStock(ctx context.Context, id int64, quantity int64) error {
 	result := m.db.WithContext(ctx).Model(&Product{}).
-		Where("id = ? AND stock > 0", id).
-		UpdateColumn("stock", gorm.Expr("stock - ?", 1))
+		Where("id = ? AND stock >= ?", id, quantity).
+		UpdateColumn("stock", gorm.Expr("stock - ?", quantity))
 
 	if result.Error != nil {
 		return result.Error
@@ -323,6 +323,22 @@ func (m *defaultGormProductModel) DecrStock(ctx context.Context, id int64) error
 
 	if result.RowsAffected == 0 {
 		return fmt.Errorf("product %d stock not available", id)
+	}
+
+	return nil
+}
+
+func (m *defaultGormProductModel) RestoreStock(ctx context.Context, id int64, quantity int64) error {
+	result := m.db.WithContext(ctx).Model(&Product{}).
+		Where("id = ?", id).
+		UpdateColumn("stock", gorm.Expr("stock + ?", quantity))
+
+	if result.Error != nil {
+		return result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return fmt.Errorf("product %d not found", id)
 	}
 
 	return nil

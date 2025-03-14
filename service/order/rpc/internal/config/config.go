@@ -11,4 +11,11 @@ type Config struct {
 		DataSource string
 	}
 	CacheRedis cache.CacheConf
+	OrderRedis struct {
+		Host string
+		Type string
+		Pass string
+	}
+	ProductRpc      zrpc.RpcClientConf
+	OrderLockExpiry int // 订单锁过期时间(秒)
 }

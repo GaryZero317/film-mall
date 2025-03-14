@@ -418,4 +418,35 @@ page {
 
 .action-btn.primary:active {
   box-shadow: 0 2px 6px rgba(74, 111, 227, 0.2);
+}
+
+/* 倒计时样式 */
+.countdown-container {
+  margin-top: 20rpx;
+  background: #FFF7F0;
+  border-radius: 8rpx;
+  padding: 16rpx 20rpx;
+}
+
+.countdown-info {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8rpx;
+}
+
+.countdown-label {
+  font-size: 28rpx;
+  color: #666;
+  margin-right: 16rpx;
+}
+
+.countdown-time {
+  font-size: 32rpx;
+  color: #FF4D4F;
+  font-weight: bold;
+}
+
+.countdown-tip {
+  font-size: 24rpx;
+  color: #999;
 } 

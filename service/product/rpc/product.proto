@@ -82,6 +82,24 @@ message SetMainImageRequest {
 message SetMainImageResponse {
 }
 
+// 减少库存
+message DecrStockRequest {
+  int64 id = 1;         // 商品ID
+  int64 quantity = 2;   // 减少数量
+}
+message DecrStockResponse {
+  bool success = 1;     // 是否成功
+}
+
+// 恢复库存
+message RestoreStockRequest {
+  int64 id = 1;         // 商品ID
+  int64 quantity = 2;   // 恢复数量
+}
+message RestoreStockResponse {
+  bool success = 1;     // 是否成功
+}
+
 service Product {
   rpc Create(CreateRequest) returns(CreateResponse);
   rpc Update(UpdateRequest) returns(UpdateResponse);
@@ -90,4 +108,6 @@ service Product {
   rpc AddProductImages(AddProductImagesRequest) returns(AddProductImagesResponse);
   rpc RemoveProductImages(RemoveProductImagesRequest) returns(RemoveProductImagesResponse);
   rpc SetMainImage(SetMainImageRequest) returns(SetMainImageResponse);
+  rpc DecrStock(DecrStockRequest) returns(DecrStockResponse);
+  rpc RestoreStock(RestoreStockRequest) returns(RestoreStockResponse);
 }

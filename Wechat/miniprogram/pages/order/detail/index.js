@@ -1,6 +1,9 @@
 import { getOrderDetail } from '../../../api/order'
 import { getAddressDetail } from '../../../api/address'
 
+// 订单支付超时时间（毫秒），与后端保持一致，15分钟
+const ORDER_PAYMENT_TIMEOUT = 15 * 60 * 1000;
+
 // 格式化金额
 const formatPrice = (price) => {
   if (typeof price !== 'number') return '0.00'
@@ -30,6 +33,13 @@ const formatAddress = (addressData) => {
   }
 }
 
+// 格式化日期字符串，确保iOS兼容性
+const formatDateString = (dateStr) => {
+  if (!dateStr) return ''
+  // 将 "yyyy-MM-dd HH:mm:ss" 转换为 "yyyy/MM/dd HH:mm:ss"
+  return dateStr.replace(/-/g, '/')
+}
+
 Page({
   data: {
     orderId: '',
@@ -40,7 +50,9 @@ Page({
     goods: [],
     totalPrice: '0.00',
     freight: '0.00',
-    actualPrice: '0.00'
+    actualPrice: '0.00',
+    countdown: null,  // 倒计时显示
+    countdownTimer: null  // 倒计时定时器ID
   },
 
   onLoad(options) {
@@ -77,6 +89,26 @@ Page({
     }
   },
 
+  onHide() {
+    // 页面隐藏时清除倒计时
+    this.clearCountdownTimer()
+  },
+
+  onUnload() {
+    // 页面卸载时清除倒计时
+    this.clearCountdownTimer()
+  },
+
+  // 清除倒计时定时器
+  clearCountdownTimer() {
+    if (this.data.countdownTimer) {
+      clearInterval(this.data.countdownTimer)
+      this.setData({
+        countdownTimer: null
+      })
+    }
+  },
+
   async getOrderDetail() {
     try {
       console.log('开始获取订单详情，订单ID:', this.data.orderId)
@@ -98,51 +130,101 @@ Page({
 
         // 计算商品总价
         const totalPrice = calculateTotalPrice(items)
-
-        // 处理展示用的商品列表
-        const goodsList = items.map(item => ({
-          id: item.id,
-          product_image: item.product_image || '',
-          product_name: item.product_name || '',
-          price: formatPrice(item.price),
-          quantity: item.quantity
-        }))
-
-        console.log('处理后的商品展示列表:', goodsList)
-
-        const orderData = {
+        
+        // 订单信息设置
+        this.setData({
           orderNo: data.oid || '',
           createTime: data.create_time || '',
-          orderStatus: typeof data.status === 'number' ? data.status : 0,
-          goods: goodsList,
+          orderStatus: data.status || 0,
+          goods: items,
           totalPrice: formatPrice(totalPrice),
           freight: formatPrice(data.shipping_fee || 0),
-          actualPrice: formatPrice(data.actual_price || totalPrice + (data.shipping_fee || 0))
-        }
-
-        console.log('设置到页面的数据:', orderData)
-        this.setData(orderData)
-
-        // 获取地址信息
+          actualPrice: formatPrice(data.total_price || 0)
+        })
+        
+        // 如果有地址ID，获取地址信息
         if (data.address_id) {
           this.getAddressInfo(data.address_id)
-        } else {
-          console.log('订单中没有地址ID信息')
+        }
+        
+        // 如果是待支付状态，启动倒计时
+        if (data.status === 0) {
+          this.startOrderCountdown(data.create_time)
         }
       } else {
-        console.error('API返回错误:', res)
+        console.error('获取订单详情失败:', res.msg || '未知错误')
         wx.showToast({
-          title: res.msg || '获取订单详情失败',
+          title: '获取订单详情失败',
           icon: 'none'
         })
       }
     } catch (error) {
-      console.error('获取订单详情失败:', error)
+      console.error('获取订单详情异常:', error)
       wx.showToast({
         title: '获取订单详情失败',
         icon: 'none'
       })
     }
+  },
+  
+  // 启动订单倒计时
+  startOrderCountdown(createTimeStr) {
+    // 清除可能已存在的倒计时
+    this.clearCountdownTimer()
+    
+    if (!createTimeStr) {
+      console.error('订单创建时间为空，无法启动倒计时')
+      return
+    }
+    
+    // 获取订单创建时间
+    const createTime = new Date(formatDateString(createTimeStr)).getTime()
+    
+    // 计算过期时间
+    const expireTime = createTime + ORDER_PAYMENT_TIMEOUT
+    
+    // 设置倒计时定时器
+    const timerId = setInterval(() => {
+      // 计算剩余时间
+      const now = new Date().getTime()
+      const remainTime = expireTime - now
+      
+      if (remainTime <= 0) {
+        // 倒计时结束，清除计时器
+        this.clearCountdownTimer()
+        
+        // 更新订单状态为已取消（UI显示）
+        this.setData({
+          orderStatus: 4, // 4表示已取消
+          countdown: null
+        })
+        
+        // 提示用户
+        wx.showToast({
+          title: '订单支付超时已自动取消',
+          icon: 'none'
+        })
+        
+        return
+      }
+      
+      // 计算剩余分钟和秒数
+      const minutes = Math.floor(remainTime / (60 * 1000))
+      const seconds = Math.floor((remainTime % (60 * 1000)) / 1000)
+      
+      // 格式化倒计时文本
+      const countdownText = `${minutes < 10 ? '0' + minutes : minutes}:${seconds < 10 ? '0' + seconds : seconds}`
+      
+      // 更新倒计时显示
+      this.setData({
+        countdown: countdownText
+      })
+    }, 1000)
+    
+    // 保存定时器ID
+    this.setData({
+      countdownTimer: timerId
+    })
   },
 
   async getAddressInfo(addressId) {

@@ -31,7 +31,8 @@ type ProductModel interface {
 	Update(ctx context.Context, data *Product) error
 	Delete(ctx context.Context, id int64) error
 	FindPageListByPage(ctx context.Context, page, pageSize int64) ([]*Product, int64, error)
-	DecrStock(ctx context.Context, id int64) error
+	DecrStock(ctx context.Context, id int64, quantity int64) error
+	RestoreStock(ctx context.Context, id int64, quantity int64) error
 	Search(ctx context.Context, keyword string, page, pageSize int64) ([]*Product, int64, error)
 }
 

@@ -13,6 +13,8 @@ import (
 )
 
 type (
+	CancelRequest  = types.CancelRequest
+	CancelResponse = types.CancelResponse
 	CreateRequest  = types.CreateRequest
 	CreateResponse = types.CreateResponse
 	DetailRequest  = types.DetailRequest
@@ -34,6 +36,7 @@ type (
 		Detail(ctx context.Context, in *DetailRequest, opts ...grpc.CallOption) (*DetailResponse, error)
 		List(ctx context.Context, in *ListRequest, opts ...grpc.CallOption) (*ListResponse, error)
 		Paid(ctx context.Context, in *PaidRequest, opts ...grpc.CallOption) (*PaidResponse, error)
+		Cancel(ctx context.Context, in *CancelRequest, opts ...grpc.CallOption) (*CancelResponse, error)
 	}
 
 	defaultOrder struct {
@@ -75,4 +78,9 @@ func (m *defaultOrder) List(ctx context.Context, in *ListRequest, opts ...grpc.C
 func (m *defaultOrder) Paid(ctx context.Context, in *PaidRequest, opts ...grpc.CallOption) (*PaidResponse, error) {
 	client := types.NewOrderClient(m.cli.Conn())
 	return client.Paid(ctx, in, opts...)
+}
+
+func (m *defaultOrder) Cancel(ctx context.Context, in *CancelRequest, opts ...grpc.CallOption) (*CancelResponse, error) {
+	client := types.NewOrderClient(m.cli.Conn())
+	return client.Cancel(ctx, in, opts...)
 }

@@ -2,10 +2,23 @@ import request from '../utils/request'
 
 // 创建订单
 export const createOrder = (data) => {
+  // 确保支付状态初始为未支付
+  if (data && !data.hasOwnProperty('pay_status')) {
+    data.pay_status = 0 // 0表示未支付
+  }
+  
+  console.log('[订单API] 创建订单，请求参数:', JSON.stringify(data))
+  
   return request({
     url: '/api/order',
     method: 'POST',
     data
+  }).then(res => {
+    console.log('[订单API] 创建订单成功:', res)
+    return res
+  }).catch(err => {
+    console.error('[订单API] 创建订单失败:', err)
+    throw err
   })
 }
 
@@ -120,11 +133,19 @@ export const payOrder = (data) => {
 
 // 支付回调
 export const payCallback = (data) => {
+  // 不再自动设置status，使用调用者提供的值
+  console.log('[支付API] 调用支付回调接口，参数:', JSON.stringify(data))
   return request({
-    baseUrl: 'pay',
     url: '/api/pay/callback',
     method: 'POST',
     data
+  }).then(res => {
+    console.log('[支付API] 支付回调成功:', res)
+    return res
+  }).catch(err => {
+    console.error('[支付API] 支付回调失败:', err)
+    // 仍然将错误抛出，由上层处理
+    throw err
   })
 }
 

@@ -3,12 +3,15 @@ package logic
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"mall/service/order/model"
 	"mall/service/order/rpc/internal/svc"
 	"mall/service/order/rpc/types"
+	"mall/service/product/rpc/pb/product"
 
+	"github.com/go-redis/redis/v8"
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -55,7 +58,8 @@ func (l *CreateLogic) Create(in *types.CreateRequest) (*types.CreateResponse, er
 		AddressId:   in.AddressId,
 		TotalPrice:  in.TotalPrice,
 		ShippingFee: in.ShippingFee,
-		Status:      in.Status,
+		Status:      int64(types.OrderStatus_UNPAID), // 设置为待支付状态
+		StatusDesc:  "待支付",
 		Remark:      in.Remark,
 		CreateTime:  now,
 		UpdateTime:  now,
@@ -76,15 +80,28 @@ func (l *CreateLogic) Create(in *types.CreateRequest) (*types.CreateResponse, er
 			l.Logger.Errorf("获取订单ID失败: %v", err)
 			return err
 		}
+		order.Id = orderId
 
-		l.Logger.Info("开始创建订单商品")
-		// 2. 创建订单商品
+		l.Logger.Info("开始创建订单商品和减库存")
+		// 2. 创建订单商品和减库存
 		for i := range orderItems {
 			orderItems[i].OrderId = orderId
 			_, err := l.svcCtx.OrderItemModel.Insert(ctx, session, &orderItems[i])
 			if err != nil {
 				l.Logger.Errorf("创建订单商品失败: %v", err)
 				return err
+			}
+
+			// 调用产品服务减少库存
+			_, err = l.svcCtx.ProductRpc.DecrStock(ctx, &product.DecrStockRequest{
+				Id:       orderItems[i].Pid,
+				Quantity: orderItems[i].Quantity,
+			})
+
+			if err != nil {
+				l.Logger.Errorf("减少商品库存失败: 商品ID=%d, 数量=%d, 错误=%v",
+					orderItems[i].Pid, orderItems[i].Quantity, err)
+				return fmt.Errorf("减少商品库存失败: %v", err)
 			}
 		}
 
@@ -95,6 +112,39 @@ func (l *CreateLogic) Create(in *types.CreateRequest) (*types.CreateResponse, er
 	if err != nil {
 		l.Logger.Errorf("事务执行失败: %v", err)
 		return nil, err
+	}
+
+	// 设置订单支付超时时间，默认15分钟
+	expiry := time.Duration(l.svcCtx.OrderLockExpiry) * time.Second
+	if expiry == 0 {
+		expiry = 15 * time.Minute
+		l.Logger.Infof("未配置订单锁过期时间，使用默认值15分钟")
+	} else {
+		l.Logger.Infof("订单锁过期时间设置为: %v秒", l.svcCtx.OrderLockExpiry)
+	}
+
+	// 使用Redis设置订单支付超时锁
+	lockKey := fmt.Sprintf("order:lock:%d", order.Id)
+	err = l.svcCtx.Redis.Set(l.ctx, lockKey, "1", expiry).Err()
+	if err != nil {
+		l.Logger.Errorf("设置订单支付超时锁失败: %v", err)
+		// 不影响订单创建，继续执行
+	} else {
+		l.Logger.Infof("成功设置订单支付超时锁，订单ID=%d，过期时间=%v", order.Id, expiry)
+	}
+
+	// 添加到订单超时队列，用于后续处理超时订单
+	timeoutQueueKey := "order:timeout:queue"
+	// 使用ZSet存储，score为过期时间的时间戳
+	expireAt := now.Add(expiry).Unix()
+	err = l.svcCtx.Redis.ZAdd(l.ctx, timeoutQueueKey, &redis.Z{
+		Score:  float64(expireAt),
+		Member: strconv.FormatInt(order.Id, 10),
+	}).Err()
+
+	if err != nil {
+		l.Logger.Errorf("添加订单到超时队列失败: %v", err)
+		// 不影响订单创建，继续执行
 	}
 
 	l.Logger.Infof("创建订单成功: %+v", order)

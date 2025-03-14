@@ -4,6 +4,9 @@ import { getProductDetail, getProductImages } from '../../../api/product'
 
 const app = getApp()
 
+// 定义订单支付超时时间（毫秒），与后端保持一致，15分钟
+const ORDER_PAYMENT_TIMEOUT = 15 * 60 * 1000;
+
 Page({
   data: {
     orders: [],
@@ -19,7 +22,8 @@ Page({
     isFirstLoad: true,  // 添加标记，用于区分首次加载和后续显示
     page: 1,           // 当前页码
     pageSize: 10,      // 每页数量
-    hasMore: true      // 是否还有更多数据
+    hasMore: true,     // 是否还有更多数据
+    countdownTimers: {} // 存储订单倒计时定时器
   },
 
   // 格式化日期字符串，确保iOS兼容性
@@ -49,6 +53,27 @@ Page({
     this.setData({ isFirstLoad: false })
   },
 
+  onHide() {
+    // 页面隐藏时清除所有倒计时
+    this.clearAllCountdowns()
+  },
+
+  onUnload() {
+    // 页面卸载时清除所有倒计时
+    this.clearAllCountdowns()
+  },
+
+  // 清除所有倒计时
+  clearAllCountdowns() {
+    const { countdownTimers } = this.data
+    Object.keys(countdownTimers).forEach(orderId => {
+      clearInterval(countdownTimers[orderId])
+    })
+    this.setData({
+      countdownTimers: {}
+    })
+  },
+
   // 切换标签
   onTabChange(e) {
     const index = parseInt(e.currentTarget.dataset.index)
@@ -64,6 +89,9 @@ Page({
       当前页码: this.data.page,
       是否有更多: this.data.hasMore
     })
+
+    // 切换标签前清除所有倒计时
+    this.clearAllCountdowns()
 
     // 切换标签时重置分页
     this.setData({
@@ -83,6 +111,9 @@ Page({
 
     this.setData({ loading: true })
 
+    // 加载前清除已有的倒计时
+    this.clearAllCountdowns()
+
     try {
       // 从全局获取用户信息
       const userInfo = wx.getStorageSync('userInfo')
@@ -101,92 +132,259 @@ Page({
         pageSize: this.data.pageSize
       }
 
+      console.log('[订单列表] 请求参数:', params)
       const res = await getOrderList(params)
+      console.log('[订单列表] 返回结果:', res)
 
-      console.log('[订单列表] 获取订单列表响应:', res)
-
-      if (res.code === 0) {
-        const orders = res.data?.list || []
-        // 处理订单数据
-        const formattedOrders = orders.map(order => ({
-          id: order.id,
-          oid: order.oid,
-          status: order.status,
-          status_text: this.getStatusText(order.status),
-          amount: (order.total_price / 100).toFixed(2),
-          create_time: this.formatDateString(order.create_time),
-          items: order.items.map(item => ({
-            id: item.id,
-            product_name: item.product_name,
-            product_image: item.product_image ? 
-              (item.product_image.startsWith('http') ? 
-                item.product_image : 
-                `http://localhost:8001${item.product_image}`
-              ) : 
-              'http://localhost:8001/uploads/placeholder.png',
-            price: (item.price / 100).toFixed(2),
-            quantity: item.quantity
-          }))
-        }))
-        
-        // 按创建时间排序，最新的在前面
-        formattedOrders.sort((a, b) => {
-          return new Date(b.create_time) - new Date(a.create_time)
+      if (res.code === 0 && res.data) {
+        // 记录原始数据结构
+        console.log('[订单列表] 原始数据结构:', {
+          dataKeys: Object.keys(res.data),
+          isList: Array.isArray(res.data.list),
+          listLength: res.data.list ? res.data.list.length : 0
         })
         
-        this.setData({
-          orders: this.data.page === 1 ? formattedOrders : [...this.data.orders, ...formattedOrders],
-          hasMore: orders.length === this.data.pageSize
+        // 使用正确的字段 list 而不是 data
+        const orderItems = res.data.list || []
+        console.log('[订单列表] 订单数据项:', orderItems)
+        
+        // 处理订单列表数据
+        const orders = orderItems.map(order => {
+          // 格式化价格，后端返回的金额单位是分，除以100转换为元
+          const amount = ((order.total_price || 0) / 100).toFixed(2)
+          // 获取状态文本
+          const status_text = this.getStatusText(order.status)
+          // 格式化日期
+          const create_time = order.create_time
+            ? this.formatDateString(order.create_time)
+            : ''
+            
+          // 处理订单中的商品项价格
+          const items = Array.isArray(order.items) ? order.items.map(item => {
+            // 记录原始商品项数据
+            console.log('[订单列表] 商品项原始数据:', item)
+              
+            // 确保价格从分转换为元，支持多种可能的字段名
+            let originalPrice = item.price
+            // 根据价格的值判断是否需要转换
+            // 如果价格大于1000，可能是分单位，需要转换
+            if (originalPrice && parseInt(originalPrice) > 1000) {
+              originalPrice = (parseInt(originalPrice) / 100).toFixed(2)
+            } else if (originalPrice) {
+              // 否则可能已经是元单位，保留两位小数
+              originalPrice = parseFloat(originalPrice).toFixed(2)
+            } else {
+              originalPrice = '0.00'
+            }
+            
+            const itemPrice = originalPrice
+            
+            const itemAmount = item.amount !== undefined ? 
+               (parseInt(item.amount) / 100).toFixed(2) : 
+               '0.00'
+            
+            // 确保商品名称字段统一 - 尝试多种可能的字段名
+            const productName = 
+              item.product_name || 
+              item.name || 
+              item.productName || 
+              '未知商品'
+            
+            // 确保商品图片字段统一
+            const productImage = 
+              item.product_image || 
+              item.productImage || 
+              item.cover_image || 
+              '/assets/images/default.png'
+            
+            return {
+              ...item,
+              price: itemPrice,
+              amount: itemAmount,
+              product_name: productName,
+              product_image: productImage
+            }
+          }) : []
+
+          return {
+            ...order,
+            amount,
+            status_text,
+            create_time,
+            items: items
+          }
         })
-      } else {
-        let errorMsg = '获取订单列表失败'
-        switch(res.code) {
-          case 10001:
-            errorMsg = '参数错误'
-            break
-          case 10002:
-            errorMsg = '服务器内部错误'
-            break
-          default:
-            errorMsg = res.msg || '获取订单列表失败'
+
+        // 详细日志输出处理后的第一个订单信息
+        if (orders.length > 0) {
+          console.log('[订单列表] 第一个订单处理后数据:', {
+            订单ID: orders[0].id,
+            订单号: orders[0].oid,
+            订单状态: orders[0].status,
+            状态文本: orders[0].status_text,
+            总金额: orders[0].amount,
+            创建时间: orders[0].create_time,
+            商品数量: orders[0].items ? orders[0].items.length : 0
+          })
+          
+          // 输出商品项信息
+          if (orders[0].items && orders[0].items.length > 0) {
+            console.log('[订单列表] 第一个订单的商品项:', orders[0].items.map(item => ({
+              商品ID: item.id || item.pid,
+              商品名称: item.product_name,
+              原始价格: item.price,
+              商品数量: item.quantity,
+              商品总价: item.amount
+            })))
+          }
         }
+
+        // 获取总数，使用正确的字段
+        const total = res.data.total || 0
+        const hasMore = orders.length > 0 && this.data.page * this.data.pageSize < total
+
+        console.log('[订单列表] 处理后的订单数据:', {
+          orders,
+          ordersLength: orders.length,
+          currentPage: this.data.page,
+          pageSize: this.data.pageSize,
+          total,
+          hasMore
+        })
+
+        // 更新状态
+        this.setData({
+          orders: this.data.page === 1 ? orders : [...this.data.orders, ...orders],
+          hasMore
+        })
+
+        // 设置待支付订单的倒计时
+        this.setupOrderCountdowns()
+      } else {
+        console.error('[订单列表] 获取订单失败:', res.msg || '未知错误')
         wx.showToast({
-          title: errorMsg,
+          title: '获取订单失败',
           icon: 'none'
         })
       }
     } catch (error) {
-      console.error('[订单列表] 加载订单失败:', error)
-      
-      // 如果是未登录错误，跳转到登录页面
-      if (error.message === '请先登录') {
-        wx.showToast({
-          title: '请先登录',
-          icon: 'none',
-          duration: 2000,
-          complete: () => {
-            setTimeout(() => {
-              wx.navigateTo({
-                url: '/pages/login/index'
-              })
-            }, 1000)
-          }
-        })
-      } else {
-        wx.showToast({
-          title: error.message || '加载订单失败',
-          icon: 'none'
-        })
-      }
+      console.error('[订单列表] 获取订单列表异常:', error.message || error)
+      wx.showToast({
+        title: error.message || '获取订单失败',
+        icon: 'none'
+      })
     } finally {
-      this.setData({ 
-        loading: false,
-        refreshing: false
+      this.setData({ loading: false })
+    }
+  },
+
+  // 为待支付订单设置倒计时
+  setupOrderCountdowns() {
+    const { orders, countdownTimers } = this.data
+    
+    // 遍历订单，查找待支付状态的订单
+    orders.forEach(order => {
+      if (order.status === 0) {
+        // 清除可能已存在的该订单定时器
+        if (countdownTimers[order.id]) {
+          clearInterval(countdownTimers[order.id])
+        }
+        
+        // 启动新的倒计时
+        this.startOrderCountdown(order)
+      }
+    })
+  },
+
+  // 为单个订单启动倒计时
+  startOrderCountdown(order) {
+    // 获取订单创建时间
+    const createTime = new Date(this.formatDateString(order.create_time)).getTime()
+    
+    // 计算过期时间
+    const expireTime = createTime + ORDER_PAYMENT_TIMEOUT
+    
+    // 设置倒计时定时器
+    const timerId = setInterval(() => {
+      // 计算剩余时间
+      const now = new Date().getTime()
+      const remainTime = expireTime - now
+      
+      if (remainTime <= 0) {
+        // 倒计时结束，清除计时器
+        clearInterval(timerId)
+        
+        // 更新订单状态
+        this.updateOrderCountdownFinished(order.id)
+        return
+      }
+      
+      // 计算剩余分钟和秒数
+      const minutes = Math.floor(remainTime / (60 * 1000))
+      const seconds = Math.floor((remainTime % (60 * 1000)) / 1000)
+      
+      // 格式化倒计时文本
+      const countdownText = `${minutes < 10 ? '0' + minutes : minutes}:${seconds < 10 ? '0' + seconds : seconds}`
+      
+      // 更新订单的倒计时显示
+      this.updateOrderCountdown(order.id, countdownText)
+    }, 1000)
+    
+    // 保存定时器ID
+    const newTimers = { ...this.data.countdownTimers, [order.id]: timerId }
+    this.setData({ countdownTimers: newTimers })
+  },
+
+  // 更新订单的倒计时显示
+  updateOrderCountdown(orderId, countdownText) {
+    const { orders } = this.data
+    const index = orders.findIndex(order => order.id === orderId)
+    
+    if (index !== -1) {
+      const newOrders = [...orders]
+      newOrders[index].countdown = countdownText
+      
+      this.setData({
+        orders: newOrders
       })
     }
   },
 
-  // 获取状态文本
+  // 处理订单倒计时结束
+  updateOrderCountdownFinished(orderId) {
+    const { orders, countdownTimers } = this.data
+    const index = orders.findIndex(order => order.id === orderId)
+    
+    if (index !== -1) {
+      // 清除定时器
+      clearInterval(countdownTimers[orderId])
+      
+      // 从倒计时器列表中移除
+      const newTimers = { ...countdownTimers }
+      delete newTimers[orderId]
+      
+      // 修改订单状态为已取消（如果需要的话）
+      // 注意：实际状态会由后端定时任务处理，这里只是为了提升用户体验，立即更新UI
+      const newOrders = [...orders]
+      if (newOrders[index].status === 0) {
+        newOrders[index].status = 4 // 使用4表示已取消状态
+        newOrders[index].status_text = this.getStatusText(4)
+        newOrders[index].countdown = null
+      }
+      
+      this.setData({
+        orders: newOrders,
+        countdownTimers: newTimers
+      })
+      
+      // 用户体验：提示用户订单已超时
+      wx.showToast({
+        title: '订单支付超时已自动取消',
+        icon: 'none'
+      })
+    }
+  },
+
   getStatusText(status) {
     switch (parseInt(status)) {
       case 0: return '待付款'

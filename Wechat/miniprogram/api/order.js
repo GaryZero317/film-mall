@@ -56,9 +56,11 @@ export const getAddressDetail = (id) => {
 // 取消订单
 export const cancelOrder = (id) => {
   return request({
-    url: '/api/order/cancel',
-    method: 'POST',
-    data: { id }
+    url: `/api/order/${id}`,
+    method: 'PUT',
+    data: { 
+      status: 9  // 9表示已取消
+    }
   })
 }
 

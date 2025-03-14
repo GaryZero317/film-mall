@@ -237,10 +237,11 @@ const handleDetail = async (row) => {
 const getOrderStatusText = (status) => {
   if (status === null || status === undefined) return '未知状态'
   const statusMap = {
-    0: '待支付',
-    1: '已支付',
-    2: '已取消',
-    3: '已完成'
+    0: '待付款',
+    1: '待发货',
+    2: '待收货',
+    3: '已完成',
+    9: '已取消'
   }
   return statusMap[status] || '未知状态'
 }

@@ -6,9 +6,11 @@ option go_package = "./types";
 
 // 订单状态常量
 enum OrderStatus {
-    UNPAID = 0;         // 待支付
-    PAID = 1;           // 已支付
-    CANCELLED = 9;      // 已取消
+    UNPAID = 0;         // 待付款
+    PAID = 1;           // 待发货/已支付
+    SHIPPING = 2;       // 待收货
+    COMPLETED = 3;      // 已完成 
+    CANCELLED = 9;      // 已取消(额外状态，不影响主要状态)
 }
 
 // 订单商品

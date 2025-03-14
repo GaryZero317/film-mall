@@ -18,9 +18,10 @@ Page({
     ],
     paymentInProgress: false,
     orderStatus: {
-      0: '待支付',
-      1: '已支付',
+      0: '待付款',
+      1: '待发货',
       2: '待收货',
+      3: '已完成',
       9: '已取消'
     },
     payStatus: {
@@ -237,8 +238,8 @@ Page({
           // 调用API更新数据库中的订单状态
           if (this.data.isFilmOrder) {
             // 胶片订单取消
-            const { updateFilmOrderStatus } = require('../../../api/film')
-            updateFilmOrderStatus(order.id, 9)
+            const { cancelFilmOrder } = require('../../../api/film')
+            cancelFilmOrder(order.id)
               .then(res => {
                 console.log('[订单支付] 胶片订单已自动取消:', res)
               })
@@ -247,8 +248,8 @@ Page({
               })
           } else {
             // 普通商品订单取消
-            const { updateOrderStatus } = require('../../../api/order')
-            updateOrderStatus(order.id, 9)
+            const { cancelOrder } = require('../../../api/order')
+            cancelOrder(order.id)
               .then(res => {
                 console.log('[订单支付] 订单已自动取消:', res)
               })

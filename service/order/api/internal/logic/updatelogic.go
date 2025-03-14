@@ -28,8 +28,8 @@ func NewUpdateLogic(ctx context.Context, svcCtx *svc.ServiceContext) *UpdateLogi
 func (l *UpdateLogic) Update(req *types.UpdateOrderReq) (resp *types.UpdateOrderResp, err error) {
 	l.Logger.Infof("API更新订单请求: %+v", req)
 
-	// 参数校验
-	if req.Status < 0 || req.Status > 4 {
+	// 参数校验 - 添加对状态码9(取消状态)的支持
+	if req.Status < 0 || (req.Status > 4 && req.Status != 9) {
 		return nil, code.NewCodeError(code.OrderStatusInvalid)
 	}
 

@@ -32,5 +32,11 @@ ProductRpc:
       - localhost:2379
     Key: product.rpc
 
+PayRpc:
+  Etcd:
+    Hosts:
+      - localhost:2379
+    Key: pay.rpc
+
 # 订单锁过期时间(秒)，15分钟
 OrderLockExpiry: 900

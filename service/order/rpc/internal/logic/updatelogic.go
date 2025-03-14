@@ -8,6 +8,8 @@ import (
 	"mall/service/order/model"
 	"mall/service/order/rpc/internal/svc"
 	"mall/service/order/rpc/types"
+	payclient "mall/service/pay/rpc/pay"
+	productclient "mall/service/product/rpc/product"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -42,8 +44,25 @@ func (l *UpdateLogic) Update(in *types.UpdateRequest) (*types.UpdateResponse, er
 		statusDesc = "已完成"
 	case 4:
 		statusDesc = "已取消"
+	case 9:
+		statusDesc = "已取消(超时)"
 	default:
 		return nil, fmt.Errorf("无效的订单状态: %d", in.Status)
+	}
+
+	// 查询订单，如果状态为0且要取消(4或9)，则需要恢复库存
+	var needRestoreStock bool = false
+	var originalStatus int64 = -1
+
+	if in.Status == 4 || in.Status == 9 {
+		order, err := l.svcCtx.OrderModel.FindOne(l.ctx, in.Id)
+		if err == nil {
+			originalStatus = order.Status
+			// 如果是从待支付状态变更为取消状态，需要恢复库存
+			if originalStatus == 0 {
+				needRestoreStock = true
+			}
+		}
 	}
 
 	// 更新订单状态
@@ -57,6 +76,65 @@ func (l *UpdateLogic) Update(in *types.UpdateRequest) (*types.UpdateResponse, er
 	if err != nil {
 		l.Logger.Errorf("更新订单失败: %v", err)
 		return nil, err
+	}
+
+	// 如果需要恢复库存
+	if needRestoreStock {
+		// 查询订单商品
+		orderItems, err := l.svcCtx.OrderItemModel.FindByOrderId(l.ctx, in.Id)
+		if err != nil {
+			l.Logger.Errorf("查询订单商品失败: %v", err)
+			// 继续流程，不影响订单状态更新
+		} else {
+			// 恢复库存
+			for _, item := range orderItems {
+				_, err = l.svcCtx.ProductRpc.RestoreStock(l.ctx, &productclient.RestoreStockRequest{
+					Id:       item.Pid,
+					Quantity: item.Quantity,
+				})
+
+				if err != nil {
+					l.Logger.Errorf("恢复商品库存失败: 商品ID=%d, 数量=%d, 错误=%v",
+						item.Pid, item.Quantity, err)
+					// 继续处理其他商品，不影响取消流程
+				}
+			}
+		}
+
+		// 从订单超时队列中移除
+		timeoutQueueKey := "order:timeout:queue"
+		_, err = l.svcCtx.Redis.ZRem(l.ctx, timeoutQueueKey, fmt.Sprintf("%d", in.Id)).Result()
+		if err != nil {
+			l.Logger.Errorf("从超时队列移除订单失败: %v", err)
+			// 不影响取消流程，继续执行
+		}
+
+		// 删除订单支付锁
+		lockKey := fmt.Sprintf("order:lock:%d", in.Id)
+		_, err = l.svcCtx.Redis.Del(l.ctx, lockKey).Result()
+		if err != nil {
+			l.Logger.Errorf("删除订单支付锁失败: %v", err)
+			// 不影响取消流程，继续执行
+		}
+
+		// 如果支付服务可用，更新支付记录状态
+		if l.svcCtx.PayRpc != nil {
+			// 更新支付记录状态为已取消
+			_, callbackErr := l.svcCtx.PayRpc.Callback(l.ctx, &payclient.CallbackRequest{
+				Id:     0,     // 不指定支付ID，让支付服务根据订单ID查找
+				Oid:    in.Id, // 订单ID
+				Status: 9,     // 支付状态：9表示已取消
+			})
+
+			if callbackErr != nil {
+				l.Logger.Errorf("更新支付记录状态失败: 订单ID=%d, 错误=%v", in.Id, callbackErr)
+				// 不影响订单取消流程，继续执行
+			} else {
+				l.Logger.Infof("更新支付记录状态成功: 订单ID=%d, 状态=已取消", in.Id)
+			}
+		} else {
+			l.Logger.Info("支付服务不可用，订单取消时不会更新支付记录")
+		}
 	}
 
 	l.Logger.Info("更新订单成功")

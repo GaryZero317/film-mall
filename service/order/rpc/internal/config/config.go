@@ -17,5 +17,6 @@ type Config struct {
 		Pass string
 	}
 	ProductRpc      zrpc.RpcClientConf
+	PayRpc          zrpc.RpcClientConf
 	OrderLockExpiry int // 订单锁过期时间(秒)
 }

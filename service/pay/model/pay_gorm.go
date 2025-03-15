@@ -110,13 +110,37 @@ func (m *GormPayModel) FindOne(ctx context.Context, id int64) (*Pay, error) {
 // FindOneByOid retrieves a payment by order ID
 func (m *GormPayModel) FindOneByOid(ctx context.Context, oid int64) (*Pay, error) {
 	var gormPay GormPay
-	err := m.db.WithContext(ctx).Where("oid = ?", oid).First(&gormPay).Error
+
+	// 添加调试日志
+	fmt.Printf("正在查询订单ID=%d的支付记录\n", oid)
+
+	// 尝试直接使用字符串SQL进行查询
+	sqlQuery := fmt.Sprintf("SELECT * FROM pay WHERE oid = %d LIMIT 1", oid)
+	fmt.Printf("执行SQL: %s\n", sqlQuery)
+
+	err := m.db.WithContext(ctx).Raw(sqlQuery).Scan(&gormPay).Error
+
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
+			fmt.Printf("未找到订单ID=%d的支付记录\n", oid)
+
+			// 再次尝试直接查询数据库
+			var count int64
+			m.db.WithContext(ctx).Raw("SELECT COUNT(*) FROM pay WHERE oid = ?", oid).Scan(&count)
+			fmt.Printf("直接查询数据库结果: 找到 %d 条记录\n", count)
+
 			return nil, sqlx.ErrNotFound
 		}
+		fmt.Printf("查询订单ID=%d的支付记录失败: %v\n", oid, err)
 		return nil, err
 	}
+
+	if gormPay.ID == 0 {
+		fmt.Printf("查询结果为空记录\n")
+		return nil, sqlx.ErrNotFound
+	}
+
+	fmt.Printf("成功找到订单ID=%d的支付记录: ID=%d, Oid=%d\n", oid, gormPay.ID, gormPay.Oid)
 
 	pay := &Pay{
 		Id:         gormPay.ID,

@@ -116,24 +116,33 @@ func (l *UpdateLogic) Update(in *types.UpdateRequest) (*types.UpdateResponse, er
 			l.Logger.Errorf("删除订单支付锁失败: %v", err)
 			// 不影响取消流程，继续执行
 		}
+	}
 
-		// 如果支付服务可用，更新支付记录状态
-		if l.svcCtx.PayRpc != nil {
-			// 更新支付记录状态为已取消
-			_, callbackErr := l.svcCtx.PayRpc.Callback(l.ctx, &payclient.CallbackRequest{
-				Id:     0,     // 不指定支付ID，让支付服务根据订单ID查找
-				Oid:    in.Id, // 订单ID
-				Status: 9,     // 支付状态：9表示已取消
-			})
+	// 如果订单状态为取消且支付服务可用，更新支付记录状态
+	// 注意：这里不再依赖needRestoreStock条件
+	if (in.Status == 4 || in.Status == 9) && l.svcCtx.PayRpc != nil {
+		l.Logger.Info("准备更新支付记录状态为已取消", logx.Field("orderId", in.Id))
 
-			if callbackErr != nil {
-				l.Logger.Errorf("更新支付记录状态失败: 订单ID=%d, 错误=%v", in.Id, callbackErr)
-				// 不影响订单取消流程，继续执行
-			} else {
-				l.Logger.Infof("更新支付记录状态成功: 订单ID=%d, 状态=已取消", in.Id)
-			}
+		// 查询订单获取用户ID
+		var userId int64 = 0
+		order, err := l.svcCtx.OrderModel.FindOne(l.ctx, in.Id)
+		if err == nil {
+			userId = order.Uid
+		}
+
+		// 更新支付记录状态为已取消
+		_, callbackErr := l.svcCtx.PayRpc.Callback(l.ctx, &payclient.CallbackRequest{
+			Id:     0,      // 不指定支付ID，让支付服务根据订单ID查找
+			Oid:    in.Id,  // 订单ID
+			Uid:    userId, // 用户ID
+			Status: 9,      // 支付状态：9表示已取消
+		})
+
+		if callbackErr != nil {
+			l.Logger.Errorf("更新支付记录状态失败: 订单ID=%d, 错误=%v", in.Id, callbackErr)
+			// 不影响订单取消流程，继续执行
 		} else {
-			l.Logger.Info("支付服务不可用，订单取消时不会更新支付记录")
+			l.Logger.Infof("更新支付记录状态成功: 订单ID=%d, 状态=已取消", in.Id)
 		}
 	}
 

@@ -138,9 +138,16 @@ Page({
       return;
     }
     
+    // 使用内容的前10个字符作为标题，如果内容少于10个字符，则使用整个内容
+    const contentText = questionContent.trim();
+    const title = contentText.length > 10 ? 
+                  contentText.substring(0, 10) + '...' : 
+                  contentText;
+    
     const data = {
+      title: title,
       type: questionType,
-      content: questionContent.trim()
+      content: contentText
     };
     
     wx.showLoading({ title: '提交中...' });
@@ -148,7 +155,7 @@ Page({
     createQuestion(data)
       .then(res => {
         wx.hideLoading();
-        if (res.code === 0) {
+        if (res.code === 0 || res.code === 200 || (res.msg && res.msg.toLowerCase() === 'success')) {
           wx.showToast({
             title: '提交成功',
             icon: 'success'
@@ -159,7 +166,7 @@ Page({
             showSubmitForm: false
           });
         } else {
-          throw new Error(res.msg || '提交失败');
+          throw new Error(res.msg && res.msg !== 'success' ? res.msg : '提交失败');
         }
       })
       .catch(err => {

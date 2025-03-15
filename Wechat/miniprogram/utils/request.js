@@ -29,6 +29,9 @@ const request = (options) => {
       baseUrl = 'http://localhost:8007'
     } else if (url.startsWith('/api/community')) {
       baseUrl = 'http://localhost:8008'  // 添加社区服务地址
+    } else if (url.startsWith('/api/user')) {
+      baseUrl = 'http://localhost:8000'  // 确保用户服务请求路由到8000端口
+      console.log('使用用户服务地址:', baseUrl)
     }
 
     console.log('选择的baseUrl:', baseUrl, '请求路径:', url)

@@ -9,7 +9,7 @@ const getBaseUrl = () => {
 // 获取常见问题列表
 const getFaqList = (data) => {
   return request({
-    url: 'http://localhost:8000/api/user/service/faq/list',
+    url: '/api/user/service/faq/list',
     method: 'POST',
     data
   }).then(res => {
@@ -28,7 +28,7 @@ const getFaqList = (data) => {
 // 创建客服问题
 const createQuestion = (data) => {
   return request({
-    url: `${getBaseUrl()}/api/user/service/create`,
+    url: '/api/user/service/submit',
     method: 'POST',
     data
   }).then(res => {
@@ -46,7 +46,7 @@ const createQuestion = (data) => {
 // 获取用户的问题列表
 const getQuestionList = (data) => {
   return request({
-    url: 'http://localhost:8000/api/user/service/list',
+    url: '/api/user/service/list',
     method: 'POST',
     data
   });
@@ -55,7 +55,7 @@ const getQuestionList = (data) => {
 // 获取问题详情
 const getQuestionDetail = (id) => {
   return request({
-    url: 'http://localhost:8000/api/user/service/detail',
+    url: '/api/user/service/detail',
     method: 'POST',
     data: { id }
   });

@@ -23,17 +23,25 @@ func main() {
 
 	var c config.Config
 	conf.MustLoad(*configFile, &c)
+
 	ctx := svc.NewServiceContext(c)
-	svr := server.NewProductServer(ctx)
+	srv := server.NewProductServer(ctx)
 
 	s := zrpc.MustNewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
-		product.RegisterProductServer(grpcServer, svr)
+		product.RegisterProductServer(grpcServer, srv)
 
 		if c.Mode == service.DevMode || c.Mode == service.TestMode {
 			reflection.Register(grpcServer)
 		}
 	})
-	defer s.Stop()
+
+	// 关闭服务时会触发资源清理
+	defer func() {
+		if ctx.StockProcessor != nil {
+			ctx.StockProcessor.Stop()
+		}
+		s.Stop()
+	}()
 
 	fmt.Printf("Starting rpc server at %s...\n", c.ListenOn)
 	s.Start()

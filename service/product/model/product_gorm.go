@@ -313,19 +313,46 @@ func (m *defaultGormProductModel) FindPageListByPage(ctx context.Context, page, 
 }
 
 func (m *defaultGormProductModel) DecrStock(ctx context.Context, id int64, quantity int64) error {
-	result := m.db.WithContext(ctx).Model(&Product{}).
-		Where("id = ? AND stock >= ?", id, quantity).
-		UpdateColumn("stock", gorm.Expr("stock - ?", quantity))
-
-	if result.Error != nil {
-		return result.Error
+	// 开启事务
+	tx := m.db.WithContext(ctx).Begin()
+	if tx.Error != nil {
+		return tx.Error
 	}
 
-	if result.RowsAffected == 0 {
-		return fmt.Errorf("product %d stock not available", id)
+	// 设置延迟回滚
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	// 使用悲观锁锁定记录 (FOR UPDATE)
+	var product Product
+	if err := tx.Set("gorm:pessimistic_lock", true).
+		Where("id = ?", id).
+		First(&product).Error; err != nil {
+		tx.Rollback()
+		return err
 	}
 
-	return nil
+	// 检查库存是否充足
+	if product.Stock < quantity {
+		tx.Rollback()
+		return fmt.Errorf("product %d stock not available: have %d, need %d",
+			id, product.Stock, quantity)
+	}
+
+	// 安全地减少库存
+	if err := tx.Model(&Product{}).
+		Where("id = ?", id).
+		UpdateColumn("stock", gorm.Expr("stock - ?", quantity)).
+		Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// 提交事务
+	return tx.Commit().Error
 }
 
 func (m *defaultGormProductModel) RestoreStock(ctx context.Context, id int64, quantity int64) error {

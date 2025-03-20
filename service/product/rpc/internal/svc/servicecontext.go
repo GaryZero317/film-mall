@@ -10,23 +10,34 @@ import (
 )
 
 type ServiceContext struct {
-	Config       config.Config
-	ProductModel model.ProductModel
-	DB           *gorm.DB
+	Config         config.Config
+	ProductModel   model.ProductModel
+	StockProcessor *model.StockProcessor
+	DB             *gorm.DB
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
+	// 创建数据库连接
 	conn := sqlx.NewMysql(c.Mysql.DataSource)
 
-	// 初始化 GORM
+	// 创建产品模型
+	productModel := model.NewProductModel(conn, c.CacheRedis)
+
+	// 创建库存处理器
+	stockProcessor := model.NewStockProcessor(productModel, 10000, 10)
+	// 启动库存处理器
+	stockProcessor.Start()
+
+	// 初始化GORM
 	db, err := gorm.Open(mysql.Open(c.Mysql.DataSource), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
 
 	return &ServiceContext{
-		Config:       c,
-		ProductModel: model.NewProductModel(conn, c.CacheRedis),
-		DB:           db,
+		Config:         c,
+		ProductModel:   productModel,
+		StockProcessor: stockProcessor,
+		DB:             db,
 	}
 }

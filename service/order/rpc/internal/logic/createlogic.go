@@ -3,6 +3,7 @@ package logic
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"strconv"
 	"time"
 
@@ -32,9 +33,14 @@ func NewCreateLogic(ctx context.Context, svcCtx *svc.ServiceContext) *CreateLogi
 func (l *CreateLogic) Create(in *types.CreateRequest) (*types.CreateResponse, error) {
 	l.Logger.Infof("RPC创建订单请求: %+v", in)
 
-	// 生成订单号
+	// 生成订单号 - 添加随机数防止并发冲突
 	now := time.Now()
-	oid := fmt.Sprintf("%s%d", now.Format("20060102150405"), in.Uid)
+	// 初始化随机数生成器
+	rand.Seed(now.UnixNano())
+	// 生成6位随机数
+	randomNum := rand.Intn(1000000)
+	// 新的订单号格式: 年月日时分秒+用户ID+6位随机数
+	oid := fmt.Sprintf("%s%d%06d", now.Format("20060102150405"), in.Uid, randomNum)
 
 	// 构建订单商品数据
 	var orderItems []model.OrderItem

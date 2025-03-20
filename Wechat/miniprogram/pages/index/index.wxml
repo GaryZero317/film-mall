@@ -48,10 +48,23 @@
         lazy-load
         show-menu-by-longpress
       />
+      <!-- 状态标签 -->
+      <view wx:if="{{item.status === 0}}" class="product-status off-shelf">已下架</view>
+      <view wx:elif="{{item.stock <= 0}}" class="product-status sold-out">售罄</view>
       <view class="product-info">
         <text class="product-name">{{item.name}}</text>
         <text class="product-price">¥{{item.amount/100}}</text>
-        <text class="product-stock">库存: {{item.stock}}</text>
+        <view class="product-stock-info">
+          <block wx:if="{{item.status === 0}}">
+            <text class="status-text off-shelf">已下架</text>
+          </block>
+          <block wx:elif="{{item.stock <= 0}}">
+            <text class="status-text sold-out">售罄</text>
+          </block>
+          <block wx:else>
+            <text class="product-stock">库存: {{item.stock}}</text>
+          </block>
+        </view>
       </view>
     </view>
   </view>

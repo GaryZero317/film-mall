@@ -353,4 +353,28 @@ page {
   font-size: 26rpx;
   color: #666;
   line-height: 1.8;
+}
+
+/* 状态标签样式 */
+.status-tag {
+  display: inline-block;
+  padding: 4rpx 12rpx;
+  color: #fff;
+  font-size: 24rpx;
+  border-radius: 8rpx;
+  margin-right: 10rpx;
+}
+
+.off-shelf {
+  background-color: #999999;
+}
+
+.sold-out {
+  background-color: #ff4d4f;
+}
+
+/* 禁用按钮样式 */
+.bottom-bar .disabled {
+  background-color: #cccccc;
+  color: #666666;
 } 

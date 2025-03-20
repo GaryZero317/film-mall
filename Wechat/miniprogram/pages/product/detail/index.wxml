@@ -43,15 +43,25 @@
     <view class="product-info">
       <view class="name">{{product.name || '暂无名称'}}</view>
       <view class="price">¥{{formattedAmount}}</view>
-      <view class="stock">库存：{{product.stock || 0}}</view>
+      <view class="stock">
+        <block wx:if="{{product.status === 0}}">
+          <text class="status-tag off-shelf">已下架</text>
+        </block>
+        <block wx:elif="{{product.stock <= 0}}">
+          <text class="status-tag sold-out">售罄</text>
+        </block>
+        <block wx:else>
+          库存：{{product.stock || 0}}
+        </block>
+      </view>
       
       <!-- 商品数量 -->
       <view class="quantity-section">
         <text>数量</text>
         <view class="quantity-control">
-          <button class="minus {{quantity <= 1 ? 'disabled' : ''}}" bindtap="onQuantityMinus">-</button>
+          <button class="minus {{quantity <= 1 || product.status === 0 || product.stock <= 0 ? 'disabled' : ''}}" bindtap="onQuantityMinus">-</button>
           <text class="number">{{quantity}}</text>
-          <button class="plus {{quantity >= (product.stock || 0) ? 'disabled' : ''}}" bindtap="onQuantityPlus">+</button>
+          <button class="plus {{quantity >= (product.stock || 0) || product.status === 0 || product.stock <= 0 ? 'disabled' : ''}}" bindtap="onQuantityPlus">+</button>
         </view>
       </view>
 
@@ -78,8 +88,16 @@
 
     <!-- 底部操作栏 -->
     <view class="bottom-bar">
-      <button class="add-cart" bindtap="addToCart">加入购物车</button>
-      <button class="buy-now" bindtap="buyNow">立即购买</button>
+      <button class="add-cart {{product.status === 0 || product.stock <= 0 ? 'disabled' : ''}}" bindtap="addToCart" disabled="{{product.status === 0 || product.stock <= 0}}">
+        <block wx:if="{{product.status === 0}}">已下架</block>
+        <block wx:elif="{{product.stock <= 0}}">售罄</block>
+        <block wx:else>加入购物车</block>
+      </button>
+      <button class="buy-now {{product.status === 0 || product.stock <= 0 ? 'disabled' : ''}}" bindtap="buyNow" disabled="{{product.status === 0 || product.stock <= 0}}">
+        <block wx:if="{{product.status === 0}}">已下架</block>
+        <block wx:elif="{{product.stock <= 0}}">售罄</block>
+        <block wx:else>立即购买</block>
+      </button>
     </view>
   </view>
 

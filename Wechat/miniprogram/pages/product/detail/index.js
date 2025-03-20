@@ -114,6 +114,23 @@ Page({
     const { product, quantity } = this.data
     if (!product) return
     
+    // 检查商品状态和库存
+    if (product.status === 0) {
+      wx.showToast({
+        title: '商品已下架',
+        icon: 'none'
+      })
+      return
+    }
+    
+    if (product.stock <= 0) {
+      wx.showToast({
+        title: '商品已售罄',
+        icon: 'none'
+      })
+      return
+    }
+    
     try {
       await addToCart({
         productId: product.id,
@@ -137,6 +154,23 @@ Page({
   buyNow() {
     const { product, quantity } = this.data
     if (!product) return
+    
+    // 检查商品状态和库存
+    if (product.status === 0) {
+      wx.showToast({
+        title: '商品已下架',
+        icon: 'none'
+      })
+      return
+    }
+    
+    if (product.stock <= 0) {
+      wx.showToast({
+        title: '商品已售罄',
+        icon: 'none'
+      })
+      return
+    }
     
     wx.navigateTo({
       url: `/pages/order/confirm/index?productId=${product.id}&quantity=${quantity}`

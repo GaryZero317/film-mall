@@ -213,6 +213,7 @@ page {
   overflow: hidden;
   box-shadow: var(--shadow);
   transition: all 0.3s ease;
+  position: relative;
 }
 
 .product-item:active {
@@ -311,4 +312,33 @@ page {
 
 .product-info .stock.sold-out {
   color: var(--accent-color);
+}
+
+/* 商品状态标签 */
+.product-status {
+  position: absolute;
+  top: 10rpx;
+  right: 10rpx;
+  padding: 6rpx 16rpx;
+  color: white;
+  font-size: 24rpx;
+  border-radius: 8rpx;
+  z-index: 10;
+}
+
+.off-shelf {
+  background-color: #999999;
+}
+
+.sold-out {
+  background-color: #ff4d4f;
+}
+
+/* 状态文本样式 */
+.status-text {
+  font-size: 24rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 20rpx;
+  display: inline-block;
+  color: white;
 } 

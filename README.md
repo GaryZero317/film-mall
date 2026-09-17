@@ -80,7 +80,7 @@ film-mall/
 ## 快速开始
 1. 克隆项目
 ```bash
-git clone https://github.com/your-username/film-mall.git
+git clone https://github.com/GaryZero317/film-mall.git
 ```
 
 2. 初始化数据库
